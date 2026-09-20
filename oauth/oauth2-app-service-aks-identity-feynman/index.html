@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OAuth2, App Service &amp; AKS Identity - Feynman Way of Understanding</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Space+Mono:wght@400;700&family=Patrick+Hand&display=swap');
+
+  :root {
+    --ink: #2b2b2b;
+    --paper: #faf6ee;
+    --paper2: #f1ead8;
+    --paper3: #fffdf8;
+    --accent: #d0662e;
+    --accent2: #3b6e5e;
+    --accent3: #4a5fa5;
+    --accent4: #c59b35;
+    --soft: #8a8272;
+    --line: #2b2b2b;
+    --redsoft: #f5d5bd;
+    --greensoft: #cfe3d8;
+    --bluesoft: #d6ddf0;
+    --yellowsoft: #f4e6b5;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Patrick Hand', 'Comic Sans MS', sans-serif;
+    font-size: 18px;
+    line-height: 1.52;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 30px 22px 80px;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Architects Daughter', 'Patrick Hand', sans-serif;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  h1 {
+    font-size: 2.12em;
+    text-align: center;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--soft);
+    font-size: 1.06em;
+    margin-bottom: 24px;
+  }
+  .micro-subtitle {
+    text-align:center;
+    font-family:'Space Mono', monospace;
+    font-size:.72em;
+    color:var(--soft);
+    margin:-10px 0 34px;
+    letter-spacing:.3px;
+  }
+  h2 {
+    font-size: 1.58em;
+    margin-top: 54px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h3 {
+    font-size: 1.24em;
+    margin-top: 28px;
+    color: var(--accent2);
+  }
+  h4 {
+    font-size: 1.03em;
+    margin: 18px 0 4px;
+    color: var(--accent3);
+  }
+  p { margin: 10px 0; }
+
+  .num {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    color: var(--paper);
+    background: var(--accent);
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55em;
+    flex-shrink: 0;
+  }
+
+  .card {
+    background: var(--paper2);
+    border: 2.5px solid var(--ink);
+    border-radius: 14px 18px 16px 20px / 18px 14px 20px 16px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    box-shadow: 4px 4px 0 rgba(43,43,43,0.15);
+  }
+  .card.note { border-color: var(--accent3); }
+  .card.warn { border-color: var(--accent); }
+  .card.good { border-color: var(--accent2); }
+  .card.question { border-color: var(--accent4); background: #f8f0d2; }
+
+  .tag {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.70em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 9px;
+    border-radius: 20px;
+    border: 2px solid var(--ink);
+    margin-bottom: 8px;
+  }
+  .tag.warn { background: var(--redsoft); }
+  .tag.good { background: var(--greensoft); }
+  .tag.note { background: var(--bluesoft); }
+  .tag.question { background: var(--yellowsoft); }
+
+  .glance {
+    background: #fff;
+    border-left: 5px solid var(--accent);
+    padding: 10px 16px;
+    margin: 14px 0;
+    font-size: 0.97em;
+  }
+  .glance b { color: var(--accent); font-family: 'Architects Daughter', sans-serif; }
+  .glance.blue { border-left-color: var(--accent3); }
+  .glance.blue b { color: var(--accent3); }
+  .glance.green { border-left-color: var(--accent2); }
+  .glance.green b { color: var(--accent2); }
+  .glance.gold { border-left-color: var(--accent4); }
+  .glance.gold b { color: #8a6a15; }
+
+  .divider {
+    text-align: center;
+    color: var(--soft);
+    margin: 46px 0 10px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 3px;
+  }
+
+  .loop-strip {
+    display:grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap:8px;
+    margin: 18px 0 24px;
+  }
+  .loop-step {
+    background:var(--paper3);
+    border:2px solid var(--ink);
+    border-radius:13px 16px 12px 15px;
+    padding:10px 8px;
+    text-align:center;
+    min-height:78px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .loop-step b { font-family:'Architects Daughter', sans-serif; font-size:.95em; }
+  .loop-step span { font-family:'Space Mono', monospace; font-size:.62em; color:var(--soft); margin-top:4px; }
+
+  .feynman-grid {
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px;
+    margin:16px 0;
+  }
+  .mini {
+    background:rgba(255,255,255,.55);
+    border:2px dashed var(--soft);
+    border-radius:12px;
+    padding:12px 14px;
+  }
+  .mini b { font-family:'Architects Daughter',sans-serif; color:var(--accent3); }
+
+  .five-grid {
+    display:grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap:8px;
+    margin:16px 0;
+  }
+  .five-grid > div {
+    border:2px solid var(--ink);
+    border-radius:12px;
+    padding:9px 7px;
+    background:#fff;
+    text-align:center;
+    min-height:86px;
+  }
+  .five-grid b { display:block; font-family:'Architects Daughter',sans-serif; color:var(--accent); }
+  .five-grid span { font-size:.82em; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-family: 'Patrick Hand', sans-serif;
+  }
+  th, td {
+    border: 2px solid var(--ink);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--paper2);
+    font-family: 'Architects Daughter', sans-serif;
+  }
+  tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
+
+  code {
+    font-family: 'Space Mono', monospace;
+    background: #eee2c9;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.86em;
+  }
+  pre {
+    font-family:'Space Mono', monospace;
+    font-size:.76em;
+    line-height:1.5;
+    background:#eee7d6;
+    border:2px solid var(--ink);
+    border-radius:12px;
+    padding:14px;
+    overflow:auto;
+  }
+
+  ul, ol { padding-left: 26px; }
+  li { margin: 4px 0; }
+
+  svg { display: block; margin: 18px auto; max-width: 100%; height: auto; }
+  .svg-wrap { overflow-x: auto; }
+  .sketch-box { fill: var(--paper2); stroke: var(--ink); stroke-width: 2.5; }
+  .sketch-box.accent { fill: var(--redsoft); }
+  .sketch-box.good { fill: var(--greensoft); }
+  .sketch-box.note { fill: var(--bluesoft); }
+  .sketch-box.gold { fill: var(--yellowsoft); }
+  .sketch-box.dim { fill: #eee7d6; stroke-dasharray: 5 4; }
+  text.lbl { font-family: 'Patrick Hand', sans-serif; fill: var(--ink); }
+  text.small { font-family: 'Space Mono', monospace; fill: var(--soft); font-size: 12px; }
+  text.title-lbl { font-family: 'Architects Daughter', sans-serif; font-weight: 700; fill: var(--ink); }
+  .arrow-line { stroke: var(--ink); stroke-width: 2.2; fill: none; }
+  .arrow-line.dashed { stroke-dasharray: 6 5; }
+  .arrow-line.accent { stroke: var(--accent); }
+  .arrow-line.green { stroke: var(--accent2); }
+  .arrow-line.blue { stroke: var(--accent3); }
+
+  .memory-line {
+    font-family:'Architects Daughter',sans-serif;
+    text-align:center;
+    font-size:1.12em;
+    padding:12px 14px;
+    margin:18px 0;
+    background:var(--paper3);
+    border-top:2px dashed var(--soft);
+    border-bottom:2px dashed var(--soft);
+  }
+
+  .sources {
+    font-family:'Space Mono', monospace;
+    font-size:.70em;
+    color:#655f54;
+    line-height:1.55;
+  }
+  .sources a { color:var(--accent3); word-break:break-word; }
+
+  .footer {
+    text-align: center;
+    color: var(--soft);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8em;
+    margin-top: 60px;
+    border-top: 2px dashed var(--soft);
+    padding-top: 16px;
+  }
+
+  @media (max-width: 720px) {
+    body { font-size:17px; padding:18px 14px 50px; }
+    .loop-strip { grid-template-columns:1fr; }
+    .feynman-grid { grid-template-columns:1fr; }
+    .five-grid { grid-template-columns:1fr; }
+  }
+  @media print {
+    body { max-width:none; padding:18mm; background:#fff; }
+    .card, .loop-step, .mini { box-shadow:none; break-inside:avoid; }
+    h2, h3, svg, table { break-inside:avoid; }
+    a { color:inherit; text-decoration:none; }
+  }
+
+  /* Diagram layout v2: labels never share space with arrows. */
+  .diagram-panel {
+    margin: 18px 0 24px;
+    padding: 12px 14px 14px;
+    background: rgba(255,255,255,.34);
+    border: 2px dashed rgba(138,130,114,.62);
+    border-radius: 16px;
+    overflow-x: auto;
+  }
+  .diagram-panel svg { margin: 2px auto 8px; width: 100%; min-width: 650px; }
+  .diagram-key {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:8px;
+    margin-top:10px;
+  }
+  .diagram-key .key {
+    background:var(--paper3);
+    border:1.7px solid #aaa08f;
+    border-radius:10px;
+    padding:8px 10px;
+    font-size:.88em;
+    line-height:1.35;
+  }
+  .diagram-key .key b {
+    font-family:'Space Mono',monospace;
+    font-size:.78em;
+    color:var(--accent3);
+  }
+  text.step-no {
+    font-family:'Space Mono',monospace;
+    font-size:12px;
+    font-weight:700;
+    fill:var(--ink);
+  }
+  .step-dot { fill:#fffdf8; stroke:var(--ink); stroke-width:1.8; }
+  .lane { stroke:#aaa08f; stroke-width:1.5; stroke-dasharray:5 5; }
+  @media (max-width:720px) {
+    .diagram-panel { padding:8px; }
+    .diagram-panel svg { min-width:720px; }
+  }
+</style>
+</head>
+<body>
+<h1>OAuth2, App Service &amp; AKS Identity</h1>
+<div class="subtitle">Feynman way of understanding - start from the problem, rebuild the mechanism, test the boundaries</div>
+<div class="micro-subtitle">not a glossary · not interview memorization · a mental model you can reconstruct</div>
+<div class="glance"><b>The one-line map:</b> first ask <i>who needs an identity?</i> A human normally leads you toward Authorization Code + OIDC. A workload leads you toward application identity. Azure-native resources can often use Managed Identity directly; a Kubernetes pod begins with a Kubernetes ServiceAccount identity, so Workload Identity federation bridges that identity into Microsoft Entra.</div>
+<div class="loop-strip">
+<div class="loop-step"><b>1 · Problem</b><span>why must this exist?</span></div>
+<div class="loop-step"><b>2 · Rebuild</b><span>basic facts only</span></div>
+<div class="loop-step"><b>3 · Draw</b><span>smallest useful model</span></div>
+<div class="loop-step"><b>4 · Break</b><span>what if I remove X?</span></div>
+<div class="loop-step"><b>5 · Explain</b><span>no jargon allowed</span></div>
+</div>
+<div class="card question">
+<span class="tag question">how to use this page</span>
+<p>Do not start by memorizing the diagrams. Cover the lower half of each section and ask yourself: <b>What problem am I solving? What must be true? Could I reconstruct the flow?</b> Then reveal the diagram and compare your model with it.</p>
+</div>
+<div class="divider">— PART 1 · THE ROOT QUESTION —</div>
+<h2><span class="num">1</span> Who needs an identity?</h2>
+<div class="card good">
+<span class="tag good">start with the problem</span>
+<p>An API receives a request. Before it allows anything useful, it needs to know <b>who or what is calling</b> and <b>what that caller is allowed to do</b>.</p>
+<p>That gives us two different questions:</p>
+<ul>
+<li><b>Authentication:</b> who are you?</li>
+<li><b>Authorization:</b> what may you do?</li>
+</ul>
+</div>
+<h3>Rebuild from basic facts</h3>
+<div class="feynman-grid">
+<div class="mini"><b>Fact 1</b><br/>A human can interact with a sign-in screen.</div>
+<div class="mini"><b>Fact 2</b><br/>A background service cannot stop and type a password.</div>
+<div class="mini"><b>Fact 3</b><br/>Some Azure resources already have an identity Entra can recognize.</div>
+<div class="mini"><b>Fact 4</b><br/>A Kubernetes pod begins with a Kubernetes identity, not automatically an Azure workload identity.</div>
+</div>
+<div class="diagram-panel">
+<svg viewbox="0 0 900 470" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="d1a" markerheight="7" markerwidth="9" orient="auto" refx="8" refy="3.5"><polygon fill="#2b2b2b" points="0 0,9 3.5,0 7"></polygon></marker></defs>
+<rect class="sketch-box gold" height="64" rx="12" width="300" x="300" y="24"></rect>
+<text class="title-lbl" font-size="18" text-anchor="middle" x="450" y="52">Who needs an identity?</text>
+<text class="small" text-anchor="middle" x="450" y="72">begin with the caller</text>
+<path class="arrow-line" d="M450 88 V125 H200 V155 M450 125 H700 V155" marker-end="url(#d1a)"></path>
+<rect class="sketch-box note" height="72" rx="11" width="220" x="90" y="155"></rect>
+<text class="title-lbl" font-size="17" text-anchor="middle" x="200" y="185">Human</text>
+<text class="small" text-anchor="middle" x="200" y="207">interactive sign-in</text>
+<rect class="sketch-box good" height="72" rx="11" width="220" x="590" y="155"></rect>
+<text class="title-lbl" font-size="17" text-anchor="middle" x="700" y="185">Workload</text>
+<text class="small" text-anchor="middle" x="700" y="207">service-to-service</text>
+<path class="arrow-line" d="M200 227 V280" marker-end="url(#d1a)"></path>
+<rect class="sketch-box accent" height="88" rx="11" width="240" x="80" y="280"></rect>
+<text class="title-lbl" font-size="16" text-anchor="middle" x="200" y="311">Authorization Code</text>
+<text class="lbl" font-size="14" text-anchor="middle" x="200" y="334">+ OIDC for sign-in</text>
+<text class="small" text-anchor="middle" x="200" y="354">user context</text>
+<path class="arrow-line" d="M700 227 V258 H555 V300 M700 258 H810 V300" marker-end="url(#d1a)"></path>
+<rect class="sketch-box good" height="92" rx="11" width="230" x="440" y="300"></rect>
+<text class="title-lbl" font-size="16" text-anchor="middle" x="555" y="331">Azure workload</text>
+<text class="lbl" font-size="14" text-anchor="middle" x="555" y="355">Managed Identity</text>
+<text class="small" text-anchor="middle" x="555" y="376">when supported</text>
+<rect class="sketch-box note" height="92" rx="11" width="180" x="710" y="300"></rect>
+<text class="title-lbl" font-size="16" text-anchor="middle" x="800" y="331">AKS pod</text>
+<text class="lbl" font-size="14" text-anchor="middle" x="800" y="355">ServiceAccount</text>
+<text class="small" text-anchor="middle" x="800" y="376">then federation</text>
+</svg>
+<div class="diagram-key"><div class="key"><b>HUMAN</b><br/>Think interactive authentication and delegated user context.</div><div class="key"><b>AZURE WORKLOAD</b><br/>If the hosting resource supports it, Managed Identity can represent the workload.</div><div class="key"><b>AKS POD</b><br/>The pod begins with a Kubernetes ServiceAccount identity; federation bridges trust into Entra.</div></div>
+</div>
+<div class="memory-line">Human? Think <b>delegation</b>.   Workload? Think <b>its own identity</b>.</div>
+<div class="card warn">
+<span class="tag warn">boundary</span>
+<p>This is a <b>decision aid</b>, not a complete OAuth catalog. Device Code, On-Behalf-Of, certificate credentials, federated credentials and other patterns exist. The point is to establish the first branch correctly before adding detail.</p>
+</div>
+<div class="divider">— PART 2 · OAUTH2 FROM FIRST PRINCIPLES —</div>
+<h2><span class="num">2</span> Authorization Code Flow — a human is involved</h2>
+<div class="card good">
+<span class="tag good">the problem</span>
+<p>A user wants to sign in to an application, and the application may also need permission to call an API <b>on that user's behalf</b>. We do not want the application collecting the user's Microsoft password.</p>
+</div>
+<h3>Rebuild it without OAuth vocabulary</h3>
+<ol>
+<li>The app sends the user to a trusted identity provider.</li>
+<li>The identity provider authenticates the user.</li>
+<li>Instead of throwing a powerful access token around in a redirect, it sends back a short-lived <b>code</b>.</li>
+<li>The proper client redeems that code at the token endpoint.</li>
+<li>The access token is then used against the API.</li>
+</ol>
+<h3>Case A — confidential server-side web app</h3>
+<div class="diagram-panel">
+<svg viewbox="0 0 900 560" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="d2a" markerheight="7" markerwidth="9" orient="auto" refx="8" refy="3.5"><polygon fill="#2b2b2b" points="0 0,9 3.5,0 7"></polygon></marker></defs>
+<rect class="sketch-box" height="60" rx="11" width="190" x="55" y="22"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="150" y="58">Browser / User</text>
+<rect class="sketch-box note" height="60" rx="11" width="190" x="355" y="22"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="450" y="58">Web App</text>
+<rect class="sketch-box accent" height="60" rx="11" width="190" x="655" y="22"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="750" y="58">Microsoft Entra</text>
+<line class="lane" x1="150" x2="150" y1="82" y2="525"></line><line class="lane" x1="450" x2="450" y1="82" y2="525"></line><line class="lane" x1="750" x2="750" y1="82" y2="525"></line>
+<path class="arrow-line" d="M150 125 H440" marker-end="url(#d2a)"></path><circle class="step-dot" cx="295" cy="108" r="15"></circle><text class="step-no" text-anchor="middle" x="295" y="112">1</text><text class="small" text-anchor="middle" x="295" y="151">Sign in</text>
+<path class="arrow-line" d="M450 190 H160" marker-end="url(#d2a)"></path><circle class="step-dot" cx="305" cy="173" r="15"></circle><text class="step-no" text-anchor="middle" x="305" y="177">2</text><text class="small" text-anchor="middle" x="305" y="216">302 → Entra</text>
+<path class="arrow-line" d="M150 255 H740" marker-end="url(#d2a)"></path><circle class="step-dot" cx="445" cy="238" r="15"></circle><text class="step-no" text-anchor="middle" x="445" y="242">3</text><text class="small" text-anchor="middle" x="445" y="281">Authorize + authenticate</text>
+<path class="arrow-line" d="M750 320 H160" marker-end="url(#d2a)"></path><circle class="step-dot" cx="455" cy="303" r="15"></circle><text class="step-no" text-anchor="middle" x="455" y="307">4</text><text class="small" text-anchor="middle" x="455" y="346">302 callback + code</text>
+<path class="arrow-line" d="M150 385 H440" marker-end="url(#d2a)"></path><circle class="step-dot" cx="295" cy="368" r="15"></circle><text class="step-no" text-anchor="middle" x="295" y="372">5</text><text class="small" text-anchor="middle" x="295" y="411">Callback reaches app</text>
+<path class="arrow-line" d="M450 450 H740" marker-end="url(#d2a)"></path><circle class="step-dot" cx="595" cy="433" r="15"></circle><text class="step-no" text-anchor="middle" x="595" y="437">6</text><text class="small" text-anchor="middle" x="595" y="476">Redeem code</text>
+<path class="arrow-line" d="M750 515 H460" marker-end="url(#d2a)"></path><circle class="step-dot" cx="605" cy="498" r="15"></circle><text class="step-no" text-anchor="middle" x="605" y="502">7</text><text class="small" text-anchor="middle" x="605" y="541">Tokens</text>
+</svg>
+<div class="diagram-key"><div class="key"><b>1–3</b><br/>The app does not collect the Microsoft password. The browser is redirected to Entra, where the user authenticates.</div><div class="key"><b>4–5</b><br/>Entra redirects the browser back to the registered callback with a short-lived authorization code.</div><div class="key"><b>6–7</b><br/>For this confidential server-side pattern, the server redeems the code at the token endpoint and receives tokens. Client authentication can use a secret or certificate; PKCE can also protect the code exchange.</div></div>
+</div>
+<div class="card note">
+<span class="tag note">important correction</span>
+<p><b>Authorization Code Flow is not only a server-side flow.</b> SPAs, mobile apps and desktop apps can also use it. The difference is whether the client can safely keep a credential.</p>
+</div>
+<h3>Case B — SPA / public client</h3>
+<div class="diagram-panel">
+<svg viewbox="0 0 900 350" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="d3a" markerheight="7" markerwidth="9" orient="auto" refx="8" refy="3.5"><polygon fill="#2b2b2b" points="0 0,9 3.5,0 7"></polygon></marker></defs>
+<rect class="sketch-box note" height="82" rx="11" width="250" x="70" y="35"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="195" y="70">SPA / Public Client</text><text class="small" text-anchor="middle" x="195" y="96">cannot protect a client secret</text>
+<rect class="sketch-box accent" height="82" rx="11" width="250" x="580" y="35"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="705" y="70">Microsoft Entra</text><text class="small" text-anchor="middle" x="705" y="96">authorization + token endpoints</text>
+<path class="arrow-line" d="M320 160 H570" marker-end="url(#d3a)"></path><circle class="step-dot" cx="445" cy="143" r="15"></circle><text class="step-no" text-anchor="middle" x="445" y="147">1</text><text class="small" text-anchor="middle" x="445" y="187">authorize + PKCE challenge</text>
+<path class="arrow-line" d="M580 225 H330" marker-end="url(#d3a)"></path><circle class="step-dot" cx="455" cy="208" r="15"></circle><text class="step-no" text-anchor="middle" x="455" y="212">2</text><text class="small" text-anchor="middle" x="455" y="252">authorization code</text>
+<path class="arrow-line" d="M320 290 H570" marker-end="url(#d3a)"></path><circle class="step-dot" cx="445" cy="273" r="15"></circle><text class="step-no" text-anchor="middle" x="445" y="277">3</text><text class="small" text-anchor="middle" x="445" y="317">code + PKCE verifier → tokens</text>
+</svg>
+<div class="diagram-key"><div class="key"><b>KEY DIFFERENCE</b><br/>The SPA itself redeems the code, so tokens can exist in the browser. There is no client secret in browser JavaScript.</div><div class="key"><b>WHY PKCE?</b><br/>The challenge/verifier pair binds the authorization-code exchange to the client that started it.</div></div>
+</div>
+<table>
+<tr><th></th><th>Confidential web app</th><th>SPA / public client</th></tr>
+<tr><td><b>Can safely hold app credential?</b></td><td>Yes — server side</td><td>No</td></tr>
+<tr><td><b>Client secret / certificate</b></td><td>May authenticate client with secret or certificate</td><td>Never place one in the browser</td></tr>
+<tr><td><b>PKCE</b></td><td>Recommended</td><td>Required for Microsoft identity platform SPA auth-code flow</td></tr>
+<tr><td><b>Where token redemption occurs</b></td><td>Server back channel</td><td>SPA can redeem directly using PKCE</td></tr>
+</table>
+<div class="card question">
+<span class="tag question">break it</span>
+<p><b>What if I put a client secret in JavaScript?</b> It is no longer a secret. Anyone who can inspect the client can obtain it.</p>
+<p><b>What if somebody steals only the authorization code in a PKCE flow?</b> They still need the matching verifier to redeem it.</p>
+</div>
+<div class="glance green"><b>Say it simply:</b> Authorization Code Flow separates <i>user interaction</i> from <i>token issuance</i>. PKCE binds the code to the client that started the flow. Confidential clients can additionally prove their own identity with a server-held credential.</div>
+<h2><span class="num">3</span> Client Credentials — no human is present</h2>
+<div class="card good">
+<span class="tag good">the problem</span>
+<p>APIM, a daemon, Function, scheduler or backend service needs to call another API while nobody is sitting at a browser. So the workload must act as <b>itself</b>, not pretend to be a user.</p>
+</div>
+<h3>Fundamental facts</h3>
+<pre>There is no human approval screen at runtime.
+
+The caller needs its own identity.
+
+Entra must have some way to trust that caller.
+
+The API must decide what that application identity is allowed to do.</pre>
+<div class="diagram-panel">
+<svg viewbox="0 0 900 330" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="d4a" markerheight="7" markerwidth="9" orient="auto" refx="8" refy="3.5"><polygon fill="#2b2b2b" points="0 0,9 3.5,0 7"></polygon></marker></defs>
+<rect class="sketch-box note" height="84" rx="11" width="220" x="55" y="70"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="165" y="105">Calling Service</text><text class="small" text-anchor="middle" x="165" y="131">APIM · daemon · API</text>
+<rect class="sketch-box accent" height="84" rx="11" width="220" x="340" y="28"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="450" y="63">Microsoft Entra</text><text class="small" text-anchor="middle" x="450" y="89">token endpoint</text>
+<rect class="sketch-box good" height="84" rx="11" width="220" x="625" y="70"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="735" y="105">Protected API</text><text class="small" text-anchor="middle" x="735" y="131">resource server</text>
+<path class="arrow-line" d="M275 93 L335 73" marker-end="url(#d4a)"></path><circle class="step-dot" cx="300" cy="63" r="15"></circle><text class="step-no" text-anchor="middle" x="300" y="67">1</text>
+<path class="arrow-line" d="M450 112 L280 128" marker-end="url(#d4a)"></path><circle class="step-dot" cx="370" cy="141" r="15"></circle><text class="step-no" text-anchor="middle" x="370" y="145">2</text>
+<path class="arrow-line" d="M275 205 H620" marker-end="url(#d4a)"></path><circle class="step-dot" cx="448" cy="188" r="15"></circle><text class="step-no" text-anchor="middle" x="448" y="192">3</text><text class="small" text-anchor="middle" x="448" y="232">Bearer access token</text>
+<rect class="sketch-box dim" height="50" rx="10" width="420" x="240" y="260"></rect><text class="lbl" font-size="14" text-anchor="middle" x="450" y="291">No human · no browser redirect · workload identity only</text>
+</svg>
+<div class="diagram-key"><div class="key"><b>1 · AUTHENTICATE WORKLOAD</b><br/>The service proves its own identity using a credential mechanism such as Managed Identity, certificate, secret, or federation.</div><div class="key"><b>2 · GET TOKEN</b><br/>Entra issues an access token containing the application identity and granted authorization claims.</div><div class="key"><b>3 · CALL API</b><br/>The API validates the token and enforces its own authorization rules.</div></div>
+</div>
+<div class="card good">
+<span class="tag good">setup vs runtime</span>
+<p><b>Setup:</b> define what application permissions exist and grant the caller only what it needs.</p>
+<p><b>Runtime:</b> caller authenticates → Entra issues a token → API validates the token and enforces the granted application permission, commonly represented by app roles in the <code>roles</code> claim.</p>
+</div>
+<div class="card warn">
+<span class="tag warn">boundary</span>
+<p><b>Managed Identity does not replace OAuth.</b> It replaces the burden of storing a client secret or certificate for supported Azure workloads. Entra still issues an access token, and the target API still validates and authorizes that token.</p>
+</div>
+<h3>OAuth2 vs OIDC — keep the jobs separate</h3>
+<div class="glance"><b>OAuth 2.0:</b> obtain authorization to access a resource. <b>OIDC:</b> adds an identity layer for user sign-in, including an ID token describing the authenticated user to the client.</div>
+<div class="memory-line">Access token → for the API.    ID token → for the client application.</div>
+<div class="divider">— PART 3 · APP SERVICE WITHOUT THE MYTHS —</div>
+<h2><span class="num">4</span> App Service, Functions and Logic Apps Standard</h2>
+<div class="card good">
+<span class="tag good">the problem</span>
+<p>You want Microsoft to run application code or workflows without giving you a VM to patch, IIS to maintain or an operating system to own. Azure therefore provides managed hosting layers.</p>
+</div>
+<h3>The useful mnemonic</h3>
+<p>Your original picture — <b>App Service underneath, Web App / Function App / Logic Apps Standard above</b> — is useful for remembering the family resemblance. Just do not interpret it as “all three are literally the exact same runtime.”</p>
+<div class="diagram-panel">
+<svg viewbox="0 0 900 390" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="d5a" markerheight="7" markerwidth="9" orient="auto" refx="8" refy="3.5"><polygon fill="#2b2b2b" points="0 0,9 3.5,0 7"></polygon></marker></defs>
+<rect class="sketch-box note" height="82" rx="11" width="220" x="60" y="38"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="170" y="73">Web App</text><text class="small" text-anchor="middle" x="170" y="99">web / API workload</text>
+<rect class="sketch-box note" height="82" rx="11" width="220" x="340" y="38"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="450" y="73">Function App</text><text class="small" text-anchor="middle" x="450" y="99">Functions runtime</text>
+<rect class="sketch-box note" height="82" rx="11" width="220" x="620" y="38"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="730" y="68">Logic Apps Standard</text><text class="small" text-anchor="middle" x="730" y="93">workflow runtime</text>
+<path class="arrow-line" d="M170 120 V180 M450 120 V180 M730 120 V180" marker-end="url(#d5a)"></path>
+<rect class="sketch-box accent" height="92" rx="13" width="690" x="105" y="180"></rect><text class="title-lbl" font-size="20" text-anchor="middle" x="450" y="218">Azure App Service hosting family</text><text class="lbl" font-size="15" text-anchor="middle" x="450" y="248">managed hosting · HTTPS · deployment · scaling · networking</text>
+<rect class="sketch-box dim" height="48" rx="10" width="520" x="190" y="315"></rect><text class="small" text-anchor="middle" x="450" y="345">Shared platform family does not mean identical runtime internals.</text>
+</svg>
+<div class="diagram-key"><div class="key"><b>MEMORY MODEL</b><br/>These services share App Service platform capabilities, but each hosts a different runtime and programming model.</div><div class="key"><b>LOGIC APPS STANDARD</b><br/>It uses the Functions extensibility model, which is why it inherits important App Service / Functions hosting characteristics.</div></div>
+</div>
+<div class="glance blue"><b>Say it simply:</b> Web Apps, Functions and Logic Apps Standard live in the App Service/Functions hosting ecosystem. They inherit many of the same platform capabilities, while the runtime sitting above the platform differs.</div>
+<h2><span class="num">5</span> Kudu — why a second site exists</h2>
+<div class="card good">
+<span class="tag good">the problem</span>
+<p>With your own Windows server you might RDP to the machine, inspect files, run commands and deploy software. App Service deliberately does not give you that kind of machine ownership. Yet operators and deployment tooling still need a management surface.</p>
+</div>
+<h3>Rebuild the solution</h3>
+<pre>I need my application endpoint.
+
+I also need deployment / diagnostics / console capabilities.
+
+Those are different jobs.
+
+Therefore a managed PaaS can expose a separate companion management site.</pre>
+<div class="diagram-panel">
+<svg viewbox="0 0 900 350" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="d6a" markerheight="7" markerwidth="9" orient="auto" refx="8" refy="3.5"><polygon fill="#2b2b2b" points="0 0,9 3.5,0 7"></polygon></marker></defs>
+<rect class="sketch-box gold" height="64" rx="11" width="250" x="325" y="25"></rect><text class="title-lbl" font-size="18" text-anchor="middle" x="450" y="63">One App Service app</text>
+<path class="arrow-line" d="M450 89 V125 H220 V165 M450 125 H680 V165" marker-end="url(#d6a)"></path>
+<rect class="sketch-box good" height="105" rx="11" width="280" x="80" y="165"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="220" y="198">Main Site</text><text class="small" text-anchor="middle" x="220" y="224">yourapp.azurewebsites.net</text><text class="lbl" font-size="14" text-anchor="middle" x="220" y="250">application traffic</text>
+<rect class="sketch-box accent" height="105" rx="11" width="280" x="540" y="165"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="680" y="198">SCM / Kudu Site</text><text class="small" text-anchor="middle" x="680" y="224">yourapp.scm.azurewebsites.net</text><text class="lbl" font-size="14" text-anchor="middle" x="680" y="250">deploy · console · diagnostics</text>
+</svg>
+<div class="diagram-key"><div class="key"><b>MAIN SITE</b><br/>This is the runtime surface your application or API clients normally call.</div><div class="key"><b>SCM SITE</b><br/>Kudu is the companion management/deployment surface. Treat runtime, SCM, and Azure management APIs as separate paths when troubleshooting.</div></div>
+</div>
+<div class="card note">
+<span class="tag note">terminology correction</span>
+<p><b>Do not memorize “Kudu is a sidecar.”</b> Microsoft describes Kudu as a <b>companion app</b> created for an App Service app and exposed through the SCM endpoint. “Sidecar” has a more specific meaning in container/Kubernetes architecture and creates the wrong picture here.</p>
+</div>
+<div class="card question">
+<span class="tag question">break it</span>
+<p><b>What if the main application endpoint is reachable but the SCM endpoint is blocked?</b> Application traffic can still be conceptually separate from deployment/management access; however, deployment or troubleshooting methods that depend on SCM/Kudu can fail.</p>
+<p><b>What if I protect the application with authentication?</b> Do not assume every management path behaves identically. Treat runtime traffic, SCM access, Azure control-plane operations and workflow callback APIs as separate paths and verify the exact path involved.</p>
+</div>
+<div class="divider">— PART 4 · LOGIC APPS STANDARD AUTH —</div>
+<h2><span class="num">6</span> APIM → Logic Apps Standard: two separate questions</h2>
+<div class="card warn">
+<span class="tag warn">the trap</span>
+<p>It is easy to mix two directions together:</p>
+<ul>
+<li><b>Inbound:</b> how does APIM prove it may trigger the Logic App?</li>
+<li><b>Outbound:</b> how does the Logic App prove its identity when it calls Service Bus, Key Vault, Storage or another API?</li>
+</ul>
+<p>They are different security problems.</p>
+</div>
+<div class="diagram-panel">
+<svg viewbox="0 0 900 330" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="d7a" markerheight="7" markerwidth="9" orient="auto" refx="8" refy="3.5"><polygon fill="#2b2b2b" points="0 0,9 3.5,0 7"></polygon></marker></defs>
+<rect class="sketch-box note" height="90" rx="11" width="205" x="55" y="90"></rect><text class="title-lbl" font-size="18" text-anchor="middle" x="158" y="126">APIM</text><text class="small" text-anchor="middle" x="158" y="151">caller</text>
+<rect class="sketch-box accent" height="140" rx="11" width="210" x="345" y="65"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="450" y="103">Logic Apps Standard</text><line stroke="#2b2b2b" stroke-dasharray="3 3" stroke-width="1.3" x1="365" x2="535" y1="120" y2="120"></line><text class="lbl" font-size="14" text-anchor="middle" x="450" y="148">Request trigger</text><text class="small" text-anchor="middle" x="450" y="178">workflow identity</text>
+<rect class="sketch-box good" height="90" rx="11" width="205" x="640" y="90"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="742" y="126">Azure Resource</text><text class="small" text-anchor="middle" x="742" y="151">Service Bus · KV · API</text>
+<path class="arrow-line" d="M260 135 H340" marker-end="url(#d7a)"></path><circle class="step-dot" cx="300" cy="135" r="15"></circle><text class="step-no" text-anchor="middle" x="300" y="139">1</text>
+<path class="arrow-line" d="M555 135 H635" marker-end="url(#d7a)"></path><circle class="step-dot" cx="595" cy="135" r="15"></circle><text class="step-no" text-anchor="middle" x="595" y="139">2</text>
+<rect class="sketch-box gold" height="52" rx="10" width="620" x="140" y="250"></rect><text class="lbl" font-size="15" text-anchor="middle" x="450" y="282">Two separate questions: who may trigger me? · who am I when I call next?</text>
+</svg>
+<div class="diagram-key"><div class="key"><b>INBOUND</b><br/>APIM must satisfy the Request trigger's protection model — for example a SAS callback URL or Entra/Easy Auth configuration.</div><div class="key"><b>OUTBOUND</b><br/>After the workflow starts, the Logic App can use its own Managed Identity to call supported downstream resources.</div></div>
+</div>
+<h3>Inbound option 1 — SAS callback URL</h3>
+<p>A Request trigger can expose a generated callback URL containing a signature. Possession of that signed URL is the credential used to invoke the trigger. Treat it as a secret: store it securely, avoid logging it, and rotate when needed.</p>
+<h3>Inbound option 2 — Microsoft Entra / Easy Auth</h3>
+<p>For a Standard workflow that starts with the Request trigger, App Service / Azure Functions authentication (“Easy Auth”) can protect inbound calls. A caller such as APIM can use an Entra identity — including a managed identity when the configuration supports the intended audience — to obtain a bearer token and call the protected endpoint.</p>
+<table>
+<tr><th></th><th>SAS callback</th><th>Entra / Easy Auth</th></tr>
+<tr><td><b>Caller proves access by</b></td><td>Possessing signed callback URL</td><td>Presenting valid Entra access token</td></tr>
+<tr><td><b>Secret to manage?</b></td><td>Yes — protect the signed URL / keys</td><td>No application secret needed when caller uses Managed Identity</td></tr>
+<tr><td><b>Identity-rich?</b></td><td>Credential proves possession, not a rich caller identity model</td><td>Yes — token claims can identify the calling principal</td></tr>
+<tr><td><b>Best mental model</b></td><td>Signed door key</td><td>Identity badge checked at the door</td></tr>
+</table>
+<div class="card note">
+<span class="tag note">what not to memorize</span>
+<p>Do <b>not</b> memorize the blanket statement “Easy Auth locks Kudu and therefore breaks <code>listCallbackUrl</code>, run history and deployment.” Kudu/SCM, Azure management APIs, workflow callback operations and runtime HTTP requests are distinct surfaces. Security and networking settings can interact, but diagnose the actual path instead of assuming one universal failure mechanism.</p>
+</div>
+<h3>Outbound — Managed Identity is the natural default</h3>
+<p>Once the workflow is running, a Standard Logic App can use its system-assigned or user-assigned managed identity for supported connectors/actions to access Entra-protected Azure resources. That removes stored credentials from the workflow.</p>
+<div class="memory-line">Inbound asks: <b>who may trigger me?</b>    Outbound asks: <b>who am I when I call the next thing?</b></div>
+<div class="divider">— PART 5 · AKS IDENTITY, CORRECTLY —</div>
+<h2><span class="num">7</span> AKS has Azure identities — and pods have Kubernetes identities</h2>
+<div class="card good">
+<span class="tag good">the problem</span>
+<p>A pod running your microservice needs to read Key Vault or send to Service Bus. Kubernetes can identify the workload with a <b>ServiceAccount</b>, but Microsoft Entra does not automatically treat every Kubernetes ServiceAccount as an Azure identity.</p>
+</div>
+<h3>First remove a common misconception</h3>
+<div class="glance blue"><b>AKS itself is absolutely an Azure resource.</b> The AKS cluster uses Azure identities for cluster operations. The federation question appears specifically at the <b>workload/pod layer</b>, because the pod starts with a Kubernetes ServiceAccount identity.</div>
+<div class="diagram-panel">
+<svg viewbox="0 0 900 480" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="d8a" markerheight="7" markerwidth="9" orient="auto" refx="8" refy="3.5"><polygon fill="#2b2b2b" points="0 0,9 3.5,0 7"></polygon></marker></defs>
+<text class="title-lbl" font-size="17" text-anchor="middle" x="260" y="32">Kubernetes identity world</text><text class="title-lbl" font-size="17" text-anchor="middle" x="690" y="32">Microsoft Entra / Azure world</text>
+<rect class="sketch-box note" height="84" rx="11" width="180" x="45" y="70"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="135" y="105">Pod</text><text class="small" text-anchor="middle" x="135" y="130">microservice</text>
+<rect class="sketch-box note" height="84" rx="11" width="210" x="270" y="70"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="375" y="103">ServiceAccount</text><text class="small" text-anchor="middle" x="375" y="128">projected OIDC token</text>
+<rect class="sketch-box accent" height="84" rx="11" width="210" x="535" y="70"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="640" y="103">Entra Identity</text><text class="small" text-anchor="middle" x="640" y="128">UAMI or app registration</text>
+<rect class="sketch-box good" height="84" rx="11" width="105" x="775" y="70"></rect><text class="title-lbl" font-size="15" text-anchor="middle" x="827" y="103">Access</text><text class="title-lbl" font-size="15" text-anchor="middle" x="827" y="126">Token</text>
+<path class="arrow-line" d="M225 112 H265 M480 112 H530 M745 112 H770" marker-end="url(#d8a)"></path>
+<rect class="sketch-box gold" height="90" rx="11" width="360" x="300" y="205"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="480" y="238">Federated Identity Credential</text><text class="small" text-anchor="middle" x="480" y="265">trust: issuer + subject + audience</text><path class="arrow-line dashed" d="M375 154 V205 M640 154 V205"></path>
+<rect class="sketch-box dim" height="88" rx="11" width="330" x="60" y="355"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="225" y="388">AKS Cluster Identity</text><text class="small" text-anchor="middle" x="225" y="414">Azure-side cluster operations</text>
+<rect class="sketch-box good" height="88" rx="11" width="330" x="510" y="355"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="675" y="388">Pod Workload Identity</text><text class="small" text-anchor="middle" x="675" y="414">ServiceAccount → federation → Entra</text>
+</svg>
+<div class="diagram-key"><div class="key"><b>1 · KUBERNETES KNOWS THE POD</b><br/>The workload starts with a ServiceAccount identity and projected OIDC token.</div><div class="key"><b>2 · FEDERATION ESTABLISHES TRUST</b><br/>Entra is configured to trust a specific issuer, ServiceAccount subject, and audience for a specific Entra identity.</div><div class="key"><b>3 · ENTRA ISSUES AZURE TOKEN</b><br/>The workload exchanges its projected token for an Entra access token and then calls the protected resource.</div></div>
+</div>
+<h3>Rebuild the mechanism</h3>
+<ol>
+<li>The pod runs as a Kubernetes ServiceAccount.</li>
+<li>AKS exposes an OIDC issuer and provides a projected ServiceAccount token to the workload.</li>
+<li>A Federated Identity Credential tells Entra which issuer + subject + audience it should trust for a particular Entra identity.</li>
+<li>The Azure Identity library uses the projected token to obtain an Entra access token.</li>
+<li>The workload uses that access token against Key Vault, Service Bus, Storage or another protected API.</li>
+</ol>
+<div class="card note">
+<span class="tag note">the corrected sentence to remember</span>
+<p><b>APIM can have a Managed Identity directly because the APIM resource can be assigned an Azure identity. A pod starts with a Kubernetes ServiceAccount identity, so Workload Identity federation maps trust from that Kubernetes identity to an Entra identity.</b></p>
+</div>
+<div class="card warn">
+<span class="tag warn">another important boundary</span>
+<p>Do not say “AKS uses federation instead of Managed Identity.” A federated Kubernetes workload can target a <b>user-assigned managed identity</b> or an Entra application. Meanwhile, the AKS cluster itself also uses Azure identities for cluster operations. The correct distinction is <b>cluster identity vs workload identity</b>.</p>
+</div>
+<h3>Why federation exists</h3>
+<div class="glance green"><b>Plain English:</b> Kubernetes already knows who the pod is. Azure already knows how to authorize Entra identities. Federation is the agreement that lets Azure trust a specific Kubernetes identity without giving the pod a long-lived secret.</div>
+<div class="card question">
+<span class="tag question">break it</span>
+<p><b>What if the ServiceAccount subject does not match the federated credential?</b> Entra should not accept that workload identity.</p>
+<p><b>What if the audience is wrong?</b> The token exchange fails because the presented token does not match the trust configuration.</p>
+<p><b>What if federation works but the Entra identity has no RBAC/data-plane permission on Key Vault or Service Bus?</b> Authentication can succeed and authorization can still fail.</p>
+</div>
+<div class="divider">— PART 6 · ONE-GLANCE REBUILD —</div>
+<h2><span class="num">8</span> Reconstruct the whole day from one page</h2>
+<div class="diagram-panel">
+<svg viewbox="0 0 900 560" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="d9a" markerheight="7" markerwidth="9" orient="auto" refx="8" refy="3.5"><polygon fill="#2b2b2b" points="0 0,9 3.5,0 7"></polygon></marker></defs>
+<rect class="sketch-box gold" height="64" rx="11" width="270" x="315" y="22"></rect><text class="title-lbl" font-size="18" text-anchor="middle" x="450" y="60">Who or what is calling?</text>
+<path class="arrow-line" d="M450 86 V125 H210 V160 M450 125 H690 V160" marker-end="url(#d9a)"></path>
+<rect class="sketch-box note" height="78" rx="11" width="230" x="95" y="160"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="210" y="193">Human</text><text class="small" text-anchor="middle" x="210" y="218">interactive identity</text>
+<rect class="sketch-box good" height="78" rx="11" width="230" x="575" y="160"></rect><text class="title-lbl" font-size="17" text-anchor="middle" x="690" y="193">Workload</text><text class="small" text-anchor="middle" x="690" y="218">service identity</text>
+<path class="arrow-line" d="M210 238 V295" marker-end="url(#d9a)"></path>
+<rect class="sketch-box accent" height="100" rx="11" width="280" x="70" y="295"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="210" y="328">Authorization Code + OIDC</text><text class="small" text-anchor="middle" x="210" y="354">PKCE protects code exchange</text><text class="small" text-anchor="middle" x="210" y="376">client type changes mechanics</text>
+<path class="arrow-line" d="M690 238 V272 H555 V315 M690 272 H810 V315" marker-end="url(#d9a)"></path>
+<rect class="sketch-box good" height="88" rx="11" width="250" x="430" y="315"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="555" y="347">Azure Workload</text><text class="lbl" font-size="14" text-anchor="middle" x="555" y="374">Managed Identity</text>
+<rect class="sketch-box note" height="88" rx="11" width="180" x="710" y="315"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="800" y="347">AKS Pod</text><text class="lbl" font-size="14" text-anchor="middle" x="800" y="374">OIDC Federation</text>
+<path class="arrow-line dashed" d="M210 395 V445 H450 V470 M555 403 V445 H450 M800 403 V445 H450" marker-end="url(#d9a)"></path>
+<rect class="sketch-box dim" height="64" rx="11" width="370" x="265" y="470"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="450" y="497">Then ask authorization</text><text class="small" text-anchor="middle" x="450" y="519">scope · app role · RBAC · data-plane permission</text>
+</svg>
+<div class="diagram-key"><div class="key"><b>START</b><br/>Identify the caller before choosing an Azure feature.</div><div class="key"><b>IDENTITY</b><br/>Choose the authentication mechanism that matches the human/workload and hosting model.</div><div class="key"><b>AUTHORIZATION</b><br/>Authentication only establishes identity. The target still decides what that identity may do.</div></div>
+</div>
+<h3>The five Feynman questions</h3>
+<div class="five-grid">
+<div><b>Why?</b><span>What problem forced this to exist?</span></div>
+<div><b>How?</b><span>What actually happens underneath?</span></div>
+<div><b>What if?</b><span>What changes when I remove one part?</span></div>
+<div><b>Boundary?</b><span>Where does the sentence stop being true?</span></div>
+<div><b>Rebuild?</b><span>Can I derive it again from the problem?</span></div>
+</div>
+<h3>Blank-page challenge</h3>
+<div class="card question">
+<span class="tag question">close the notes first</span>
+<ol>
+<li>Draw Authorization Code Flow for a confidential web app.</li>
+<li>Now redraw it for a SPA. What disappeared? What became essential?</li>
+<li>Explain why Client Credentials has no user.</li>
+<li>Draw App Service main site vs SCM/Kudu site.</li>
+<li>Explain inbound vs outbound identity for APIM → Logic Apps Standard → Service Bus.</li>
+<li>Draw an AKS pod reaching Key Vault through Workload Identity.</li>
+<li>Explain the difference between <b>AKS cluster identity</b> and <b>pod workload identity</b>.</li>
+</ol>
+<p>Wherever you write <code>???</code>, that is the next thing to study — not the whole chapter again.</p>
+</div>
+<h3>Interview-length explanations</h3>
+<div class="card good">
+<span class="tag good">authorization code</span>
+<p>“When a human signs in, I normally think Authorization Code Flow. The user authenticates with Entra, the client receives a short-lived code, and that code is redeemed for tokens. PKCE protects the code exchange. A server-side confidential client can also authenticate itself with a secret or certificate, while a SPA cannot safely hold one.”</p>
+</div>
+<div class="card good">
+<span class="tag good">managed identity</span>
+<p>“Managed Identity is how an Azure workload can authenticate to Entra without me storing an application credential. It doesn't remove tokens or authorization — Entra still issues an access token, and the target still enforces permissions.”</p>
+</div>
+<div class="card good">
+<span class="tag good">AKS workload identity</span>
+<p>“The AKS cluster and the pod are different identity layers. The cluster can use Azure managed identities for Azure operations. A pod starts with a Kubernetes ServiceAccount; Workload Identity uses OIDC federation so Entra can trust that specific ServiceAccount and issue Azure access tokens without a long-lived secret.”</p>
+</div>
+<div class="card good">
+<span class="tag good">Kudu</span>
+<p>“Kudu is the companion SCM site App Service creates for deployment and operational tooling. My app traffic goes to the main site; Kudu lives on the <code>.scm.azurewebsites.net</code> endpoint. I treat runtime, SCM and Azure management paths as separate surfaces when troubleshooting access.”</p>
+</div>
+<div class="divider">— VERIFIED REFERENCE NOTES —</div>
+<div class="sources">
+<p><b>Microsoft Learn references used to verify this study sheet:</b></p>
+<ul>
+<li>Authorization Code Flow: <a href="https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow">Microsoft identity platform and OAuth 2.0 authorization code flow</a></li>
+<li>MSAL authentication flows: <a href="https://learn.microsoft.com/en-us/entra/identity-platform/msal-authentication-flows">Authentication flow support in MSAL</a></li>
+<li>Public vs confidential clients: <a href="https://learn.microsoft.com/en-us/entra/identity-platform/msal-client-applications">Public and confidential client apps</a></li>
+<li>Kudu / SCM: <a href="https://learn.microsoft.com/en-us/azure/app-service/resources-kudu">Kudu service overview</a></li>
+<li>Logic Apps security: <a href="https://learn.microsoft.com/en-us/azure/logic-apps/logic-apps-securing-a-logic-app">Secure access and data in workflows</a></li>
+<li>Logic Apps managed identities: <a href="https://learn.microsoft.com/en-us/azure/logic-apps/authenticate-with-managed-identity">Authenticate workflow connections with managed identities</a></li>
+<li>AKS Workload Identity: <a href="https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview">Use a Microsoft Entra Workload ID on AKS</a></li>
+</ul>
+</div>
+<div class="footer">Feynman field notes · rebuild → draw → predict → break → explain</div>
+</body>
+</html>
