@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OAuth2, App Service, and AKS Identity - Field Notes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Space+Mono:wght@400;700&family=Patrick+Hand&display=swap');
+
+  :root {
+    --ink: #2b2b2b;
+    --paper: #faf6ee;
+    --paper2: #f1ead8;
+    --accent: #d0662e;
+    --accent2: #3b6e5e;
+    --accent3: #4a5fa5;
+    --line: #2b2b2b;
+    --soft: #8a8272;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Patrick Hand', 'Comic Sans MS', sans-serif;
+    font-size: 18px;
+    line-height: 1.5;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 30px 22px 80px;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Architects Daughter', 'Patrick Hand', sans-serif;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    font-size: 2.1em;
+    text-align: center;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--soft);
+    font-size: 1.05em;
+    margin-bottom: 36px;
+  }
+
+  h2 {
+    font-size: 1.55em;
+    margin-top: 54px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .num {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    color: var(--paper);
+    background: var(--accent);
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55em;
+    flex-shrink: 0;
+  }
+
+  h3 {
+    font-size: 1.2em;
+    margin-top: 26px;
+    color: var(--accent2);
+  }
+
+  p { margin: 10px 0; }
+
+  .card {
+    background: var(--paper2);
+    border: 2.5px solid var(--ink);
+    border-radius: 14px 18px 16px 20px / 18px 14px 20px 16px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    box-shadow: 4px 4px 0 rgba(43,43,43,0.15);
+  }
+
+  .card.note { border-color: var(--accent3); }
+  .card.warn { border-color: var(--accent); }
+  .card.good { border-color: var(--accent2); }
+
+  .tag {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 9px;
+    border-radius: 20px;
+    border: 2px solid var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .tag.warn { background: #f5d5bd; }
+  .tag.good { background: #cfe3d8; }
+  .tag.note { background: #d6ddf0; }
+
+  svg { display: block; margin: 18px auto; max-width: 100%; height: auto; }
+  .svg-wrap { overflow-x: auto; }
+
+  .sketch-box {
+    fill: var(--paper2);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .sketch-box.accent { fill: #f5d5bd; }
+  .sketch-box.good { fill: #cfe3d8; }
+  .sketch-box.note { fill: #d6ddf0; }
+  .sketch-box.dim { fill: #eee7d6; stroke-dasharray: 5 4; }
+
+  text.lbl {
+    font-family: 'Patrick Hand', sans-serif;
+    fill: var(--ink);
+  }
+  text.small {
+    font-family: 'Space Mono', monospace;
+    fill: var(--soft);
+    font-size: 12px;
+  }
+  text.title-lbl {
+    font-family: 'Architects Daughter', sans-serif;
+    font-weight: 700;
+    fill: var(--ink);
+  }
+
+  .arrow-line { stroke: var(--ink); stroke-width: 2.2; fill: none; }
+  .arrow-line.dashed { stroke-dasharray: 6 5; }
+  .arrow-line.accent { stroke: var(--accent); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-family: 'Patrick Hand', sans-serif;
+  }
+  th, td {
+    border: 2px solid var(--ink);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--paper2);
+    font-family: 'Architects Daughter', sans-serif;
+  }
+  tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
+
+  .glance {
+    background: #fff;
+    border-left: 5px solid var(--accent);
+    padding: 10px 16px;
+    margin: 14px 0;
+    font-size: 0.95em;
+  }
+  .glance b { color: var(--accent); font-family: 'Architects Daughter', sans-serif; }
+
+  code {
+    font-family: 'Space Mono', monospace;
+    background: #eee2c9;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.88em;
+  }
+
+  .divider {
+    text-align: center;
+    color: var(--soft);
+    margin: 46px 0 10px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 3px;
+  }
+
+  ul, ol { padding-left: 26px; }
+  li { margin: 4px 0; }
+
+  .footer {
+    text-align: center;
+    color: var(--soft);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8em;
+    margin-top: 60px;
+    border-top: 2px dashed var(--soft);
+    padding-top: 16px;
+  }
+
+
+  .svg-wrap { overflow-x: auto; margin: 18px 0 8px; }
+  .flow-key {
+    background: #fffaf0;
+    border: 2px dashed var(--soft);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin: 8px 0 20px;
+    font-size: 0.95em;
+  }
+  .flow-key ol { margin: 0; padding-left: 22px; }
+  .flow-key li { margin: 4px 0; }
+  .flow-key .mini { color: var(--soft); font-family: 'Space Mono', monospace; font-size: 0.88em; }
+</style>
+</head>
+<body>
+<h1>OAuth2, App Service &amp; AKS Identity</h1>
+<div class="subtitle">field notes - the two OAuth2 flows, App Service's Kudu problem, and why AKS needs federation</div>
+<div class="glance"><b>The one-line version:</b> a human logging in uses authorization code flow, a service calling another service uses client credentials flow. App Service (Web Apps, Function Apps, Logic Apps Standard) ships a separate companion site called Kudu for deployment and diagnostics, on its own hostname but tied to the same app's auth configuration. AKS pods federate their Kubernetes-native identity into a real Entra identity - it's pod identity vs resource identity that matters, not "AKS isn't Azure-native."</div>
+<h3 style="margin-top:34px;">Who needs an identity?</h3>
+
+<div class="svg-wrap">
+<svg viewbox="0 0 820 360" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="arrow" markerheight="8" markerwidth="10" orient="auto" refx="8.5" refy="4">
+<polygon fill="#2b2b2b" points="0 0, 10 4, 0 8"></polygon>
+</marker>
+</defs>
+<rect class="sketch-box accent" height="44" rx="10" width="220" x="300" y="16"></rect>
+<text class="lbl title-lbl" font-size="16" text-anchor="middle" x="410" y="43">who needs an identity?</text>
+<path class="arrow-line" d="M410,60 L210,98" marker-end="url(#arrow)"></path>
+<path class="arrow-line" d="M410,60 L610,98" marker-end="url(#arrow)"></path>
+<rect class="sketch-box note" height="48" rx="10" width="200" x="110" y="98"></rect>
+<text class="lbl title-lbl" font-size="15" text-anchor="middle" x="210" y="128">HUMAN</text>
+<rect class="sketch-box note" height="48" rx="10" width="200" x="510" y="98"></rect>
+<text class="lbl title-lbl" font-size="15" text-anchor="middle" x="610" y="128">WORKLOAD</text>
+<path class="arrow-line" d="M210,146 L210,186" marker-end="url(#arrow)"></path>
+<rect class="sketch-box good" height="64" rx="10" width="230" x="95" y="186"></rect>
+<text class="lbl title-lbl" font-size="15" text-anchor="middle" x="210" y="214">Authorization Code</text>
+<text class="lbl" font-size="14" text-anchor="middle" x="210" y="236">+ OIDC</text>
+<path class="arrow-line" d="M610,146 L610,176" marker-end="url(#arrow)"></path>
+<text class="lbl small" font-size="11" text-anchor="middle" x="610" y="170">where does it run?</text>
+<path class="arrow-line" d="M610,176 L500,214" marker-end="url(#arrow)"></path>
+<path class="arrow-line" d="M610,176 L720,214" marker-end="url(#arrow)"></path>
+<rect class="sketch-box accent" height="66" rx="10" width="220" x="390" y="214"></rect>
+<text class="lbl title-lbl" font-size="14" text-anchor="middle" x="500" y="240">Azure resource</text>
+<text class="lbl" font-size="13" text-anchor="middle" x="500" y="261">Managed Identity</text>
+<rect class="sketch-box dim" height="66" rx="10" width="150" x="630" y="214"></rect>
+<text class="lbl title-lbl" font-size="14" text-anchor="middle" x="705" y="240">AKS pod</text>
+<text class="lbl" font-size="13" text-anchor="middle" x="705" y="261">ServiceAccount</text>
+<path class="arrow-line dashed" d="M705,280 L705,316 L560,316 L560,280" marker-end="url(#arrow)"></path>
+<text class="lbl small" font-size="11" text-anchor="middle" x="632" y="308">OIDC federation bridge</text>
+</svg>
+</div>
+<div class="flow-key">
+<ol>
+<li><b>Human identity</b> usually means a sign-in flow: Authorization Code + OIDC.</li>
+<li><b>Workload identity</b> means a service proving who it is.</li>
+<li>If the workload is already an Azure resource, it can get a <b>Managed Identity</b>.</li>
+<li>If the workload is an <b>AKS pod</b>, it starts with a Kubernetes ServiceAccount and then federates into an Entra/Azure identity.</li>
+</ol>
+</div>
+
+<p style="text-align:center; color:#8a8272; font-size:0.9em; margin-top:-6px;">both paths converge on Entra ID and end with an access token - everything below hangs off this one fork.</p>
+<div class="divider">— PART 1 —</div>
+<h2><span class="num">1</span> The Two OAuth2 Flows</h2>
+<p>Three players show up across both flows: the <b>user</b> (a human, only in flow 1), the <b>client</b> (whichever app is asking for a token - this is OAuth jargon, it does not mean "the user"), and <b>Entra ID</b> (the authorization server). A fourth term, <b>resource server</b>, just means whatever API the client is ultimately calling.</p>
+<h3>Flow 1 - Authorization Code Flow, confidential web app (a human logs in)</h3>
+<p>This is the confidential-client case - a server-side web app with a backend that can hold a secret. It's the most common shape, but not the only one.</p>
+
+<div class="svg-wrap">
+<svg viewbox="0 0 920 410" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="arrow" markerheight="8" markerwidth="10" orient="auto" refx="8.5" refy="4">
+<polygon fill="#2b2b2b" points="0 0, 10 4, 0 8"></polygon>
+</marker>
+</defs>
+<text class="lbl title-lbl" font-size="16" text-anchor="middle" x="130" y="34">Browser / User</text>
+<text class="lbl title-lbl" font-size="16" text-anchor="middle" x="460" y="34">Web App</text>
+<text class="lbl title-lbl" font-size="16" text-anchor="middle" x="770" y="34">Entra ID</text>
+<line class="arrow-line dashed" x1="130" x2="130" y1="54" y2="320"></line>
+<line class="arrow-line dashed" x1="460" x2="460" y1="54" y2="320"></line>
+<line class="arrow-line dashed" x1="770" x2="770" y1="54" y2="320"></line>
+<rect class="sketch-box" height="42" rx="10" width="160" x="50" y="60"></rect>
+<text class="lbl" font-size="14" text-anchor="middle" x="130" y="87">1. click sign in</text>
+<path class="arrow-line" d="M210,81 L450,81" marker-end="url(#arrow)"></path>
+<rect class="sketch-box note" height="38" rx="8" width="190" x="365" y="62"></rect>
+<text class="lbl" font-size="14" text-anchor="middle" x="460" y="86">2. app redirects to Entra</text>
+<path class="arrow-line" d="M555,81 L760,81" marker-end="url(#arrow)"></path>
+<path class="arrow-line" d="M760,132 L140,132" marker-end="url(#arrow)"></path>
+<text class="lbl small" font-size="11" text-anchor="middle" x="450" y="122">3. user authenticates on Entra's page</text>
+<path class="arrow-line" d="M130,172 L450,172" marker-end="url(#arrow)"></path>
+<text class="lbl small" font-size="11" text-anchor="middle" x="290" y="162">4. browser returns with authorization code</text>
+<path class="arrow-line" d="M470,220 L760,220" marker-end="url(#arrow)"></path>
+<text class="lbl small" font-size="11" text-anchor="middle" x="615" y="210">5. backend redeems code + secret + PKCE verifier</text>
+<path class="arrow-line" d="M760,262 L470,262" marker-end="url(#arrow)"></path>
+<text class="lbl small" font-size="11" text-anchor="middle" x="615" y="252">6. Entra returns tokens</text>
+<rect class="sketch-box good" height="58" rx="10" width="180" x="370" y="286"></rect>
+<text class="lbl" font-size="14" text-anchor="middle" x="460" y="311">access token</text>
+<text class="lbl" font-size="14" text-anchor="middle" x="460" y="332">ID token / refresh token</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="460" y="378">This diagram is the confidential web-app version of Authorization Code Flow.</text>
+</svg>
+</div>
+<div class="flow-key">
+<ol>
+<li>The browser carries the user through redirects.</li>
+<li>The <b>authorization code</b> comes back through the browser.</li>
+<li>The <b>backend</b> performs the real token exchange with Entra.</li>
+<li><b>PKCE</b> protects the code from being redeemed by the wrong party.</li>
+</ol>
+<div class="mini">Boundary: in a SPA, the browser itself redeems the code. So “tokens never enter the browser” is not universally true.</div>
+</div>
+
+<div class="card warn">
+<span class="tag warn">why the extra hop, in this scenario</span>
+<p>The code lands in the browser because Entra has no direct line to your backend - it only knows how to redirect the browser to a pre-registered callback URL. In this confidential-client case, redeeming that code for real tokens requires a <b>client secret</b>, and a secret can never live in browser JavaScript. So the code gets handed off to the backend, which holds the secret safely and does the actual exchange server-to-server.</p>
+</div>
+<div class="card note">
+<span class="tag note">public-client variant - SPAs, mobile, desktop</span>
+<p>A single-page app has no backend to hold a secret, so it's a <b>public client</b>. It still uses authorization code flow, but with no client secret at all - the browser itself redeems the code, using PKCE alone as the protection, and receives the tokens directly. So "only the code crosses the browser, tokens never do" is true for the confidential-client diagram above, not for auth code flow in general.</p>
+</div>
+<h3>PKCE - the second lock on the code</h3>
+<p>Even with a code sitting briefly in a URL, it shouldn't be redeemable by whoever intercepts it. <b>PKCE</b> (proof key for code exchange) fixes that: before redirecting to Entra, your app generates a random <code>code_verifier</code>, sends a hashed version (<code>code_challenge</code>) up front, then must present the original verifier when exchanging the code. Entra re-hashes it and checks the match.</p>
+<table>
+<tr><th></th><th>Client secret / certificate</th><th>PKCE</th></tr>
+<tr><td><b>Required for</b></td><td>Confidential clients only (apps with a backend, like yours)</td><td>Everyone - mandatory for public clients (SPAs, mobile), best practice for all</td></tr>
+<tr><td><b>Protects against</b></td><td>An impostor app pretending to be yours</td><td>Someone stealing the authorization code itself</td></tr>
+<tr><td><b>Typical setup today</b></td><td colspan="2">Client secret + PKCE together, for a confidential app</td></tr>
+</table>
+<h3>Flow 2 - Client Credentials Flow (service calls service)</h3>
+<p>No user, no browser, no redirects. Picture APIM calling a backend microservice.</p>
+
+<div class="svg-wrap">
+<svg viewbox="0 0 860 270" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="arrow" markerheight="8" markerwidth="10" orient="auto" refx="8.5" refy="4">
+<polygon fill="#2b2b2b" points="0 0, 10 4, 0 8"></polygon>
+</marker>
+</defs>
+<rect class="sketch-box note" height="80" rx="10" width="180" x="50" y="90"></rect>
+<text class="lbl title-lbl" font-size="15" text-anchor="middle" x="140" y="122">APIM</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="140" y="145">the client</text>
+<rect class="sketch-box accent" height="80" rx="10" width="180" x="340" y="45"></rect>
+<text class="lbl title-lbl" font-size="15" text-anchor="middle" x="430" y="77">Entra ID</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="430" y="100">token endpoint</text>
+<rect class="sketch-box good" height="80" rx="10" width="180" x="625" y="90"></rect>
+<text class="lbl title-lbl" font-size="15" text-anchor="middle" x="715" y="122">Backend API</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="715" y="145">resource server</text>
+<path class="arrow-line" d="M230,110 L335,88" marker-end="url(#arrow)"></path>
+<text class="lbl small" font-size="11" text-anchor="middle" x="285" y="80">1. prove app identity</text>
+<path class="arrow-line" d="M430,125 L230,125" marker-end="url(#arrow)"></path>
+<text class="lbl small" font-size="11" text-anchor="middle" x="330" y="146">2. access token with roles</text>
+<path class="arrow-line" d="M230,145 L620,145" marker-end="url(#arrow)"></path>
+<text class="lbl small" font-size="11" text-anchor="middle" x="425" y="180">3. call backend with bearer token</text>
+<rect class="sketch-box dim" height="34" rx="8" width="670" x="95" y="210"></rect>
+<text class="lbl small" font-size="11" text-anchor="middle" x="430" y="232">Setup happens earlier: backend defines app roles, admin grants those roles to the calling app.</text>
+</svg>
+</div>
+<div class="flow-key">
+<ol>
+<li><b>Setup time:</b> the backend app registration defines roles; an admin grants them to the client.</li>
+<li><b>Runtime:</b> the caller proves its identity with a secret, certificate, or managed identity.</li>
+<li>The backend validates the token and reads the <b>roles</b> claim.</li>
+</ol>
+</div>
+
+<p>Since there's no resource owner granting permission live, the token carries <b>app roles</b> instead of user-delegated scopes - defined on the backend's app registration, then explicitly assigned to the client.</p>
+<div class="card good">
+<span class="tag good">two phases, not one</span>
+<p><b>Setup (once, by an admin):</b> backend declares its roles in its manifest (e.g. <code>backend.read</code>) → admin goes to the client's enterprise application and grants it that role (often needs admin consent) → this is where the real access-control decisions get made.</p>
+<p><b>Runtime (every call):</b> client proves identity (secret or managed identity) → Entra looks up what it was already granted → stamps the roles claim into the token, no live approval needed → backend just reads the claim.</p>
+<p>The setup phase is where misconfigurations live - a role granted too broadly sits there quietly. The runtime exchange is mechanical; it either works per spec or fails outright.</p>
+</div>
+<h3>OAuth2 vs OIDC</h3>
+<div class="glance"><b>OAuth2 alone only answers "can this app do X?"</b> It was never designed to answer "who is this user?" <b>OpenID Connect (OIDC)</b> is a layer on top of the same authorization code flow that adds an <b>ID token</b> - a signed JWT carrying the user's name, email, and a unique ID. Your web app login almost always uses OAuth2 + OIDC together: the access token lets it call APIs, the ID token tells it who logged in.</div>
+<p>OIDC never shows up in client credentials flow - there's no human to describe, so Entra only ever issues an access token there, never an ID token. Litmus test: is a human logging in whose identity matters? Yes → auth code flow + OIDC. Two services talking → client credentials, access token only.</p>
+<div class="divider">— PART 2 —</div>
+<h2><span class="num">2</span> App Service: the shared foundation</h2>
+
+<div class="svg-wrap">
+<svg viewbox="0 0 820 300" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="arrow" markerheight="8" markerwidth="10" orient="auto" refx="8.5" refy="4">
+<polygon fill="#2b2b2b" points="0 0, 10 4, 0 8"></polygon>
+</marker>
+</defs>
+<rect class="sketch-box note" height="74" rx="10" width="180" x="65" y="34"></rect>
+<text class="lbl title-lbl" font-size="15" text-anchor="middle" x="155" y="66">Web App</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="155" y="88">site or API code</text>
+<rect class="sketch-box note" height="74" rx="10" width="180" x="320" y="34"></rect>
+<text class="lbl title-lbl" font-size="15" text-anchor="middle" x="410" y="66">Function App</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="410" y="88">event-driven functions</text>
+<rect class="sketch-box note" height="74" rx="10" width="180" x="575" y="34"></rect>
+<text class="lbl title-lbl" font-size="15" text-anchor="middle" x="665" y="66">Logic Apps Standard</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="665" y="88">workflow app</text>
+<path class="arrow-line" d="M155,108 L155,145" marker-end="url(#arrow)"></path>
+<path class="arrow-line" d="M410,108 L410,145" marker-end="url(#arrow)"></path>
+<path class="arrow-line" d="M665,108 L665,145" marker-end="url(#arrow)"></path>
+<rect class="sketch-box accent" height="64" rx="12" width="650" x="85" y="145"></rect>
+<text class="lbl title-lbl" font-size="18" text-anchor="middle" x="410" y="174">Azure App Service foundation</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="410" y="197">managed hosting, deployment, HTTPS, scaling, platform operations</text>
+<path class="arrow-line" d="M410,209 L410,240" marker-end="url(#arrow)"></path>
+<rect class="sketch-box dim" height="40" rx="10" width="250" x="285" y="240"></rect>
+<text class="lbl small" font-size="11" text-anchor="middle" x="410" y="265">SCM / Kudu companion site comes with the app</text>
+</svg>
+</div>
+<div class="flow-key">
+<ol>
+<li>These are different application models, but they live on the same <b>App Service family</b>.</li>
+<li>The shared platform gives you hosting, deployment, HTTPS endpoints, and operational tooling.</li>
+<li>Remember this as a <b>shared foundation</b>, not “all runtimes are identical.”</li>
+</ol>
+</div>
+
+<p>Web Apps, Function Apps, and Logic Apps Standard are three different things running on the exact same App Service foundation - just hosting different content: your website code, individual functions, or the Logic Apps workflow engine itself.</p>
+<h3>Kudu - the companion management site</h3>
+<div class="glance"><b>Kudu is not your app's web server.</b> Microsoft calls it a companion app that App Service creates alongside yours - a second, separate site reachable at <code>yourapp.scm.azurewebsites.net</code>. It handles deployment (zip deploy), file browsing, log streaming, and console access - the things you'd get for free with RDP into your own IIS box, recreated safely over HTTPS for a PaaS platform where you never get machine access. (Avoid calling it a "sidecar" - that word has a specific, different meaning in Kubernetes and the picture doesn't transfer cleanly.)</div>
+
+<div class="svg-wrap">
+<svg viewbox="0 0 820 260" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="arrow" markerheight="8" markerwidth="10" orient="auto" refx="8.5" refy="4">
+<polygon fill="#2b2b2b" points="0 0, 10 4, 0 8"></polygon>
+</marker>
+</defs>
+<rect class="sketch-box good" height="90" rx="10" width="270" x="65" y="40"></rect>
+<text class="lbl title-lbl" font-size="14" text-anchor="middle" x="200" y="71">yourapp.azurewebsites.net</text>
+<text class="lbl" font-size="13" text-anchor="middle" x="200" y="96">main site</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="200" y="116">application traffic</text>
+<rect class="sketch-box accent" height="90" rx="10" width="270" x="485" y="40"></rect>
+<text class="lbl title-lbl" font-size="14" text-anchor="middle" x="620" y="71">yourapp.scm.azurewebsites.net</text>
+<text class="lbl" font-size="13" text-anchor="middle" x="620" y="96">SCM / Kudu site</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="620" y="116">deploy, logs, console, diagnostics</text>
+<path class="arrow-line" d="M200,130 L200,180" marker-end="url(#arrow)"></path>
+<path class="arrow-line" d="M620,130 L620,180" marker-end="url(#arrow)"></path>
+<rect class="sketch-box dim" height="48" rx="10" width="470" x="175" y="180"></rect>
+<text class="lbl small" font-size="11" text-anchor="middle" x="410" y="210">Both endpoints belong to the same App Service app, but they serve different purposes.</text>
+</svg>
+</div>
+<div class="flow-key">
+<ol>
+<li>The <b>main site</b> is for your application traffic.</li>
+<li>The <b>SCM site</b> is the companion management surface used for deployment and troubleshooting.</li>
+<li>Think “two endpoints, different trust zones,” not “Kudu is a sidecar inside my request path.”</li>
+</ol>
+</div>
+
+<div class="card warn">
+<span class="tag warn">why this matters</span>
+<p>On classic self-hosted IIS, one machine gave you both traffic-serving and management access - physical access was the only boundary. On multi-tenant PaaS, Azure enforces that split logically instead: two endpoints, so different security policies <i>could</i> apply to each. Easy Auth is a real, supported way to secure a Standard Logic App's Request trigger with Entra ID, and plenty of real setups (APIM + Easy Auth) use it successfully. The caution is narrower than "it locks everything": Easy Auth, deployment tooling (Kudu/SCM), and the run-history/management API are separate configuration surfaces with their own auth and networking settings, so turning one on is not automatically transparent to the others - it needs deliberate configuration, and it's worth testing your deploy and monitoring path before committing to it, not assuming it will just keep working.</p>
+</div>
+<h3>SAS vs managed identity on a Logic Apps Standard HTTP trigger</h3>
+<p>Concretely, APIM → Logic App: an EHR sends a request to APIM, which authenticates it, then forwards to a Logic App workflow that starts with an <b>HTTP request trigger</b>. The moment that trigger is created, Azure auto-generates a callback URL with a baked-in signature (a <b>SAS</b> - shared access signature) - not a stored password, a self-verifying signed URL. That URL, dropped into the APIM policy, is the credential APIM presents.</p>
+<table>
+<tr><th></th><th>SAS on the trigger</th><th>Easy Auth (Entra ID) on the trigger</th></tr>
+<tr><td><b>Scope</b></td><td>Per workflow - one trigger, one signature, rotate independently</td><td>App-level setting - secures the Request trigger, but touches the same site's auth configuration as everything else</td></tr>
+<tr><td><b>Watch out for</b></td><td>Nothing extra</td><td>Deploy tooling (<code>listCallbackUrl</code> is an ARM API call, not a Kudu one) and the SCM/Kudu site have their own separate auth and networking settings - verify they still work before relying on it, rather than assuming Easy Auth touches them automatically</td></tr>
+<tr><td><b>Used where</b></td><td>Simple, works everywhere, lower setup cost</td><td>When you want Entra-validated callers instead of a signed URL; commonly paired with APIM</td></tr>
+</table>
+<div class="card good">
+<span class="tag good">the real-world pattern</span>
+<p>SAS on the one HTTP trigger entry point isn't a lesser choice in production - it's the native mechanism, just hardened with Key Vault-backed named values and rotation. Managed identity dominates for literally everything downstream of that entry point. A lab wiring it exactly this way mirrors real production architecture.</p>
+</div>
+<h3>Logic Apps SKUs</h3>
+<table>
+<tr><th>SKU</th><th>Model</th><th>Trigger auth</th><th>Trade-off</th></tr>
+<tr><td><b>Consumption</b></td><td>Serverless, multi-tenant, one workflow = one resource</td><td>Native Entra ID auth directly on the HTTP trigger - no Easy Auth needed, no all-or-nothing problem</td><td>No VNet integration, no multi-workflow hosting, limited local dev story</td></tr>
+<tr><td><b>Standard</b></td><td>Dedicated App Service plan, many workflows in one app; runtime built on the Azure Functions extensibility model</td><td>Easy Auth (App Service's Entra auth switch) or SAS - both work, need deliberate config to keep deploy tooling working</td><td>VNet integration, predictable pricing, local dev parity, stateful workflows</td></tr>
+<tr><td><b>ISE</b> <span class="tag warn" style="font-size:0.65em">deprecated</span></td><td>Fully isolated, dedicated capacity</td><td>-</td><td>Legacy knowledge only - Microsoft is retiring it in favor of Standard + VNet integration</td></tr>
+</table>
+<p>Not "Easy Auth is Consumption-only" - Consumption has its own simpler, native trigger auth built for the single-tenant model. Standard's equivalent, Easy Auth, is App Service's general-purpose auth switch, shared with Web Apps and Function Apps, since Standard's single-tenant runtime is built on the same Azure Functions extensibility model underneath.</p>
+<div class="divider">— PART 3 —</div>
+<h2><span class="num">3</span> AKS: why pods federate INTO a managed identity</h2>
+<div class="card warn">
+<span class="tag warn">correction</span>
+<p><b>AKS is a real Azure resource, and the cluster itself normally has its own managed identity.</b> The distinction that matters isn't "AKS vs Azure" - it's <b>cluster identity vs pod identity</b>. The cluster's control plane already talks to Azure using managed identity, same as anything else. The gap is one level down: a <i>pod</i> starts life with a Kubernetes-native identity (its service account), and Kubernetes service accounts are not something Entra recognizes on their own.</p>
+</div>
+
+<div class="svg-wrap">
+<svg viewbox="0 0 960 360" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="arrow" markerheight="8" markerwidth="10" orient="auto" refx="8.5" refy="4">
+<polygon fill="#2b2b2b" points="0 0, 10 4, 0 8"></polygon>
+</marker>
+</defs>
+<text class="lbl title-lbl" font-size="17" text-anchor="middle" x="280" y="28">AKS pod path</text>
+<rect class="sketch-box note" height="72" rx="10" width="150" x="40" y="50"></rect>
+<text class="lbl title-lbl" font-size="14" text-anchor="middle" x="115" y="79">AKS pod</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="115" y="101">workload</text>
+<rect class="sketch-box dim" height="72" rx="10" width="160" x="215" y="50"></rect>
+<text class="lbl title-lbl" font-size="14" text-anchor="middle" x="295" y="79">ServiceAccount</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="295" y="101">projected token</text>
+<rect class="sketch-box dim" height="72" rx="10" width="165" x="400" y="50"></rect>
+<text class="lbl title-lbl" font-size="14" text-anchor="middle" x="482" y="79">AKS OIDC issuer</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="482" y="101">trust source</text>
+<rect class="sketch-box accent" height="72" rx="10" width="165" x="590" y="50"></rect>
+<text class="lbl title-lbl" font-size="14" text-anchor="middle" x="672" y="79">Federated credential</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="672" y="101">maps SA to identity</text>
+<rect class="sketch-box good" height="72" rx="10" width="145" x="780" y="50"></rect>
+<text class="lbl title-lbl" font-size="13" text-anchor="middle" x="852" y="75">Managed Identity</text>
+<text class="lbl small" font-size="10" text-anchor="middle" x="852" y="96">or Entra app</text>
+<text class="lbl small" font-size="10" text-anchor="middle" x="852" y="112">token target</text>
+<path class="arrow-line" d="M190,86 L210,86" marker-end="url(#arrow)"></path>
+<path class="arrow-line" d="M375,86 L395,86" marker-end="url(#arrow)"></path>
+<path class="arrow-line" d="M565,86 L585,86" marker-end="url(#arrow)"></path>
+<path class="arrow-line" d="M755,86 L775,86" marker-end="url(#arrow)"></path>
+<rect class="sketch-box dim" height="44" rx="10" width="520" x="220" y="160"></rect>
+<text class="lbl small" font-size="11" text-anchor="middle" x="480" y="188">Result: the pod can obtain an Azure access token without storing a secret.</text>
+<text class="lbl title-lbl" font-size="16" text-anchor="middle" x="270" y="250">Azure-native resource path</text>
+<rect class="sketch-box note" height="56" rx="10" width="170" x="90" y="275"></rect>
+<text class="lbl title-lbl" font-size="14" text-anchor="middle" x="175" y="298">APIM</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="175" y="317">native Azure resource</text>
+<path class="arrow-line" d="M260,302 L385,302" marker-end="url(#arrow)"></path>
+<rect class="sketch-box accent" height="58" rx="10" width="200" x="390" y="274"></rect>
+<text class="lbl title-lbl" font-size="14" text-anchor="middle" x="490" y="298">Managed Identity</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="490" y="317">directly attached to resource</text>
+<path class="arrow-line" d="M590,302 L720,302" marker-end="url(#arrow)"></path>
+<rect class="sketch-box good" height="58" rx="10" width="160" x="725" y="274"></rect>
+<text class="lbl title-lbl" font-size="14" text-anchor="middle" x="805" y="298">Azure token</text>
+<text class="lbl small" font-size="11" text-anchor="middle" x="805" y="317">for downstream API</text>
+</svg>
+</div>
+<div class="flow-key">
+<ol>
+<li>An <b>AKS pod</b> starts with a Kubernetes identity, not an Azure identity.</li>
+<li>OIDC federation lets Entra trust that Kubernetes-issued identity and map it to a managed identity or application identity.</li>
+<li>An Azure-native service like <b>APIM</b> can get a managed identity directly, so it does not need that bridge.</li>
+</ol>
+</div>
+
+<div class="glance"><b>Kubernetes has its own native identity system</b> (service accounts) that works identically on AKS, EKS, or on-prem, so Entra doesn't automatically trust it - a pod's identity and an Azure identity are two different things by default. <b>OIDC workload identity federation</b> is the bridge, and it lands on a real Entra identity: AKS exposes an OIDC issuer, and a federated credential is configured <i>on a user-assigned managed identity (or an app registration)</i>, saying "trust tokens from this issuer for this service account." The pod presents its projected Kubernetes token, Entra checks it against that trust config, and exchanges it for a real access token from that same managed identity - no secret stored anywhere.</div>
+<p><b>The key distinction is pod identity vs resource identity, not "AKS isn't Azure-native."</b> APIM is a resource that already has an identity attached to it directly - there's no separate workload inside it with its own Kubernetes-native identity needing to be bridged. A pod does have that separate identity, so federation is the mechanism that links the two together. Once linked, both end up authenticating the exact same way: client credentials flow, presenting proof of identity to Entra, getting a token back.</p>
+<div class="card note">
+<span class="tag note">APIM → AKS microservice</span>
+<p>This is clean - AKS doesn't bundle a Kudu-equivalent companion site on the same hostname as your workload's traffic, so there's nothing to accidentally lock down together. APIM calls the microservice via client credentials flow (managed identity on APIM's side, bearer token validated in your code). Deployment and monitoring for AKS live entirely separately too - CI talks to the Kubernetes API server, logs go to Container Insights, none of it shares a hostname with the app's actual traffic.</p>
+</div>
+<div class="footer">field notes - OAuth2 &amp; Azure identity patterns</div>
+</body>
+</html>
