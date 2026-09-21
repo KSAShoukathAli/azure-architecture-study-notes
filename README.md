@@ -226,6 +226,47 @@ Key observability model:
 
 ---
 
+
+## BizTalk to Azure Mapping
+
+- **[BizTalk to Azure Mapping - All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/biztalk-to-azure/)**
+- **[BizTalk to Azure Mapping - Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/biztalk-to-azure/biztalk-to-azure-reference/)**
+- **[BizTalk to Azure Mapping - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/biztalk-to-azure/biztalk-to-azure-feynman/)**
+
+Core mental model:
+
+> **Do not migrate the BizTalk product topology. Migrate the responsibilities, guarantees, and behavior.**
+
+The BizTalk migration material covers:
+
+- Logic Apps Standard as the primary BizTalk successor and migration nucleus
+- why BizTalk migration is not lift-and-shift
+- receive locations, receive ports, adapters, pipelines, maps, orchestrations, and send ports
+- why the BizTalk MessageBox has no single Azure replacement
+- publish/subscribe routing and subscription behavior
+- correlation sets, convoys, Service Bus sessions, workflow state, and external state
+- ordered delivery vs sequential-convoy behavior
+- suspended instances, workflow failures, DLQs, retry, replay, and compensation
+- BizTalk host throttling vs explicit Azure backpressure and concurrency controls
+- Business Rules Engine migration and current Azure Rules Engine limits
+- B2B migration with Integration Account, X12, EDIFACT, AS2, and RosettaNet
+- healthcare migration from BTAHL7 to Logic Apps HL7 encode/decode
+- MLLP constraints and Logic Apps Standard Hybrid
+- ESB Toolkit itinerary migration and routing-slip patterns
+- coexistence and flow-by-flow cutover between BizTalk and Azure
+- SB-Messaging adapter migration from SBMP to AMQP
+- Azure Logic Apps Migration Agent and GitHub Copilot governance considerations
+- where custom BizTalk code fits better as workflow-scoped .NET vs a separate Function App
+- observability and operational differences between BizTalk tracking and Azure Monitor
+
+Key migration model:
+
+> **BizTalk feature name != Azure service name**  
+> First identify what the BizTalk artifact was doing.  
+> Then choose the Azure mechanism that preserves the required behavior.
+
+---
+
 ## Repository Structure
 
 ```text
@@ -285,6 +326,12 @@ azure-architecture-study-notes/
 │       └── index.html
 │
 ├── biztalk-to-azure/
+│   ├── index.html
+│   ├── biztalk-to-azure-reference/
+│   │   └── index.html
+│   └── biztalk-to-azure-feynman/
+│       └── index.html
+│
 ├── reliability-patterns/
 ├── private-connectivity-dns/
 ├── workload-identity/
@@ -327,32 +374,24 @@ The goal is to be able to answer:
 
 ### Next
 
-1. **BizTalk to Azure Mapping**
-   - receive locations and ports
-   - pipelines
-   - maps
-   - orchestrations
-   - send ports
-   - correlation
-   - suspended messages
-   - where there is no one-to-one Azure replacement
-
-2. **Reliability & Idempotency Patterns**
+1. **Reliability & Idempotency Patterns**
    - retry / backoff / jitter
    - poison-message handling
-   - outbox
+   - idempotent consumers
+   - duplicate detection
+   - outbox / inbox
    - saga / compensation
-   - idempotency
    - exactly-once misconceptions
+   - replay and recovery
 
 ### Then
 
-3. **Private Connectivity & DNS**
-4. **Workload Identity**
-5. **Terraform + CI/CD + APIOps**
-6. **Integration Security Architecture**
-7. **AI Gateway + MCP**
-8. **Healthcare Integration**
+2. **Private Connectivity & DNS**
+3. **Workload Identity**
+4. **Terraform + CI/CD + APIOps**
+5. **Integration Security Architecture**
+6. **AI Gateway + MCP**
+7. **Healthcare Integration**
 
 ---
 
@@ -360,48 +399,38 @@ The goal is to be able to answer:
 
 GitHub Pages publishes the files that are actually committed to the configured publishing branch.
 
-For every published topic, the repository must contain the topic folder and its `index.html`. For example:
-
-```text
-functions/index.html
-observability/index.html
-```
-
-A README link does not create a GitHub Pages route. If the folder is missing from the repository, a URL such as `/functions/` returns 404.
-
-Before pushing a new topic, verify the files exist locally:
+For BizTalk to Azure Mapping, verify the files exist locally:
 
 ```powershell
-Test-Path .\functions\index.html
-Test-Path .\observability\index.html
+Test-Path .\biztalk-to-azure\index.html
+Test-Path .\biztalk-to-azure\biztalk-to-azure-reference\index.html
+Test-Path .\biztalk-to-azure\biztalk-to-azure-feynman\index.html
 ```
 
-Both commands should return `True`.
+All three commands should return `True`.
 
-Then stage the README and topic folders explicitly:
+Then stage the README and topic folder explicitly:
 
 ```powershell
 git status
-git add README.md functions observability
+git add README.md biztalk-to-azure
 git status
-git commit -m "Add observability notes and publish Functions pages"
+git diff --cached --name-status
+git commit -m "Add BizTalk to Azure migration study notes"
 git push origin main
 ```
 
 After the push, verify Git is tracking the published paths:
 
 ```powershell
-git ls-tree -r --name-only HEAD | Select-String "^(functions|observability)/"
+git ls-tree -r --name-only HEAD | Select-String "^biztalk-to-azure/"
 ```
 
 Expected published URLs:
 
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/functions/**
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/functions/azure-functions-reference/**
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/functions/azure-functions-feynman/**
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/observability/**
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/observability/azure-observability-reference/**
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/observability/azure-observability-feynman/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/biztalk-to-azure/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/biztalk-to-azure/biztalk-to-azure-reference/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/biztalk-to-azure/biztalk-to-azure-feynman/**
 
 Live site:
 
