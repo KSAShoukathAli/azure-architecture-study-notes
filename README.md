@@ -143,6 +143,49 @@ Feynman questions used throughout the Messaging section:
 
 ---
 
+## Azure Functions + Durable Functions
+
+- **[Azure Functions + Durable Functions - All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/functions/)**
+- **[Azure Functions + Durable Functions - Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/functions/azure-functions-reference/)**
+- **[Azure Functions + Durable Functions - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/functions/azure-functions-feynman/)**
+
+Core mental model:
+
+> **Event -> Function -> small piece of work**  
+> **Long-running coordination -> Durable Orchestrator -> persisted history -> replay**
+
+The Functions material covers:
+
+- triggers and input/output bindings
+- HTTP, Service Bus, Event Grid, Event Hubs, and Timer triggers
+- Flex Consumption, Consumption, Premium, Dedicated, and Container Apps hosting
+- cold starts, always-ready instances, scale-out, and concurrency
+- per-function scaling behavior in Flex Consumption
+- Service Bus settlement, lock renewal, redelivery, poison messages, and DLQ interaction
+- Managed Identity, Key Vault references, networking, and host storage dependencies
+- VNet integration, Private Endpoint considerations, and private DNS dependencies
+- Application Insights and operational troubleshooting
+- deployment models, deployment slots, and hosting-plan constraints
+- function timeouts, HTTP response limits, and shutdown grace periods
+- Durable orchestrators, activities, clients, and entities
+- checkpoints, persisted history, deterministic replay, and orchestration state
+- durable timers and external events
+- function chaining and fan-out / fan-in
+- async HTTP API, human interaction, and monitor patterns
+- saga / compensation patterns
+- Durable retries, failure propagation, and activity idempotency
+- orchestration versioning for long-running instances
+- Durable storage providers and task-hub migration constraints
+- Durable Functions vs Logic Apps vs plain Azure Functions
+- conceptual mapping from BizTalk orchestrations to Durable Functions
+
+Key Durable mental model:
+
+> The orchestrator does **not** keep a process or thread alive for hours or days.  
+> It persists history, goes idle, and later replays that history to rebuild deterministic state.
+
+---
+
 ## Repository Structure
 
 ```text
@@ -188,6 +231,12 @@ azure-architecture-study-notes/
 │       └── index.html
 │
 ├── functions/
+│   ├── index.html
+│   ├── azure-functions-reference/
+│   │   └── index.html
+│   └── azure-functions-feynman/
+│       └── index.html
+│
 ├── observability/
 ├── biztalk-to-azure/
 ├── reliability-patterns/
@@ -232,24 +281,14 @@ The goal is to be able to answer:
 
 ### Next
 
-1. **Azure Functions + Durable Functions**
-   - triggers and bindings
-   - Flex Consumption
-   - scaling and cold starts
-   - Service Bus triggers
-   - Durable orchestration
-   - fan-out / fan-in
-   - saga / compensation
-   - async HTTP and human-interaction patterns
-
-2. **End-to-End Observability**
+1. **End-to-End Observability**
    - Application Insights
    - Log Analytics
    - KQL
    - distributed correlation
    - trace APIM -> Logic Apps -> Service Bus -> Function
 
-3. **BizTalk to Azure Mapping**
+2. **BizTalk to Azure Mapping**
    - receive locations and ports
    - pipelines
    - maps
@@ -259,7 +298,7 @@ The goal is to be able to answer:
    - suspended messages
    - where there is no one-to-one Azure replacement
 
-4. **Reliability & Idempotency Patterns**
+3. **Reliability & Idempotency Patterns**
    - retry / backoff / jitter
    - poison-message handling
    - outbox
@@ -269,12 +308,12 @@ The goal is to be able to answer:
 
 ### Then
 
-5. **Private Connectivity & DNS**
-6. **Workload Identity**
-7. **Terraform + CI/CD + APIOps**
-8. **Integration Security Architecture**
-9. **AI Gateway + MCP**
-10. **Healthcare Integration**
+4. **Private Connectivity & DNS**
+5. **Workload Identity**
+6. **Terraform + CI/CD + APIOps**
+7. **Integration Security Architecture**
+8. **AI Gateway + MCP**
+9. **Healthcare Integration**
 
 ---
 
