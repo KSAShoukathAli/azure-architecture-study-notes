@@ -1,8 +1,18 @@
 # Azure Architecture Study Notes
 
-A visual, Feynman-style architecture notebook published with GitHub Pages.
+A visual architecture notebook for Azure integration, identity, networking, security, and platform concepts.
 
-## Structure
+## 🌐 Live Study Site
+
+**[Open Azure Architecture Study Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/)**
+
+### OAuth2 & Azure Identity
+
+- **[OAuth2 & Azure Identity — All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/oauth/)**
+- **[OAuth2, App Service & AKS Identity — Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/oauth/oauth2-app-service-aks-identity-reference/)**
+- **[OAuth2, App Service & AKS Identity — Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/oauth/oauth2-app-service-aks-identity-feynman/)**
+
+## Repository Structure
 
 ```text
 azure-architecture-study-notes/
@@ -10,7 +20,11 @@ azure-architecture-study-notes/
 ├── .nojekyll
 ├── README.md
 ├── oauth/
-│   └── index.html
+│   ├── index.html
+│   ├── oauth2-app-service-aks-identity-reference/
+│   │   └── index.html
+│   └── oauth2-app-service-aks-identity-feynman/
+│       └── index.html
 ├── networking/
 │   └── index.html
 ├── private-endpoint/
@@ -25,39 +39,48 @@ azure-architecture-study-notes/
     └── index.html
 ```
 
-## Publish with GitHub Pages
+## GitHub Pages
 
-1. Create a GitHub repository named `azure-architecture-study-notes`.
-2. Upload all files and folders from this package to the repository root.
-3. Commit to the `main` branch.
-4. Open **Settings → Pages**.
-5. Under **Build and deployment**, choose **Deploy from a branch**.
-6. Select **main** and **/ (root)**.
-7. Save.
+This repository is published from the `main` branch at the repository root.
 
-Your site will normally be available at:
+**Rendered site**  
+https://ksashoukathali.github.io/azure-architecture-study-notes/
 
-```text
-https://<your-github-username>.github.io/azure-architecture-study-notes/
-```
+**GitHub repository**  
+https://github.com/KSAShoukathAli/azure-architecture-study-notes
 
-## Adding a new study note
+## Adding a New Study Note
 
-Each topic folder has its own `index.html`. Replace the placeholder with the finished self-contained HTML and keep the same filename.
+Use a descriptive topic-based folder name and place the finished self-contained HTML inside it as `index.html`.
 
 Example:
 
 ```text
-private-endpoint/index.html
+private-endpoint/
+└── private-endpoint-feynman/
+    └── index.html
 ```
 
-will render at:
+That page would render at:
 
 ```text
-https://<your-github-username>.github.io/azure-architecture-study-notes/private-endpoint/
+https://ksashoukathali.github.io/azure-architecture-study-notes/private-endpoint/private-endpoint-feynman/
 ```
 
-## Recommended note structure
+For topics with multiple documents, use the topic folder as a landing page:
+
+```text
+oauth/
+├── index.html
+├── oauth2-app-service-aks-identity-reference/
+│   └── index.html
+└── oauth2-app-service-aks-identity-feynman/
+    └── index.html
+```
+
+## Recommended Learning-Note Structure
+
+For deeper Feynman-style notes, use this pattern:
 
 ```text
 Problem
@@ -75,6 +98,20 @@ Boundary / where the statement stops being true
 Blank-page explanation
 ```
 
+Reference notes can stay more concise and focus on the final architecture, workflow, terminology, and diagrams.
+
+## Updating the Site
+
+After adding or editing notes:
+
+```powershell
+git add .
+git commit -m "Update study notes"
+git push
+```
+
+GitHub Pages will republish the site from the latest commit on `main`.
+
 ## Privacy
 
-GitHub Pages should be treated as public unless you are using a GitHub offering that explicitly supports private Pages for your account/organization. Do not publish employer-confidential architecture, credentials, internal URLs, or proprietary diagrams here.
+GitHub Pages is public for this repository. Do not publish employer-confidential architecture, credentials, internal URLs, customer data, or proprietary diagrams here.
