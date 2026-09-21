@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rx Integration Lab - FHIR to NCPDP on Azure Integration Services - Azure Architecture Study Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F5F7; --panel:#FFFFFF; --ink:#18222D; --muted:#566473; --line:#CAD3DC;
+  --rx:#0D6B66; --rx-soft:#DCEFED; --warn:#9A5B0B; --warn-soft:#F7EBD9;
+  --bad:#A33A2E; --bad-soft:#F6E1DE; --code-bg:#1C2631; --code-ink:#E4EAF0;
+  --node:#FFFFFF; --node-az:#E6EEF6; --node-fn:#F1E9F7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10161D; --panel:#17202A; --ink:#E2E8EE; --muted:#9AA8B6; --line:#2E3B48;
+    --rx:#4FC1B7; --rx-soft:#16322F; --warn:#E0A252; --warn-soft:#33270F;
+    --bad:#E98276; --bad-soft:#3A1E1B; --code-bg:#0B1016; --code-ink:#DDE4EB;
+    --node:#1C2733; --node-az:#1B2A3A; --node-fn:#2A2136;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10161D; --panel:#17202A; --ink:#E2E8EE; --muted:#9AA8B6; --line:#2E3B48;
+  --rx:#4FC1B7; --rx-soft:#16322F; --warn:#E0A252; --warn-soft:#33270F;
+  --bad:#E98276; --bad-soft:#3A1E1B; --code-bg:#0B1016; --code-ink:#DDE4EB;
+  --node:#1C2733; --node-az:#1B2A3A; --node-fn:#2A2136;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{display:grid;grid-template-columns:250px minmax(0,1fr);max-width:1180px;margin:0 auto}
+nav.toc{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding:32px 20px 32px 24px;border-right:1px solid var(--line);font-size:14px}
+nav.toc b{display:block;font-family:"Source Serif 4",Georgia,serif;font-size:17px;margin-bottom:14px}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--rx)}
+main{padding:40px 48px 120px;max-width:860px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.toc{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:28px 18px 80px}}
+h1,h2,h3{font-family:"Source Serif 4",Georgia,serif;line-height:1.2}
+h1{font-size:2.5rem;margin:0 0 12px;letter-spacing:-.01em}
+h2{font-size:1.8rem;margin:72px 0 14px;padding-top:18px;border-top:2px solid var(--ink)}
+h3{font-size:1.25rem;margin:36px 0 8px}
+p,li{max-width:72ch}
+a{color:var(--rx)}
+:focus-visible{outline:2px solid var(--rx);outline-offset:2px}
+.lede{font-size:1.15rem;color:var(--muted);max-width:62ch}
+.story{margin:28px 0;padding:20px 22px;background:var(--panel);border-left:5px solid var(--rx)}
+.story p{margin:.3em 0}
+code{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;font-size:.88em;background:var(--rx-soft);padding:1px 5px;border-radius:3px}
+pre{background:var(--code-bg);color:var(--code-ink);padding:16px 18px;border-radius:6px;overflow-x:auto;font:13.5px/1.55 "JetBrains Mono",ui-monospace,Consolas,monospace}
+pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.cap{font-size:13px;color:var(--muted);margin:-6px 0 18px}
+.tbl{overflow-x:auto;margin:16px 0 24px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;background:var(--panel)}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font-weight:600;border-bottom:2px solid var(--ink)}
+.note,.warn,.why{padding:14px 18px;margin:18px 0;border-radius:4px}
+.note{background:var(--rx-soft)}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.why{background:var(--panel);border:1px solid var(--line)}
+.why strong:first-child,.warn strong:first-child{display:block;margin-bottom:2px}
+figure{margin:24px 0;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;overflow-x:auto}
+figure svg{display:block;width:100%;height:auto;min-width:640px}
+figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+svg text{font-family:"IBM Plex Sans",system-ui,sans-serif;fill:var(--ink)}
+svg .t-s{font-size:11px;fill:var(--muted)}
+svg .t-b{font-weight:600}
+svg .box{fill:var(--node);stroke:var(--ink);stroke-width:1.3}
+svg .az{fill:var(--node-az);stroke:var(--ink);stroke-width:1.3}
+svg .fn{fill:var(--node-fn);stroke:var(--ink);stroke-width:1.3}
+svg .ok{fill:var(--rx-soft);stroke:var(--rx);stroke-width:1.5}
+svg .badbox{fill:var(--bad-soft);stroke:var(--bad);stroke-width:1.5}
+svg .zone{fill:none;stroke:var(--line);stroke-width:1.5;stroke-dasharray:6 5}
+svg .ln{stroke:var(--ink);stroke-width:1.4;fill:none}
+svg .ln-rx{stroke:var(--rx);stroke-width:2;fill:none}
+svg .ln-d{stroke:var(--muted);stroke-width:1.3;fill:none;stroke-dasharray:4 4}
+svg .ln-bad{stroke:var(--bad);stroke-width:1.5;fill:none}
+svg .num{fill:var(--rx)}
+svg .num-t{fill:#fff;font-size:11px;font-weight:600}
+.hops{list-style:none;padding:0;margin:20px 0;counter-reset:hop}
+.hops li{counter-increment:hop;position:relative;padding:4px 0 18px 52px;border-left:2px solid var(--line);margin-left:16px;max-width:none}
+.hops li:last-child{border-left-color:transparent}
+.hops li::before{content:counter(hop);position:absolute;left:-17px;top:0;width:32px;height:32px;border-radius:50%;background:var(--rx);color:#fff;font-weight:600;display:grid;place-items:center;font-size:14px}
+.hops li h4{margin:4px 0 4px;font-size:1.05rem}
+.hops li p{margin:.25em 0}
+.qa details{background:var(--panel);border:1px solid var(--line);border-radius:4px;margin:8px 0;padding:0 16px}
+.qa summary{cursor:pointer;padding:12px 0;font-weight:600}
+.qa details[open] summary{border-bottom:1px solid var(--line);margin-bottom:8px}
+.qa details p{margin:.5em 0 1em}
+.pitch{font-family:"Source Serif 4",Georgia,serif;font-size:1.15rem;line-height:1.6;background:var(--panel);padding:22px 26px;border-left:5px solid var(--ink)}
+.home{margin:0 0 14px;font-size:0.88rem}.home a{color:var(--rx);text-decoration:none}.home a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+<b>Rx Integration Lab</b>
+<a href="#problem">1. The problem</a>
+<a href="#arch">2. Architecture</a>
+<a href="#journey">3. Follow one prescription</a>
+<a href="#apim">4. API Management</a>
+<a href="#logic">5. Logic Apps Standard</a>
+<a href="#sb">6. Service Bus</a>
+<a href="#fn">7. Azure Functions</a>
+<a href="#eg">8. Event Grid</a>
+<a href="#identity">9. Entra ID, OAuth, Key Vault</a>
+<a href="#net">10. Production networking</a>
+<a href="#prod">11. Real production topology</a>
+<a href="#obs">12. Observability</a>
+<a href="#tf">13. Terraform shape</a>
+<a href="#cicd">14. Azure DevOps CI/CD</a>
+<a href="#trouble">15. Troubleshooting playbook</a>
+<a href="#decisions">16. Design decisions</a>
+<a href="#biztalk">17. BizTalk to Azure map</a>
+<a href="#qa">18. Interview questions</a>
+<a href="#pitch">19. The 60-second pitch</a>
+</nav>
+<main>
+<p class="home"><a href="../">&larr; Study Notes Home</a></p>
+<h1>Rx Integration Lab: FHIR to NCPDP on Azure Integration Services</h1>
+<p class="lede">A read-through lab. You won't click anything. You'll walk one prescription through APIM, Logic Apps, Service Bus, Functions and Event Grid, and learn why each piece sits where it does.</p>
+
+<div class="story">
+<p><strong>The story in one breath.</strong></p>
+<p>An EHR sends a FHIR prescription. APIM checks who is calling. A Logic App accepts it and drops it on Service Bus so nothing gets lost. A second Logic App picks it up, transforms it to NCPDP NewRx with help from a Function, and sends it to the pharmacy through the Surescripts network. Event Grid then tells everyone who cares that it happened.</p>
+</div>
+
+<div class="note">Payloads are simplified on purpose. The goal is the platform: reliability, security, transforms, events, deployment and troubleshooting. That's what integration architect interviews test.</div>
+
+<h2 id="problem">1. The problem</h2>
+<p>A health system runs an EHR. Doctors write prescriptions there. The EHR speaks <strong>FHIR R4</strong> (JSON, a <code>MedicationRequest</code> resource). Pharmacies, through the Surescripts network, speak <strong>NCPDP SCRIPT 2017071</strong> (XML, a <code>NewRx</code> message).</p>
+<p>Someone has to sit in the middle. That's you.</p>
+
+<h3>What the business actually needs</h3>
+<div class="tbl"><table>
+<tr><th>Requirement</th><th>What it means technically</th><th>Who delivers it</th></tr>
+<tr><td>Only trusted EHRs can send</td><td>OAuth 2.0 client credentials, JWT validation, app roles</td><td>Entra ID + APIM</td></tr>
+<tr><td>Never lose a prescription</td><td>Durable queue between receive and process</td><td>Service Bus</td></tr>
+<tr><td>Don't process one twice</td><td>At-least-once delivery made safe: duplicate detection, idempotent processing, reconciliation</td><td>Service Bus + workflow design</td></tr>
+<tr><td>Convert FHIR to NCPDP</td><td>JSON to canonical to XML transforms</td><td>Logic Apps (Liquid + XSLT)</td></tr>
+<tr><td>Validate clinical identifiers</td><td>NPI check digit, RxNorm to NDC lookup</td><td>Azure Function</td></tr>
+<tr><td>Tell other systems what happened</td><td>Fan-out notifications, loose coupling</td><td>Event Grid</td></tr>
+<tr><td>No passwords in config</td><td>Managed identity, Key Vault references</td><td>Entra ID + Key Vault</td></tr>
+<tr><td>Find any prescription's path fast</td><td>Correlation ID end to end, central logs</td><td>App Insights + Log Analytics</td></tr>
+<tr><td>Same deploy in dev, test, prod</td><td>IaC plus pipeline with approvals</td><td>Terraform + Azure DevOps</td></tr>
+</table></div>
+<p>Keep this table in your head. In an interview, every design choice you defend should trace back to one of these rows.</p>
+
+<h3>The two formats, side by side</h3>
+<div class="tbl"><table>
+<tr><th>Concept</th><th>FHIR MedicationRequest (in)</th><th>NCPDP NewRx (out)</th></tr>
+<tr><td>Patient</td><td><code>subject</code> reference to Patient</td><td><code>Patient/HumanPatient</code></td></tr>
+<tr><td>Prescriber</td><td><code>requester</code> reference to Practitioner (NPI)</td><td><code>Prescriber/NonVeterinarian</code> with NPI</td></tr>
+<tr><td>Drug</td><td><code>medicationCodeableConcept</code> (RxNorm)</td><td><code>MedicationPrescribed/DrugCoded</code> (NDC)</td></tr>
+<tr><td>Quantity, refills</td><td><code>dispenseRequest</code></td><td><code>Quantity</code>, <code>NumberOfRefills</code></td></tr>
+<tr><td>Directions</td><td><code>dosageInstruction.text</code></td><td><code>Sig/SigText</code></td></tr>
+</table></div>
+<p>Notice the drug code. FHIR usually carries RxNorm. The pharmacy wants NDC. That mismatch is why a Function shows up later.</p>
+
+<h2 id="arch">2. Architecture</h2>
+<figure>
+<svg viewBox="0 0 900 470" role="img" aria-label="Architecture: EHR to APIM to intake Logic App to Service Bus topic to transform Logic App, which calls a Function, Key Vault and the Surescripts network, and publishes to Event Grid for notify and audit subscribers">
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" style="fill:var(--ink)"/></marker>
+<marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--rx)"/></marker>
+</defs>
+<rect class="zone" x="170" y="20" width="710" height="430" rx="10"/>
+<text x="186" y="42" class="t-s">Azure subscription (Canada Central)</text>
+
+<rect class="box" x="16" y="160" width="130" height="64" rx="6"/>
+<text x="81" y="188" text-anchor="middle" class="t-b">EHR system</text>
+<text x="81" y="206" text-anchor="middle" class="t-s">FHIR JSON client</text>
+
+<rect class="az" x="200" y="160" width="130" height="64" rx="6"/>
+<text x="265" y="188" text-anchor="middle" class="t-b">APIM</text>
+<text x="265" y="206" text-anchor="middle" class="t-s">validate-jwt, rate limit</text>
+
+<rect class="az" x="370" y="160" width="130" height="64" rx="6"/>
+<text x="435" y="188" text-anchor="middle" class="t-b">wf-rx-intake</text>
+<text x="435" y="206" text-anchor="middle" class="t-s">Logic App (stateless)</text>
+
+<rect class="az" x="540" y="150" width="150" height="84" rx="6"/>
+<text x="615" y="176" text-anchor="middle" class="t-b" style="font-size:12.5px">Service Bus</text>
+<text x="615" y="194" text-anchor="middle" class="t-s">topic: rx-inbound</text>
+<text x="615" y="210" text-anchor="middle" class="t-s">sub: sub-newrx</text>
+<text x="615" y="226" text-anchor="middle" class="t-s">+ dead-letter queue</text>
+
+<rect class="az" x="720" y="160" width="140" height="64" rx="6"/>
+<text x="790" y="188" text-anchor="middle" class="t-b" style="font-size:14px">wf-rx-transform</text>
+<text x="790" y="206" text-anchor="middle" class="t-s">Logic App (stateful)</text>
+
+<rect class="fn" x="548" y="300" width="154" height="58" rx="6"/>
+<text x="625" y="324" text-anchor="middle" class="t-b">func-rx-validate</text>
+<text x="625" y="342" text-anchor="middle" class="t-s">NPI, RxNorm to NDC</text>
+
+<rect class="az" x="720" y="300" width="140" height="58" rx="6"/>
+<text x="790" y="324" text-anchor="middle" class="t-b">Key Vault</text>
+<text x="790" y="342" text-anchor="middle" class="t-s">Surescripts cert</text>
+
+<rect class="box" x="720" y="60" width="140" height="58" rx="6"/>
+<text x="790" y="84" text-anchor="middle" class="t-b">Surescripts</text>
+<text x="790" y="102" text-anchor="middle" class="t-s">NCPDP SCRIPT</text>
+
+<rect class="az" x="370" y="300" width="150" height="58" rx="6"/>
+<text x="445" y="324" text-anchor="middle" class="t-b">Event Grid topic</text>
+<text x="445" y="342" text-anchor="middle" class="t-s">rx-events</text>
+
+<rect class="az" x="200" y="390" width="130" height="46" rx="6"/>
+<text x="265" y="418" text-anchor="middle" class="t-b">wf-rx-notify</text>
+<rect class="fn" x="370" y="390" width="150" height="46" rx="6"/>
+<text x="445" y="418" text-anchor="middle" class="t-b">func-rx-audit</text>
+
+<rect class="box" x="200" y="60" width="300" height="58" rx="6"/>
+<text x="350" y="84" text-anchor="middle" class="t-b">Entra ID</text>
+<text x="350" y="102" text-anchor="middle" class="t-s">tokens for EHR and every managed identity</text>
+
+<rect class="box" x="16" y="300" width="130" height="58" rx="6"/>
+<text x="81" y="324" text-anchor="middle" class="t-b">App Insights</text>
+<text x="81" y="342" text-anchor="middle" class="t-s">+ Log Analytics</text>
+
+<path class="ln-rx" d="M146 192 H198" marker-end="url(#ag)"/>
+<path class="ln-rx" d="M330 192 H368" marker-end="url(#ag)"/>
+<path class="ln-rx" d="M500 192 H538" marker-end="url(#ag)"/>
+<path class="ln-rx" d="M690 192 H718" marker-end="url(#ag)"/>
+<path class="ln" d="M790 160 V120" marker-end="url(#a)"/>
+<path class="ln" d="M760 224 V260 H640 V298" marker-end="url(#a)"/>
+<path class="ln" d="M800 224 V298" marker-end="url(#a)"/>
+<path class="ln" d="M740 224 V250 H470 V298" marker-end="url(#a)"/>
+<path class="ln" d="M420 358 V370 H265 V388" marker-end="url(#a)"/>
+<path class="ln" d="M445 358 V388" marker-end="url(#a)"/>
+<path class="ln-d" d="M81 160 V89 H198 M265 118 V158"/>
+<path class="ln-d" d="M146 330 H168"/>
+
+<circle class="num" cx="172" cy="178" r="10"/><text x="172" y="182" text-anchor="middle" class="num-t">1</text>
+<circle class="num" cx="349" cy="178" r="10"/><text x="349" y="182" text-anchor="middle" class="num-t">2</text>
+<circle class="num" cx="519" cy="178" r="10"/><text x="519" y="182" text-anchor="middle" class="num-t">3</text>
+<circle class="num" cx="704" cy="178" r="10"/><text x="704" y="182" text-anchor="middle" class="num-t">4</text>
+<circle class="num" cx="812" cy="140" r="10"/><text x="812" y="144" text-anchor="middle" class="num-t">6</text>
+<circle class="num" cx="662" cy="274" r="10"/><text x="662" y="278" text-anchor="middle" class="num-t">5</text>
+<circle class="num" cx="484" cy="274" r="10"/><text x="484" y="278" text-anchor="middle" class="num-t">7</text>
+</svg>
+<figcaption>Teal arrows are the main message path. Numbers show the order of the main steps. Dashed lines are identity and telemetry, which touch everything.</figcaption>
+</figure>
+
+<h3>Each component and why it's there</h3>
+<div class="tbl"><table>
+<tr><th>Component</th><th>Job in this design</th><th>Why not skip it?</th></tr>
+<tr><td>APIM</td><td>Front door. Validates tokens, rate-limits, hides the backend, adds a correlation ID.</td><td>Without it, every Logic App would handle auth and throttling itself, and the EHR would know your internal URLs.</td></tr>
+<tr><td>wf-rx-intake</td><td>Quick schema check, publish to Service Bus, reply <code>202 Accepted</code>.</td><td>The EHR shouldn't wait for transforms and a Surescripts call. Accept fast, process later.</td></tr>
+<tr><td>Service Bus topic</td><td>Durable buffer and router between intake and processing.</td><td>This is your MessageBox. If processing is down, prescriptions wait safely instead of failing.</td></tr>
+<tr><td>wf-rx-transform</td><td>The real work: transforms, validation call, Surescripts send, settle the message.</td><td>This is the orchestration. Stateful, so every step is checkpointed.</td></tr>
+<tr><td>Function</td><td>Code-heavy logic: NPI check digit, drug code lookup.</td><td>Doing loops and math in the designer is painful to read, test and version.</td></tr>
+<tr><td>Key Vault</td><td>Holds the Surescripts client certificate and credentials and any key you can't replace with managed identity.</td><td>Secrets in app settings leak through exports, pipelines and screenshots.</td></tr>
+<tr><td>Event Grid</td><td>Broadcasts <code>Rx.Sent</code> and <code>Rx.Failed</code> events.</td><td>The transform workflow shouldn't know who cares. New subscribers join without touching it.</td></tr>
+<tr><td>App Insights</td><td>One place to trace a prescription by correlation ID.</td><td>Without it, troubleshooting means opening five portals.</td></tr>
+</table></div>
+
+<h2 id="journey">3. Follow one prescription</h2>
+<p>Read this section twice. If you can retell it without looking, you can answer most architecture questions.</p>
+
+<figure>
+<svg viewBox="0 0 900 520" role="img" aria-label="Sequence diagram of one prescription from EHR through APIM, intake workflow, Service Bus, transform workflow, Function and Surescripts">
+<defs><marker id="s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker></defs>
+<g>
+<rect class="box" x="10" y="10" width="110" height="36" rx="5"/><text x="65" y="33" text-anchor="middle" class="t-b">EHR</text>
+<rect class="az" x="150" y="10" width="110" height="36" rx="5"/><text x="205" y="33" text-anchor="middle" class="t-b">APIM</text>
+<rect class="az" x="290" y="10" width="110" height="36" rx="5"/><text x="345" y="33" text-anchor="middle" class="t-b">wf-intake</text>
+<rect class="az" x="430" y="10" width="110" height="36" rx="5"/><text x="485" y="33" text-anchor="middle" class="t-b">Service Bus</text>
+<rect class="az" x="570" y="10" width="110" height="36" rx="5"/><text x="625" y="33" text-anchor="middle" class="t-b" style="font-size:12.5px">wf-transform</text>
+<rect class="fn" x="710" y="10" width="80" height="36" rx="5"/><text x="750" y="33" text-anchor="middle" class="t-b" style="font-size:12.5px">Function</text>
+<rect class="box" x="810" y="10" width="80" height="36" rx="5"/><text x="850" y="33" text-anchor="middle" class="t-b" style="font-size:12.5px">Surescripts</text>
+</g>
+<g class="ln-d"><path d="M65 46 V510"/><path d="M205 46 V510"/><path d="M345 46 V510"/><path d="M485 46 V510"/><path d="M625 46 V510"/><path d="M750 46 V510"/><path d="M850 46 V510"/></g>
+<path class="ln" d="M65 80 H203" marker-end="url(#s)"/><text x="72" y="74" class="t-s">POST /rx + Bearer JWT</text>
+<text x="212" y="98" class="t-s">check JWT, add x-correlation-id</text>
+<path class="ln" d="M205 128 H343" marker-end="url(#s)"/><text x="212" y="122" class="t-s">forward, MI token</text>
+<text x="352" y="148" class="t-s">schema check</text>
+<path class="ln" d="M345 172 H483" marker-end="url(#s)"/><text x="352" y="166" class="t-s">send (MessageId=NewRx:rxId)</text>
+<path class="ln" d="M345 196 H67" marker-end="url(#s)"/><text x="80" y="190" class="t-s">202 Accepted + correlation id</text>
+<rect x="440" y="206" width="90" height="22" rx="4" class="ok"/><text x="485" y="221" text-anchor="middle" class="t-s">stored durably</text>
+<path class="ln" d="M485 250 H623" marker-end="url(#s)"/><text x="492" y="244" class="t-s">peek-lock deliver</text>
+<text x="632" y="270" class="t-s">Liquid: FHIR to CDM</text>
+<path class="ln" d="M625 292 H748" marker-end="url(#s)"/><text x="632" y="287" class="t-s">validate + enrich</text>
+<path class="ln" d="M750 316 H627" marker-end="url(#s)"/><text x="640" y="310" class="t-s">NDC, NPI ok</text>
+<text x="632" y="334" class="t-s">XSLT: CDM to NewRx</text>
+<path class="ln" d="M625 360 H848" marker-end="url(#s)"/><text x="632" y="354" class="t-s">NewRx XML (client cert)</text>
+<path class="ln" d="M850 384 H627" marker-end="url(#s)"/><text x="700" y="378" class="t-s">Status / Error</text>
+<path class="ln" d="M625 466 H487" marker-end="url(#s)"/><text x="494" y="460" class="t-s">Complete (or DLQ)</text>
+<text x="632" y="428" class="t-s">publish Rx.Sent to Event Grid</text>
+<text x="632" y="412" class="t-s">write archive blob</text>
+</svg>
+<figcaption>The EHR gets its answer at the 202. Everything after the "stored durably" box happens without the caller waiting.</figcaption>
+</figure>
+
+<ol class="hops">
+<li><h4>EHR gets a token</h4>
+<p>The EHR is an app registration in Entra ID. It uses the client credentials flow: client ID plus a certificate or secret, scope <code>api://rx-intake/.default</code>. Entra returns a JWT with <code>aud</code>, <code>iss</code> and a <code>roles</code> claim of <code>Prescriptions.Write</code>.</p>
+<p><em>Why:</em> machine-to-machine call, no user present, so client credentials is the right flow.</p></li>
+<li><h4>APIM checks the caller</h4>
+<p><code>validate-jwt</code> checks signature, issuer, audience and role. <code>rate-limit-by-key</code> stops one noisy EHR from hurting others. APIM adds <code>x-correlation-id</code> if the caller didn't send one.</p>
+<p><em>Why:</em> bad requests die at the edge. The backend never sees them.</p></li>
+<li><h4>APIM calls the intake workflow with its own identity</h4>
+<p>The EHR's token stops at APIM. APIM gets a new token with its managed identity and calls <code>wf-rx-intake</code>.</p>
+<p><em>Why:</em> the backend trusts APIM, not every EHR. Each hop has its own identity, so you can revoke one without breaking others.</p></li>
+<li><h4>Intake validates and publishes</h4>
+<p>A <strong>stateless</strong> workflow does a JSON schema check, then sends to topic <code>rx-inbound</code>. It sets <code>MessageId</code> to an ID for this specific command, like <code>NewRx:RX-123</code> (stable if the same command is retried), keeps <code>rxId</code> as a separate property, sets <code>CorrelationId</code> to the header value, and an application property <code>messageType = 'NewRx'</code>. Then it returns <code>202 Accepted</code>.</p>
+<p><em>Why stateless:</em> it's short, and once the message is in Service Bus, durability is Service Bus's job. Stateless is faster and cheaper on storage.</p></li>
+<li><h4>Service Bus holds and routes</h4>
+<p>Duplicate detection drops a repeat of the same <code>MessageId</code> within the window. That's why the ID includes the message type: a <code>CancelRx</code> for RX-123 must not look like a repeat of its <code>NewRx</code>. Subscription <code>sub-newrx</code> has a SQL filter <code>messageType = 'NewRx'</code>. A <code>CancelRx</code> would go to a different subscription and workflow.</p>
+<p><em>Why:</em> this is BizTalk's MessageBox pub/sub. Publisher doesn't know who processes.</p></li>
+<li><h4>Transform workflow receives with peek-lock</h4>
+<p>The message is locked, not deleted. If the workflow crashes, the lock expires and Service Bus redelivers it.</p>
+<p><em>Why:</em> "at least once" delivery. You never lose a prescription. The cost is you must handle duplicates.</p></li>
+<li><h4>Liquid map: FHIR to canonical</h4>
+<p>A Liquid template turns FHIR JSON into your canonical data model (CDM). The CDM is flat and stable.</p>
+<p><em>Why a CDM:</em> if a second EHR sends HL7 v2 tomorrow, you write one new map into the CDM. The NCPDP side doesn't change.</p></li>
+<li><h4>Function validates and enriches</h4>
+<p>The workflow calls <code>func-rx-validate</code>. It checks the prescriber NPI check digit and maps RxNorm to NDC.</p>
+<p><em>Why:</em> real code, unit-testable, versioned in Git with tests.</p></li>
+<li><h4>XSLT map: canonical to NCPDP</h4>
+<p>The CDM JSON is converted to XML, then an XSLT map produces the <code>NewRx</code> message.</p>
+<p><em>Why XSLT:</em> the target is XML with a strict schema. XSLT is the natural tool, and you already know it from BizTalk.</p></li>
+<li><h4>Send to Surescripts</h4>
+<p>HTTP POST to Surescripts with a client certificate pulled from Key Vault. Surescripts returns <code>Status</code> (it accepted the message for delivery) or <code>Error</code>. Surescripts then routes the NewRx to the right pharmacy using the NCPDP ID in the message: a retail store, or a mail-order pharmacy like OptumRx or CenterWell.</p>
+<p><em>Why one endpoint:</em> you integrate once with the network, not with every pharmacy.</p></li>
+<li><h4>Settle the message</h4>
+<p>Success: <strong>Complete</strong>, and the message is gone. Business error (bad NPI): <strong>Dead-letter</strong> with a reason. Temporary error (Surescripts 503): <strong>Abandon</strong> so it's retried.</p>
+<p><em>Why explicit:</em> in BizTalk the engine did this. Here you decide. Classify by the specific error, not just 4xx vs 5xx: a 429 is a 4xx but should be retried.</p></li>
+<li><h4>Announce it</h4>
+<p>Publish <code>Rx.Sent</code> to Event Grid. <code>wf-rx-notify</code> updates the EHR. <code>func-rx-audit</code> writes an audit record. Neither is known to the transform workflow.</p></li>
+</ol>
+
+<h2 id="apim">4. API Management</h2>
+<p>APIM is a gateway plus a policy engine. Think of it as the only door into your integration platform.</p>
+
+<h3>What you configure</h3>
+<div class="tbl"><table>
+<tr><th>Object</th><th>In this lab</th><th>Why</th></tr>
+<tr><td>API</td><td><code>Prescriptions API</code>, operation <code>POST /rx</code></td><td>Clean public contract, independent of Logic App URLs</td></tr>
+<tr><td>Backend</td><td>Named backend pointing to <code>wf-rx-intake</code></td><td>Change the target in one place, reuse across operations</td></tr>
+<tr><td>Product + subscription</td><td>One product per EHR partner</td><td>Per-partner keys, quotas, analytics, easy to cut off one partner</td></tr>
+<tr><td>Named values</td><td>Key Vault-backed for any secret</td><td>No secrets typed into policies</td></tr>
+<tr><td>Version set</td><td><code>/v1/rx</code></td><td>Add v2 later without breaking existing EHRs</td></tr>
+</table></div>
+
+<h3>The inbound policy</h3>
+<pre><code>&lt;inbound&gt;
+  &lt;base /&gt;
+  &lt;!-- 1. Who are you? --&gt;
+  &lt;validate-jwt header-name="Authorization" failed-validation-httpcode="401"&gt;
+    &lt;openid-config url="https://login.microsoftonline.com/{tenant-id}/v2.0/.well-known/openid-configuration" /&gt;
+    &lt;audiences&gt;&lt;audience&gt;api://rx-intake&lt;/audience&gt;&lt;/audiences&gt;
+    &lt;required-claims&gt;
+      &lt;claim name="roles" match="any"&gt;&lt;value&gt;Prescriptions.Write&lt;/value&gt;&lt;/claim&gt;
+    &lt;/required-claims&gt;
+  &lt;/validate-jwt&gt;
+
+  &lt;!-- 2. Not too fast --&gt;
+  &lt;rate-limit-by-key calls="100" renewal-period="60"
+      counter-key="@(context.Subscription.Id)" /&gt;
+
+  &lt;!-- 3. Traceability: keep the caller's id, or create one --&gt;
+  &lt;set-header name="x-correlation-id" exists-action="skip"&gt;
+    &lt;value&gt;@(context.RequestId.ToString())&lt;/value&gt;
+  &lt;/set-header&gt;
+
+  &lt;!-- 4. Call the backend as APIM, not as the EHR --&gt;
+  &lt;authentication-managed-identity resource="api://la-rx-intake" /&gt;
+  &lt;set-backend-service backend-id="la-rx-intake" /&gt;
+&lt;/inbound&gt;</code></pre>
+<p class="cap">Read it top to bottom: identity, protection, traceability, forwarding. That order is the talking point.</p>
+
+<div class="warn"><strong>Issuer gotcha</strong>The access token version is controlled by the <em>API's</em> app registration, through <code>requestedAccessTokenVersion</code> in the manifest (older manifest format: <code>accessTokenAcceptedVersion</code>). <code>null</code> or <code>1</code> gives v1 tokens, <code>2</code> gives v2. It doesn't matter which token endpoint the client calls. v1 tokens have <code>sts.windows.net/{tenant}/</code>. v2 tokens have <code>login.microsoftonline.com/{tenant}/v2.0</code>. A mismatch gives a 401 that looks like "everything is right." You hit exactly this in your APIM lab.</div>
+
+<div class="why"><strong>How does APIM reach a Logic App HTTP trigger?</strong>By default, a Logic App Standard HTTP trigger is protected by a SAS signature in its callback URL (<code>sig=...</code>). Two options: store that URL in a Key Vault-backed named value, or enable App Service authentication (Easy Auth) on the Logic App and call it with APIM's managed identity. The second is cleaner because there's no shared secret to rotate. That's the one shown above.</div>
+
+<h3>The APIM object model</h3>
+<p><strong>API</strong> (with operations) sits in one or more <strong>products</strong>. A <strong>subscription</strong> gives a consumer a key for a product or API. Policies run in four sections: <strong>inbound</strong> (before the backend), <strong>backend</strong> (the forward call), <strong>outbound</strong> (shape the response) and <strong>on-error</strong> (anything that failed).</p>
+
+<h3>Subscription key vs OAuth: don't mix them up</h3>
+<div class="tbl"><table>
+<tr><th>Mechanism</th><th>Answers</th><th>Use it for</th></tr>
+<tr><td>OAuth 2.0 / JWT</td><td>Who is calling, and are they allowed?</td><td>Authentication and authorization</td></tr>
+<tr><td>APIM subscription key</td><td>Which consumer or plan is this?</td><td>Optional: per-consumer quotas, analytics, access plans</td></tr>
+</table></div>
+<p>If an interviewer asks "why both?", a good answer is: OAuth is the security control. The subscription key is optional, for usage tracking and plans. If you don't need keys, use an open product and rate-limit on a token claim instead:</p>
+<pre><code>&lt;rate-limit-by-key calls="100" renewal-period="60"
+  counter-key="@(context.Request.Headers.GetValueOrDefault(&quot;Authorization&quot;,&quot;&quot;).AsJwt()?.Claims.GetValueOrDefault(&quot;azp&quot;, &quot;unknown&quot;))" /&gt;</code></pre>
+<p class="cap"><code>azp</code> is the calling app's ID in v2 tokens. In v1 tokens it's <code>appid</code>.</p>
+
+<h3>Other APIM terms to know</h3>
+<div class="tbl"><table>
+<tr><th>Term</th><th>Meaning</th></tr>
+<tr><td>Rate limit vs quota</td><td>Rate limit caps bursts over a short window (100 per minute). Quota caps total volume over a long period (100,000 per month).</td></tr>
+<tr><td>Version vs revision</td><td>A version is a breaking change that callers opt into (<code>/v2</code>). A revision is a non-breaking change you test, then make current.</td></tr>
+<tr><td><code>validate-content</code></td><td>Checks the request body against the API's schema at the gateway</td></tr>
+<tr><td><code>rewrite-uri</code>, <code>set-backend-service</code></td><td>Change the backend path or target without the caller knowing</td></tr>
+<tr><td>OpenAPI import</td><td>The API contract drives operations and schemas</td></tr>
+<tr><td>Diagnostics</td><td>APIM logs to App Insights and Log Analytics</td></tr>
+</table></div>
+
+<h3>HTTP status codes you should explain without thinking</h3>
+<div class="tbl"><table>
+<tr><th>Code</th><th>Meaning in this design</th><th>Retry?</th></tr>
+<tr><td>202 Accepted</td><td>Intake took the prescription. Processing happens later</td><td>n/a</td></tr>
+<tr><td>400 Bad Request</td><td>Malformed JSON or schema failure</td><td>No, fix the request</td></tr>
+<tr><td>401 Unauthorized</td><td>No token, or token invalid (signature, issuer, audience, expired)</td><td>Only with a new token</td></tr>
+<tr><td>403 Forbidden</td><td>Token valid, but missing the required role</td><td>No, fix permissions</td></tr>
+<tr><td>404 Not Found</td><td>Wrong path or API version</td><td>No</td></tr>
+<tr><td>409 Conflict</td><td>Conflicts with current state, like a duplicate</td><td>Usually no</td></tr>
+<tr><td>422 Unprocessable</td><td>Valid shape, bad business data (bad NPI)</td><td>No</td></tr>
+<tr><td>429 Too Many Requests</td><td>Rate limit hit</td><td>Yes, after <code>Retry-After</code></td></tr>
+<tr><td>500 / 502 / 503 / 504</td><td>Backend error, bad gateway, unavailable, timeout</td><td>Usually yes, with backoff</td></tr>
+</table></div>
+<p>Why 202 and not 201? Nothing is created yet from the caller's point of view. 202 says "accepted for processing." Also: POST is not idempotent by nature, which is why the caller's retries need duplicate protection. PUT and DELETE are meant to be idempotent.</p>
+
+<h3>Policy scopes</h3>
+<p>Policies stack: <strong>global, product, API, operation</strong>. <code>&lt;base /&gt;</code> pulls in the outer scope. Put <code>validate-jwt</code> at API level so every operation gets it. Put rate limits at product level so each partner has its own limit.</p>
+
+<h2 id="logic">5. Logic Apps Standard</h2>
+<p>This is the heart of the design. Spend the most time here.</p>
+
+<h3>Standard vs Consumption</h3>
+<div class="tbl"><table>
+<tr><th></th><th>Consumption</th><th>Standard (this lab)</th></tr>
+<tr><td>Hosting</td><td>Multi-tenant, shared</td><td>Single-tenant, your Workflow Standard plan (WS1/2/3)</td></tr>
+<tr><td>Workflows per resource</td><td>One</td><td>Many, in one Logic App (like one project)</td></tr>
+<tr><td>Billing</td><td>Per action execution</td><td>Per plan hour, like App Service</td></tr>
+<tr><td>Networking</td><td>No VNet integration</td><td>VNet integration and private endpoints</td></tr>
+<tr><td>Connectors</td><td>Managed (shared) only</td><td>Built-in (in-process) plus managed</td></tr>
+<tr><td>Stateless workflows</td><td>No</td><td>Yes</td></tr>
+<tr><td>Local dev and CI/CD</td><td>CI/CD with ARM or Bicep templates</td><td>VS Code project, local runs, zip deploy, like a Function app</td></tr>
+</table></div>
+<p>The one-liner: <strong>Logic Apps Standard runs on the Azure Functions runtime.</strong> That explains almost everything else, including why you deploy it like a Function app.</p>
+
+<h3>Stateful vs stateless</h3>
+<div class="tbl"><table>
+<tr><th></th><th>Stateful</th><th>Stateless</th></tr>
+<tr><td>Checkpoints each action</td><td>Yes, to the Logic App's storage account</td><td>No, kept in memory</td></tr>
+<tr><td>Run history</td><td>Yes</td><td>Off by default</td></tr>
+<tr><td>Survives host restart</td><td>Yes, resumes</td><td>No, the run is lost</td></tr>
+<tr><td>Best for</td><td>Long, multi-step, must-not-lose work</td><td>Short request/response, speed</td></tr>
+<tr><td>In this lab</td><td><code>wf-rx-transform</code></td><td><code>wf-rx-intake</code></td></tr>
+</table></div>
+<p>Here's the BizTalk link your friend was pointing at. Stateful checkpointing is your dehydration. It's automatic. What's not automatic is the handoff between two workflows. That's what Service Bus is for.</p>
+
+<h3>Built-in vs managed connectors</h3>
+<p>Built-in connectors (Service Bus, HTTP, Blob, Event Hubs, SQL and more) run inside the Logic App process. They're faster, have no per-call throttling from a shared service, and use your VNet. Managed connectors run in shared Microsoft infrastructure, create an API connection resource, and have throttling limits.</p>
+<p><strong>Rule of thumb:</strong> use built-in when one exists. The Service Bus trigger here is built-in.</p>
+
+<h3>The project layout</h3>
+<pre><code>logicapp/
+  host.json                 runtime settings (like a Function app)
+  connections.json          how to reach Service Bus, Blob, etc.
+  parameters.json           values that change per environment
+  Artifacts/
+    Maps/
+      FHIR_To_CDM.liquid
+      CDM_To_NCPDP_NewRx.xslt
+    Schemas/
+      rx-intake.schema.json
+  wf-rx-intake/workflow.json
+  wf-rx-transform/workflow.json</code></pre>
+<p>This folder is what goes into Git and what the pipeline zips and deploys. Nothing environment-specific should be hardcoded in <code>workflow.json</code>.</p>
+
+<h3>connections.json with managed identity</h3>
+<pre><code>{
+  "serviceProviderConnections": {
+    "serviceBus": {
+      "displayName": "sb-rx",
+      "parameterSetName": "ManagedServiceIdentity",
+      "parameterValues": {
+        "authProvider": { "Type": "ManagedServiceIdentity" },
+        "fullyQualifiedNamespace": "@appsetting('serviceBus_fullyQualifiedNamespace')"
+      },
+      "serviceProvider": { "id": "/serviceProviders/serviceBus" }
+    }
+  }
+}</code></pre>
+<p class="cap">No connection string. The namespace name comes from an app setting, so each environment points to its own namespace.</p>
+
+<h3>wf-rx-transform, step by step</h3>
+<figure>
+<svg viewBox="0 0 900 360" role="img" aria-label="Transform workflow: trigger, Try scope with transforms, function call, send and complete; Catch scope that decides between abandon and dead-letter">
+<defs><marker id="w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker></defs>
+<rect class="az" x="20" y="20" width="200" height="48" rx="6"/>
+<text x="120" y="42" text-anchor="middle" class="t-b">Trigger: peek-lock</text>
+<text x="120" y="58" text-anchor="middle" class="t-s">rx-inbound / sub-newrx</text>
+<path class="ln" d="M120 68 V92" marker-end="url(#w)"/>
+<rect class="ok" x="20" y="94" width="520" height="240" rx="8"/>
+<text x="36" y="116" class="t-b">Scope: Try</text>
+<rect class="box" x="40" y="130" width="150" height="40" rx="5"/><text x="115" y="155" text-anchor="middle">Parse + Liquid</text>
+<rect class="box" x="210" y="130" width="150" height="40" rx="5"/><text x="285" y="155" text-anchor="middle">Call Function</text>
+<rect class="box" x="380" y="130" width="140" height="40" rx="5"/><text x="450" y="155" text-anchor="middle">XML + XSLT</text>
+<rect class="box" x="40" y="200" width="150" height="40" rx="5"/><text x="115" y="225" text-anchor="middle">HTTP to Surescripts</text>
+<rect class="box" x="210" y="200" width="150" height="40" rx="5"/><text x="285" y="225" text-anchor="middle">Archive to Blob</text>
+<rect class="box" x="380" y="200" width="140" height="40" rx="5"/><text x="450" y="225" text-anchor="middle">Publish Rx.Sent</text>
+<rect class="az" x="190" y="270" width="180" height="44" rx="5"/><text x="280" y="297" text-anchor="middle" class="t-b">Complete message</text>
+<path class="ln" d="M190 150 H208" marker-end="url(#w)"/><path class="ln" d="M360 150 H378" marker-end="url(#w)"/>
+<path class="ln" d="M450 170 V186 H115 V198" marker-end="url(#w)"/>
+<path class="ln" d="M190 220 H208" marker-end="url(#w)"/><path class="ln" d="M360 220 H378" marker-end="url(#w)"/>
+<path class="ln" d="M450 240 V256 H280 V268" marker-end="url(#w)"/>
+<rect class="badbox" x="590" y="94" width="290" height="240" rx="8"/>
+<text x="606" y="116" class="t-b">Scope: Catch</text>
+<text x="606" y="134" class="t-s">runAfter Try: Failed, TimedOut</text>
+<rect class="box" x="610" y="150" width="250" height="40" rx="5"/><text x="735" y="175" text-anchor="middle">Condition: transient error?</text>
+<rect class="box" x="610" y="214" width="115" height="44" rx="5"/><text x="667" y="234" text-anchor="middle">Abandon</text><text x="667" y="250" text-anchor="middle" class="t-s">retry later</text>
+<rect class="box" x="745" y="214" width="115" height="44" rx="5"/><text x="802" y="234" text-anchor="middle">Dead-letter</text><text x="802" y="250" text-anchor="middle" class="t-s">with reason</text>
+<rect class="box" x="610" y="276" width="250" height="40" rx="5"/><text x="735" y="301" text-anchor="middle">Publish Rx.Failed</text>
+<path class="ln" d="M690 190 V212" marker-end="url(#w)"/><path class="ln" d="M780 190 V212" marker-end="url(#w)"/>
+<text x="660" y="206" class="t-s">yes</text><text x="786" y="206" class="t-s">no</text>
+<path class="ln-bad" d="M540 214 H588" marker-end="url(#w)"/>
+</svg>
+<figcaption>Try/Catch is built from two Scope actions and the "run after" setting. It's the most common production pattern you'll be asked about.</figcaption>
+</figure>
+
+<h3>The trigger in workflow.json</h3>
+<pre><code>"triggers": {
+  "When_messages_are_available_in_a_topic_subscription": {
+    "type": "ServiceProvider",
+    "inputs": {
+      "parameters": {
+        "topicName": "rx-inbound",
+        "subscriptionName": "sub-newrx"
+      },
+      "serviceProviderConfiguration": {
+        "connectionName": "serviceBus",
+        "operationId": "peekLockTopicMessagesV2",
+        "serviceProviderId": "/serviceProviders/serviceBus"
+      }
+    },
+    "splitOn": "@triggerOutputs()?['body']"
+  }
+}</code></pre>
+<p><code>splitOn</code> matters. The trigger can receive a batch. <code>splitOn</code> starts one run per message, so one bad prescription can't fail the others. It's called debatching.</p>
+
+<h3>The Catch scope wiring</h3>
+<pre><code>"Catch": {
+  "type": "Scope",
+  "runAfter": { "Try": [ "Failed", "TimedOut" ] },
+  "actions": { ... }
+}</code></pre>
+<p class="cap">Microsoft docs use <code>Failed</code> and <code>TimedOut</code>. The Standard designer often writes them in capitals. You may see both.</p>
+<p>Inside Catch, <code>result('Try')</code> gives you the status and error of every action in Try. You use it to decide abandon vs dead-letter, and to write a useful dead-letter reason.</p>
+
+<h3>Retry policies</h3>
+<p>Every HTTP-type action has a retry policy. Default is exponential, a few attempts. For the Surescripts call you might set 3 retries with exponential backoff. That handles a brief blip <em>inside</em> the run. If it still fails, Catch abandons the message and Service Bus handles the longer retry. Two retry layers, each for a different time scale.</p>
+
+<h3>Concurrency and scaling</h3>
+<p>Throughput questions come up often. Four controls to know:</p>
+<ul>
+<li><strong>Trigger concurrency</strong> limits how many runs execute at once. Too high can overwhelm Surescripts or hit its limits. Too low and the subscription backlog grows.</li>
+<li><strong>For each concurrency</strong> controls parallel iterations inside a run. Set it to 1 when order inside a loop matters.</li>
+<li><strong><code>splitOn</code></strong> creates independent runs per message.</li>
+<li><strong>Plan scale-out:</strong> Standard scales at the Workflow Standard plan level, adding instances under load.</li>
+</ul>
+<p>Sessions deliberately reduce parallelism per session to keep order. That's a trade-off, not a free feature.</p>
+
+<h3>Transforms</h3>
+<pre><code>{% comment %} FHIR_To_CDM.liquid (simplified) {% endcomment %}
+{
+  "rxId":        "{{ content.id }}",
+  "prescriberNpi": "{{ content.requester.identifier.value }}",
+  "rxNormCode":  "{{ content.medicationCodeableConcept.coding[0].code }}",
+  "drugName":    "{{ content.medicationCodeableConcept.text }}",
+  "quantity":    {{ content.dispenseRequest.quantity.value }},   {% comment %} required: validated before this map {% endcomment %}
+  "refills":     {{ content.dispenseRequest.numberOfRepeatsAllowed | default: 0 }},
+  "sig":         "{{ content.dosageInstruction[0].text }}"
+}</code></pre>
+<p>In a Logic App Liquid map the incoming payload sits under <code>content</code>. Missing fields render as empty, which can produce invalid JSON for numbers. Two rules: validate required clinical fields like quantity <em>before</em> the map, and reject the message if they're missing. Use <code>default</code> only where a default has real business meaning, like zero refills. Never invent a quantity.</p>
+<pre><code>&lt;!-- CDM_To_NCPDP_NewRx.xslt (fragment) --&gt;
+&lt;xsl:template match="/root"&gt;
+  &lt;Message&gt;
+    &lt;Header&gt;&lt;MessageID&gt;&lt;xsl:value-of select="rxId"/&gt;&lt;/MessageID&gt;&lt;/Header&gt;
+    &lt;Body&gt;&lt;NewRx&gt;
+      &lt;MedicationPrescribed&gt;
+        &lt;DrugDescription&gt;&lt;xsl:value-of select="drugName"/&gt;&lt;/DrugDescription&gt;
+        &lt;DrugCoded&gt;&lt;ProductCode&gt;&lt;Code&gt;&lt;xsl:value-of select="ndc"/&gt;&lt;/Code&gt;&lt;/ProductCode&gt;&lt;/DrugCoded&gt;
+        &lt;Sig&gt;&lt;SigText&gt;&lt;xsl:value-of select="sig"/&gt;&lt;/SigText&gt;&lt;/Sig&gt;
+      &lt;/MedicationPrescribed&gt;
+    &lt;/NewRx&gt;&lt;/Body&gt;
+  &lt;/Message&gt;
+&lt;/xsl:template&gt;</code></pre>
+<p class="cap">The JSON to XML step uses <code>xml()</code>, which needs a single root. That's why the enriched CDM is wrapped as <code>{"root": ...}</code> first.</p>
+
+<h3>Settings that change per environment</h3>
+<p><code>parameters.json</code> holds values like the Surescripts endpoint. It references app settings: <code>"@appsetting('SurescriptsEndpoint')"</code>. Dev and QA point to the Surescripts certification (staging) environment, prod to Surescripts production. App settings are set per environment by Terraform or the pipeline. Same zip, different config. That's the whole CI/CD story in one sentence.</p>
+
+<h2 id="sb">6. Service Bus</h2>
+<p>Service Bus is an enterprise message broker. It holds messages until someone is ready and able to process them.</p>
+
+<h3>Queue or topic?</h3>
+<div class="tbl"><table>
+<tr><th></th><th>Queue</th><th>Topic + subscriptions</th></tr>
+<tr><td>Pattern</td><td>Point to point, competing consumers</td><td>Publish/subscribe</td></tr>
+<tr><td>Receivers</td><td>Each message goes to one receiver</td><td>Each subscription gets its own copy</td></tr>
+<tr><td>Routing</td><td>None</td><td>SQL or correlation filters per subscription</td></tr>
+<tr><td>Here</td><td></td><td><code>rx-inbound</code>, because NewRx, CancelRx and RxChange go to different workflows</td></tr>
+</table></div>
+<p>A subscription behaves like its own queue. Each one has its own dead-letter queue.</p>
+
+<h3>The life of a message under peek-lock</h3>
+<figure>
+<svg viewBox="0 0 900 250" role="img" aria-label="Peek-lock states: active, locked, then completed, abandoned back to active, or dead-lettered after max delivery count">
+<defs><marker id="p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker></defs>
+<rect class="az" x="30" y="90" width="140" height="56" rx="28"/><text x="100" y="116" text-anchor="middle" class="t-b">Active</text><text x="100" y="134" text-anchor="middle" class="t-s">waiting in subscription</text>
+<rect class="az" x="300" y="90" width="160" height="56" rx="28"/><text x="380" y="116" text-anchor="middle" class="t-b">Locked</text><text x="380" y="134" text-anchor="middle" class="t-s">DeliveryCount + 1</text>
+<rect class="ok" x="610" y="20" width="190" height="50" rx="25"/><text x="705" y="50" text-anchor="middle" class="t-b">Completed (gone)</text>
+<rect class="badbox" x="620" y="170" width="200" height="56" rx="28"/><text x="720" y="196" text-anchor="middle" class="t-b">Dead-letter queue</text><text x="720" y="214" text-anchor="middle" class="t-s">stays until you act</text>
+<path class="ln" d="M170 118 H298" marker-end="url(#p)"/><text x="195" y="110" class="t-s">receive</text>
+<path class="ln" d="M460 106 C540 70 560 50 618 45" marker-end="url(#p)"/><text x="490" y="62" class="t-s">Complete</text>
+<path class="ln" d="M460 132 C540 170 560 190 618 196" marker-end="url(#p)"/><text x="470" y="196" class="t-s">Dead-letter, or</text><text x="470" y="210" class="t-s">DeliveryCount &gt; max</text>
+<path class="ln" d="M380 146 C380 220 100 220 100 150" marker-end="url(#p)"/><text x="170" y="222" class="t-s">Abandon, or lock expires</text>
+</svg>
+<figcaption>Every path out of "Locked" is a decision your workflow makes, except lock expiry. Lock expiry is what causes surprise duplicates.</figcaption>
+</figure>
+
+<h3>Settings that matter, and why</h3>
+<div class="tbl"><table>
+<tr><th>Setting</th><th>Value here</th><th>Why</th></tr>
+<tr><td>Lock duration</td><td>1 to 5 minutes (5 is the max)</td><td>Set it longer than <em>normal</em> processing. If a run can legitimately take longer, renew the lock (the built-in Service Bus connector has a renew-lock action). If the lock is still lost, redelivery happens, and idempotency protects you</td></tr>
+<tr><td>Max delivery count</td><td>5</td><td>After 5 failed attempts, stop retrying and dead-letter it (poison message)</td></tr>
+<tr><td>Duplicate detection</td><td>On, 10 minute window</td><td>EHR retries after a timeout won't create two prescriptions. Must be set at creation</td></tr>
+<tr><td>MessageId</td><td>Type + business ID, e.g. <code>NewRx:RX-123</code></td><td>Duplicate detection compares only this, for the whole topic. Stable across retries of the same command, different for a different command. A random GUID per send would defeat it</td></tr>
+<tr><td>Dead-letter on expiration</td><td>On</td><td>Expired prescriptions are kept for review, not silently deleted</td></tr>
+<tr><td>Sessions</td><td>Optional, <code>SessionId</code> = prescription group</td><td>Orders related messages <em>within one session-enabled queue or subscription</em>. It does not coordinate across subscriptions. If NewRx and CancelRx must be ordered, they must flow through the same session-aware subscription, or you need explicit state checks</td></tr>
+<tr><td>Local auth (SAS)</td><td>Disabled</td><td>Forces Entra RBAC. No keys to leak</td></tr>
+</table></div>
+
+<div class="warn"><strong>Duplicate detection is not idempotency</strong>It only catches repeats with the same MessageId inside the window. A redelivery after lock expiry is the <em>same</em> message delivered again, not a new send, so duplicate detection doesn't stop it. Your workflow still needs to be idempotent: for example, check an "already sent" record keyed by rxId before calling Surescripts.</div>
+
+<div class="warn"><strong>The hardest case: the partner's answer is lost</strong>Surescripts accepts the NewRx, but your HTTP call times out before the response arrives. Did it succeed? You don't know. Retrying blindly may send it twice. The architect answer: Service Bus gives at-least-once delivery, not exactly-once. Use a partner-supported message ID so the partner can reject duplicates (NCPDP messages carry a MessageID). Where that isn't enough, query status or reconcile before resending. Never claim "exactly once" across a network boundary.</div>
+
+<h3>Tiers in one line each</h3>
+<p><strong>Basic:</strong> queues only. <strong>Standard:</strong> topics, pay per operation, 256 KB messages, public endpoint. <strong>Premium:</strong> dedicated capacity, private endpoints, up to 100 MB messages, geo-DR. For healthcare in production, expect Premium because of private networking.</p>
+
+<h3>Handling the dead-letter queue</h3>
+<p>A DLQ nobody watches is just a slower way to lose data. Three things make it real:</p>
+<ul>
+<li>An alert on dead-lettered message count above zero.</li>
+<li>Clear <code>DeadLetterReason</code> and description, written by your Catch scope, like <code>InvalidPrescriberNpi</code>.</li>
+<li>A replay path: a small workflow that reads the DLQ, lets an operator fix or approve, and resends to the topic.</li>
+</ul>
+
+<h2 id="fn">7. Azure Functions</h2>
+<p>Functions are for the parts that are really code. The line is simple: <strong>Logic Apps orchestrate, Functions compute.</strong></p>
+
+<h3>Fundamentals in five points</h3>
+<ul>
+<li><strong>Trigger:</strong> what starts the function. HTTP, Service Bus, Timer, Event Grid, Blob and more. Exactly one per function.</li>
+<li><strong>Bindings:</strong> declarative input and output connections, like writing to a queue without client code.</li>
+<li><strong>Isolated worker model:</strong> your .NET code runs in its own process, separate from the host. It's the model going forward for .NET.</li>
+<li><strong>Hosting:</strong> Flex Consumption (serverless, scale to zero, VNet support), Premium (pre-warmed, no cold start), or Dedicated (App Service plan). Cold start is the delay when a scaled-to-zero app wakes up.</li>
+<li><strong>Configuration:</strong> app settings, Key Vault references and managed identity, exactly like Logic Apps Standard.</li>
+</ul>
+<p>A Function can also do what a Logic App does: a Service Bus-triggered Function could process prescriptions. You'd choose that for very high throughput or complex code. You'd choose Logic Apps for visible orchestration, connectors and run history.</p>
+
+<h3>What goes in the Function here</h3>
+<ul>
+<li>NPI validation. The 10th digit is a Luhn check digit, calculated with the prefix <code>80840</code>.</li>
+<li>RxNorm to NDC lookup against a reference table.</li>
+<li>Anything with loops, string math or unit tests.</li>
+</ul>
+
+<pre><code>// .NET 8 isolated worker
+public class ValidateRx
+{
+    [Function("ValidateRx")]
+    public async Task&lt;IActionResult&gt; Run(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
+    {
+        var rx = await req.ReadFromJsonAsync&lt;CdmRx&gt;();
+        if (!IsValidNpi(rx.PrescriberNpi))
+            return new UnprocessableEntityObjectResult(new { code = "InvalidPrescriberNpi" });
+
+        rx.Ndc = await _drugCodes.LookupNdcAsync(rx.RxNormCode);
+        return new OkObjectResult(rx);
+    }
+
+    static bool IsValidNpi(string npi)
+    {
+        if (npi is not { Length: 10 } || !npi.All(char.IsDigit)) return false;
+        var s = "80840" + npi[..9];
+        int sum = 0; bool dbl = true;
+        for (int i = s.Length - 1; i &gt;= 0; i--)
+        {
+            int d = s[i] - '0';
+            if (dbl) { d *= 2; if (d &gt; 9) d -= 9; }
+            sum += d; dbl = !dbl;
+        }
+        return (10 - sum % 10) % 10 == npi[9] - '0';
+    }
+}</code></pre>
+
+<div class="why"><strong>Why AuthorizationLevel.Anonymous?</strong>Because Easy Auth (App Service authentication) sits in front and rejects any call without a valid Entra token for this Function's audience. The Logic App calls it with its managed identity. That's stronger than a function key, which is a shared secret.</div>
+
+<div class="why"><strong>Why return 422 for a bad NPI?</strong>It's a business error, and a specific code lets the Catch scope decide. But don't classify by first digit alone. <strong>422</strong> (bad data): dead-letter, retrying won't help. <strong>408, 429, 500, 502, 503, 504</strong>: transient, retry. <strong>401, 403</strong>: configuration or security problem, alert and don't retry endlessly.</div>
+
+<h3>Other ways to run code, and when</h3>
+<div class="tbl"><table>
+<tr><th>Option</th><th>Use when</th></tr>
+<tr><td>Separate Function app (this lab)</td><td>Shared logic, its own scaling, its own tests and release</td></tr>
+<tr><td>Logic Apps Standard custom .NET code</td><td>Small logic that belongs to one workflow and should deploy with it</td></tr>
+<tr><td>Inline JavaScript action</td><td>A few lines of data shaping</td></tr>
+</table></div>
+
+<h2 id="eg">8. Event Grid</h2>
+<p>Event Grid delivers <em>events</em>: small notices that something happened. In the classic model used here (Event Grid Basic), it pushes them to subscribers. The newer namespace topics (Event Grid Standard) support pull delivery as well as push.</p>
+
+<h3>Events vs messages: the question you will get</h3>
+<div class="tbl"><table>
+<tr><th></th><th>Event Grid (event)</th><th>Service Bus (message)</th></tr>
+<tr><td>Meaning</td><td>"This happened" (a fact)</td><td>"Do this" or "here is the data" (a job)</td></tr>
+<tr><td>Publisher expects</td><td>Nothing. Doesn't care who listens</td><td>That someone processes it</td></tr>
+<tr><td>Delivery</td><td>Push to endpoints (namespace topics can also pull)</td><td>Pull by receivers</td></tr>
+<tr><td>Size</td><td>Small, a pointer to data</td><td>Carries the payload</td></tr>
+<tr><td>Ordering, sessions, transactions</td><td>No</td><td>Yes</td></tr>
+<tr><td>Failure handling</td><td>Retries with backoff, then dead-letter to Blob</td><td>Lock, redelivery, DLQ</td></tr>
+<tr><td>Here</td><td><code>Rx.Sent</code>, <code>Rx.Failed</code></td><td>The prescription itself</td></tr>
+</table></div>
+<p>Rule of thumb, not law: <strong>the prescription itself belongs on Service Bus, and "it was sent" is usually cleaner on Event Grid.</strong> Service Bus topics can carry events too, when subscribers need sessions, ordering or transactions.</p>
+
+<h3>Topic types</h3>
+<p class="cap">The first three are Event Grid Basic. The last is Event Grid Standard.</p>
+<ul>
+<li><strong>System topic:</strong> Azure services publish their own events, like Blob Created. Example: a Surescripts formulary and benefit file lands in Blob Storage, and <code>wf-rx-formulary-load</code> fires.</li>
+<li><strong>Custom topic:</strong> you publish your own business events. That's <code>rx-events</code> here.</li>
+<li><strong>Partner topic:</strong> a SaaS partner publishes events into your Azure subscription.</li>
+<li><strong>Namespace topic (Event Grid Standard):</strong> the newer model, with pull and push delivery and MQTT support.</li>
+</ul>
+
+<h3>An event on the wire (CloudEvents schema)</h3>
+<pre><code>{
+  "specversion": "1.0",
+  "type": "Rx.Sent",
+  "source": "/integration/rx-transform",
+  "id": "5f1c...",
+  "time": "2026-09-16T14:02:11Z",
+  "subject": "prescriptions/RX-100245",
+  "data": { "rxId": "RX-100245", "correlationId": "c0a8...", "pharmacyNcpdpId": "1234567" }
+}</code></pre>
+<p class="cap">No patient data. The event says what happened and where to look. Subscribers fetch details if they're allowed to.</p>
+
+<h3>How the pieces connect</h3>
+<ul>
+<li><strong>Publishing:</strong> the transform workflow sends an HTTP POST to the topic endpoint, authenticated with its managed identity. It needs the <em>EventGrid Data Sender</em> role.</li>
+<li><strong>Subscribing:</strong> each subscription has a filter (by event type or subject) and an endpoint: a Logic App, a Function, a Service Bus queue, or a webhook.</li>
+<li><strong>Webhook validation:</strong> Event Grid proves you own a webhook endpoint with a validation handshake first. Built-in Azure endpoints handle this for you. A custom webhook that ignores it never gets events.</li>
+<li><strong>Retries:</strong> by default, up to 30 attempts over 24 hours with backoff. Configure a Blob container for dead-lettered events, or failed events are dropped.</li>
+</ul>
+
+<div class="why"><strong>Common pattern worth naming: Event Grid into Service Bus</strong>If a subscriber must never miss an event and processes slowly, point the Event Grid subscription at a Service Bus queue. Event Grid gives the fan-out. Service Bus gives the durability and pace control.</div>
+
+<h2 id="identity">9. Entra ID, OAuth 2.0 and Key Vault</h2>
+<p>The design goal: <strong>no secrets inside Azure.</strong> Every application-to-application call uses managed identity. Secrets exist only at the edges, with outside parties. (One caveat below: the Logic App's own host storage connection.)</p>
+
+<figure>
+<svg viewBox="0 0 900 300" role="img" aria-label="Identity map: EHR uses client credentials to APIM; APIM, Logic Apps and Functions use managed identities to call each other and Azure services">
+<defs><marker id="i" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker></defs>
+<rect class="box" x="20" y="120" width="130" height="56" rx="6"/><text x="85" y="144" text-anchor="middle" class="t-b">EHR</text><text x="85" y="162" text-anchor="middle" class="t-s">app registration</text>
+<rect class="az" x="220" y="120" width="130" height="56" rx="6"/><text x="285" y="144" text-anchor="middle" class="t-b">APIM</text><text x="285" y="162" text-anchor="middle" class="t-s">system MI</text>
+<rect class="az" x="430" y="120" width="160" height="56" rx="6"/><text x="510" y="144" text-anchor="middle" class="t-b">Logic App</text><text x="510" y="162" text-anchor="middle" class="t-s">system MI</text>
+<rect class="az" x="690" y="20" width="190" height="40" rx="6"/><text x="785" y="45" text-anchor="middle">Service Bus</text>
+<rect class="fn" x="690" y="74" width="190" height="40" rx="6"/><text x="785" y="99" text-anchor="middle">Function (Easy Auth)</text>
+<rect class="az" x="690" y="128" width="190" height="40" rx="6"/><text x="785" y="153" text-anchor="middle">Key Vault</text>
+<rect class="az" x="690" y="182" width="190" height="40" rx="6"/><text x="785" y="207" text-anchor="middle">Event Grid topic</text>
+<rect class="az" x="690" y="236" width="190" height="40" rx="6"/><text x="785" y="261" text-anchor="middle">Storage (archive)</text>
+<path class="ln" d="M150 148 H218" marker-end="url(#i)"/><text x="154" y="128" class="t-s">JWT (client</text><text x="154" y="141" class="t-s">credentials)</text>
+<path class="ln" d="M350 148 H428" marker-end="url(#i)"/><text x="358" y="140" class="t-s">MI token</text>
+<path class="ln" d="M590 136 L688 40" marker-end="url(#i)"/>
+<path class="ln" d="M590 142 L688 94" marker-end="url(#i)"/>
+<path class="ln" d="M590 148 H688" marker-end="url(#i)"/>
+<path class="ln" d="M590 154 L688 202" marker-end="url(#i)"/>
+<path class="ln" d="M590 160 L688 256" marker-end="url(#i)"/>
+<text x="220" y="240" class="t-s">The EHR's token ends at APIM.</text>
+<text x="220" y="258" class="t-s">Every hop after that is a managed identity token.</text>
+</svg>
+<figcaption>Only one arrow involves a credential you manage: the EHR's. Everything else is Entra-issued, short-lived and rotated for you.</figcaption>
+</figure>
+
+<h3>OAuth 2.0 and JWT in 6 facts</h3>
+<ul>
+<li><strong>Client credentials</strong> is for app-to-app with no user. The app sends its ID and a secret or certificate, and gets an access token.</li>
+<li>The scope for this flow is <code>{app-id-uri}/.default</code>, meaning "all app roles granted to me."</li>
+<li>App-only permissions show up in the <code>roles</code> claim. Delegated (user) permissions show up in <code>scp</code>.</li>
+<li><code>aud</code> is who the token is for. <code>iss</code> is who issued it. <code>exp</code> is when it dies. A JWT is signed, not encrypted.</li>
+<li>The API validates the signature with Entra's public keys from the OpenID configuration document.</li>
+<li>Certificates beat client secrets for the EHR: nothing to copy around, and harder to leak.</li>
+</ul>
+
+<h3>Managed identity</h3>
+<p>A managed identity is a service principal Azure creates and manages for a resource. No password exists that you could leak. <strong>System-assigned</strong> lives and dies with the resource. <strong>User-assigned</strong> is its own resource that you can attach to several apps. That helps when you recreate apps often, or want permissions granted before the app exists.</p>
+
+<h3>Who gets which role</h3>
+<div class="tbl"><table>
+<tr><th>Identity</th><th>Role</th><th>Scope</th></tr>
+<tr><td>Logic App MI</td><td>Azure Service Bus Data Sender + Receiver</td><td>Namespace (or just the topic)</td></tr>
+<tr><td>Logic App MI</td><td>Key Vault Secrets User</td><td>Key Vault</td></tr>
+<tr><td>Logic App MI</td><td>EventGrid Data Sender</td><td>rx-events topic</td></tr>
+<tr><td>Logic App MI</td><td>Storage Blob Data Contributor</td><td>Archive container</td></tr>
+<tr><td>Logic App MI</td><td>App role on the Function's app registration</td><td>Function app</td></tr>
+<tr><td>APIM MI</td><td>App role on the Logic App's app registration (Easy Auth)</td><td>Logic App</td></tr>
+<tr><td>EHR app</td><td><code>Prescriptions.Write</code> app role, admin consented</td><td>Prescriptions API</td></tr>
+</table></div>
+<p>Scope roles as narrowly as you can. "Contributor on the resource group" works in a lab and fails a security review.</p>
+
+<h3>Key Vault</h3>
+<p>What still needs Key Vault here: the client certificate and credentials for Surescripts. Two ways to consume it:</p>
+<ul>
+<li><strong>Key Vault reference in app settings:</strong> <code>@Microsoft.KeyVault(SecretUri=https://kv-rx.vault.azure.net/secrets/SurescriptsPassword/)</code>. The workflow reads <code>@appsetting('SurescriptsPassword')</code> and never knows Key Vault exists.</li>
+<li><strong>APIM named value</strong> backed by Key Vault, for secrets used in policies.</li>
+</ul>
+<p>Leave the version off the URI. Then rotation is automatic: the platform picks up the new version on its refresh cycle.</p>
+<p>Use the <strong>RBAC permission model</strong> on the vault, not access policies. It's the current default and it fits the same role model as everything else.</p>
+
+<h2 id="net">10. Production networking</h2>
+<p>The lab keeps things public for simplicity. In production healthcare, expect everything private. The whole design comes down to one VNet, five subnets, and private DNS.</p>
+
+<figure>
+<svg viewBox="0 0 900 500" role="img" aria-label="Subnet layout: App Gateway subnet, APIM subnet, delegated Logic App and Function integration subnets, and a private endpoint subnet holding private endpoints for Logic App, Service Bus, Key Vault, Storage and Function; private DNS zones linked to the VNet">
+<defs><marker id="n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker></defs>
+<rect class="box" x="10" y="92" width="100" height="50" rx="6"/><text x="60" y="122" text-anchor="middle" class="t-b">EHR</text>
+<rect class="zone" x="135" y="20" width="750" height="380" rx="10"/>
+<text x="150" y="42" class="t-b">VNet 10.42.0.0/16</text>
+
+<rect class="zone" x="150" y="56" width="160" height="124" rx="6"/>
+<text x="160" y="74" class="t-s">snet-appgw 10.42.0.0/24</text>
+<rect class="az" x="165" y="90" width="130" height="54" rx="5"/><text x="230" y="114" text-anchor="middle" class="t-b">App Gateway</text><text x="230" y="131" text-anchor="middle" class="t-s">WAF, public IP</text>
+
+<rect class="zone" x="325" y="56" width="160" height="124" rx="6"/>
+<text x="335" y="74" class="t-s">snet-apim 10.42.1.0/24</text>
+<rect class="az" x="340" y="90" width="130" height="54" rx="5"/><text x="405" y="114" text-anchor="middle" class="t-b">APIM</text><text x="405" y="131" text-anchor="middle" class="t-s">internal, 10.42.1.4</text>
+
+<rect class="zone" x="500" y="56" width="180" height="124" rx="6"/>
+<text x="510" y="74" class="t-s">snet-la-int 10.42.2.0/26</text>
+<rect class="az" x="515" y="90" width="150" height="54" rx="5"/><text x="590" y="114" text-anchor="middle" class="t-b" style="font-size:12.5px">Logic App outbound</text><text x="590" y="131" text-anchor="middle" class="t-s">delegated: serverFarms</text>
+<text x="510" y="168" class="t-s">VNet integration</text>
+
+<rect class="zone" x="695" y="56" width="175" height="124" rx="6"/>
+<text x="705" y="74" class="t-s">snet-func-int 10.42.3.0/26</text>
+<rect class="fn" x="710" y="90" width="145" height="54" rx="5"/><text x="782" y="114" text-anchor="middle" class="t-b" style="font-size:12.5px">Function outbound</text><text x="782" y="131" text-anchor="middle" class="t-s">delegated: serverFarms</text>
+<text x="705" y="168" class="t-s">uses the same PEs below</text>
+
+<rect class="zone" x="150" y="270" width="720" height="114" rx="6"/>
+<text x="160" y="378" class="t-s">snet-pe 10.42.4.0/24 (private endpoints only, no delegation)</text>
+<rect class="ok" x="165" y="300" width="128" height="62" rx="5"/><text x="229" y="325" text-anchor="middle" class="t-b">pe-logicapp</text><text x="229" y="343" text-anchor="middle" class="t-s">Logic App inbound</text>
+<rect class="ok" x="305" y="300" width="128" height="62" rx="5"/><text x="369" y="325" text-anchor="middle" class="t-b">pe-sb</text><text x="369" y="343" text-anchor="middle" class="t-s">Service Bus Premium</text>
+<rect class="ok" x="445" y="300" width="128" height="62" rx="5"/><text x="509" y="325" text-anchor="middle" class="t-b">pe-kv</text><text x="509" y="343" text-anchor="middle" class="t-s">Key Vault</text>
+<rect class="ok" x="585" y="300" width="128" height="62" rx="5"/><text x="649" y="325" text-anchor="middle" class="t-b">pe-st (x4)</text><text x="649" y="343" text-anchor="middle" class="t-s">blob, queue, table, file</text>
+<rect class="ok" x="725" y="300" width="128" height="62" rx="5"/><text x="789" y="325" text-anchor="middle" class="t-b">pe-func</text><text x="789" y="343" text-anchor="middle" class="t-s">Function inbound</text>
+
+<path class="ln-rx" d="M110 117 H163" marker-end="url(#n)"/>
+<path class="ln-rx" d="M295 117 H338" marker-end="url(#n)"/>
+<path class="ln-rx" d="M405 144 V222 H229 V298" marker-end="url(#n)"/>
+<text x="236" y="216" class="t-s">APIM calls Logic App privately</text>
+<path class="ln" d="M590 144 V244"/>
+<path class="ln" d="M369 244 H789"/>
+<path class="ln" d="M369 244 V298" marker-end="url(#n)"/>
+<path class="ln" d="M509 244 V298" marker-end="url(#n)"/>
+<path class="ln" d="M649 244 V298" marker-end="url(#n)"/>
+<path class="ln" d="M789 244 V298" marker-end="url(#n)"/>
+<text x="598" y="238" class="t-s">Logic App outbound calls</text>
+
+<rect class="box" x="150" y="420" width="720" height="60" rx="6" style="stroke-dasharray:6 4"/>
+<text x="510" y="444" text-anchor="middle" class="t-b">Private DNS zones, linked to the VNet</text>
+<text x="510" y="464" text-anchor="middle" class="t-s">servicebus, vaultcore, blob, queue, table, file, azurewebsites (all privatelink.*)</text>
+<path class="ln-d" d="M510 384 V418"/>
+</svg>
+<figcaption>Teal is the inbound request path. Black is the Logic App's outbound path. Notice the Logic App appears twice: its outbound traffic leaves from snet-la-int, but callers reach it through pe-logicapp in snet-pe.</figcaption>
+</figure>
+
+<h3>The subnets, and why each one exists</h3>
+<div class="tbl"><table>
+<tr><th>Subnet</th><th>Holds</th><th>Rules that matter</th></tr>
+<tr><td><code>snet-appgw</code></td><td>Application Gateway with WAF</td><td>Dedicated to App Gateway only. Only public entry point for external callers</td></tr>
+<tr><td><code>snet-apim</code></td><td>APIM in internal mode</td><td>Dedicated to APIM. Needs an NSG that allows APIM's management traffic (the <code>ApiManagement</code> service tag) and the Azure load balancer probe. Missing these rules is a classic deployment failure</td></tr>
+<tr><td><code>snet-la-int</code></td><td>Logic App outbound (VNet integration)</td><td>Delegated to <code>Microsoft.Web/serverFarms</code>. Nothing else can live here. Size it for scale-out, since each instance takes an address; /26 is a common minimum</td></tr>
+<tr><td><code>snet-func-int</code></td><td>Function outbound (VNet integration)</td><td>Same delegation rule. Kept separate here for clarity and independent scaling</td></tr>
+<tr><td><code>snet-pe</code></td><td>All private endpoints</td><td>No delegation. Each private endpoint takes one private IP. Group them here so NSGs and routing stay simple</td></tr>
+<tr><td>Optional: <code>AzureBastionSubnet</code>, <code>snet-jumpbox</code></td><td>Admin access</td><td>You need a way in to test private endpoints. Your APIM lab already has a jumpbox for exactly this</td></tr>
+</table></div>
+
+<h3>The key insight: inbound and outbound use different subnets</h3>
+<p>This confuses almost everyone at first, so it's worth saying clearly in an interview.</p>
+<p><strong>VNet integration is outbound only.</strong> It lets the Logic App send traffic into the VNet, from an address in <code>snet-la-int</code>. It does nothing for traffic coming <em>to</em> the Logic App.</p>
+<p><strong>A private endpoint is inbound only.</strong> It gives the Logic App a private IP in <code>snet-pe</code> so APIM can call it. It does nothing for traffic going out.</p>
+<p>A fully private Logic App needs both. So does the Function. Service Bus, Key Vault and Storage only receive calls, so they only need private endpoints.</p>
+
+<h3>Why the Logic App needs four storage endpoints</h3>
+<p>Logic Apps Standard uses its storage account for blobs, queues, tables and file shares (state, run history, scheduling, content). Each of those storage services is a separate private endpoint with its own DNS zone. Lock the storage account down and forget one, and the runtime fails to start. That's a common and confusing outage.</p>
+
+<h3>Four phrases to say cleanly</h3>
+<div class="tbl"><table>
+<tr><th>Term</th><th>Direction</th><th>Plain meaning</th></tr>
+<tr><td>VNet integration</td><td>Outbound</td><td>Lets my app send traffic into the VNet</td></tr>
+<tr><td>Private endpoint</td><td>Inbound</td><td>Gives a PaaS resource a private IP inside my VNet</td></tr>
+<tr><td>Private DNS zone</td><td>Name resolution</td><td>Makes the normal hostname resolve to that private IP</td></tr>
+<tr><td>Public access disabled</td><td>Closing the door</td><td>Once the private path works, remove the public one</td></tr>
+</table></div>
+
+<h3>How DNS makes it work</h3>
+<p>The Logic App still connects to <code>sb-rx-prod.servicebus.windows.net</code>. Nothing in its config changes. Inside the VNet, that name resolves through a CNAME to <code>sb-rx-prod.privatelink.servicebus.windows.net</code>, and the private DNS zone answers with the private endpoint's IP, like <code>10.42.4.5</code>.</p>
+<p>That's why the most common failure is DNS. The private endpoint exists, but the zone isn't linked to the VNet, so the name still resolves to the public IP. The call hits a disabled public endpoint and fails. Check with <code>nslookup</code> from inside the VNet: a <code>10.42.x.x</code> answer is good, a public IP is your bug.</p>
+
+<h3>Terraform shape for the two subnet types</h3>
+<pre><code>resource "azurerm_subnet" "la_int" {
+  name                 = "snet-la-int"
+  resource_group_name  = var.rg
+  virtual_network_name = azurerm_virtual_network.int.name
+  address_prefixes     = ["10.42.2.0/26"]
+
+  delegation {                       # outbound integration subnet
+    name = "serverfarms"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "pe" {
+  name                 = "snet-pe"
+  resource_group_name  = var.rg
+  virtual_network_name = azurerm_virtual_network.int.name
+  address_prefixes     = ["10.42.4.0/24"]   # no delegation
+}
+
+resource "azurerm_private_endpoint" "sb" {
+  name                = "pe-sb"
+  location            = var.location
+  resource_group_name = var.rg
+  subnet_id           = azurerm_subnet.pe.id
+
+  private_service_connection {
+    name                           = "sb"
+    private_connection_resource_id = azurerm_servicebus_namespace.rx.id
+    subresource_names              = ["namespace"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "sb"
+    private_dns_zone_ids = [azurerm_private_dns_zone.sb.id]
+  }
+}
+
+# On the Logic App: virtual_network_subnet_id = azurerm_subnet.la_int.id</code></pre>
+<p class="cap">The <code>private_dns_zone_group</code> block is what writes the A record. Leave it out and you get the DNS failure described above.</p>
+
+<h3>Cost and tier notes</h3>
+<p>Service Bus needs <strong>Premium</strong> for private endpoints. APIM needs Developer or Premium for classic internal VNet mode (the v2 tiers have their own VNet options). Logic Apps Standard and Functions need a plan that supports VNet integration. These tier requirements are the main cost drivers of a private design, and a fair thing to raise when an interviewer asks about trade-offs.</p>
+
+<h2 id="prod">11. Real production topology</h2>
+<p>Section 10 showed one environment's subnets. In a real company, that layout is repeated per environment, and shared security sits in a central hub. This is what to draw when asked "how does this look in production?"</p>
+
+<figure>
+<svg viewBox="0 0 900 460" role="img" aria-label="Hub and spoke: hub VNet with App Gateway WAF, Bastion, private DNS and Azure Firewall; dev, QA and prod spokes peered to the hub; inbound through WAF to prod APIM; outbound from prod through the firewall to Surescripts production, and from dev and QA to Surescripts staging">
+<defs><marker id="h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker>
+<marker id="hg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--rx)"/></marker></defs>
+<rect class="box" x="10" y="60" width="110" height="50" rx="6"/><text x="65" y="82" text-anchor="middle" class="t-b">EHR</text><text x="65" y="98" text-anchor="middle" class="t-s">internet</text>
+<rect class="zone" x="140" y="20" width="610" height="170" rx="10"/>
+<text x="154" y="40" class="t-b">Hub VNet 10.0.0.0/16</text><text x="360" y="40" class="t-s">connectivity subscription, owned by the network team</text>
+<rect class="az" x="160" y="56" width="160" height="60" rx="5"/><text x="240" y="80" text-anchor="middle" class="t-b" style="font-size:12.5px">App Gateway + WAF</text><text x="240" y="98" text-anchor="middle" class="t-s">inbound HTTP, OWASP rules</text>
+<rect class="box" x="345" y="56" width="150" height="40" rx="5"/><text x="420" y="81" text-anchor="middle">Azure Bastion</text>
+<rect class="box" x="345" y="106" width="150" height="54" rx="5"/><text x="420" y="129" text-anchor="middle">Private DNS zones</text><text x="420" y="146" text-anchor="middle" class="t-s">linked to every spoke</text>
+<rect class="badbox" x="520" y="56" width="210" height="60" rx="5"/><text x="625" y="80" text-anchor="middle" class="t-b">Azure Firewall</text><text x="625" y="98" text-anchor="middle" class="t-s">static public IP, FQDN allowlist</text>
+
+<rect class="box" x="770" y="30" width="120" height="50" rx="6"/><text x="830" y="52" text-anchor="middle" class="t-b">Surescripts</text><text x="830" y="68" text-anchor="middle" class="t-s">production</text>
+<rect class="box" x="770" y="110" width="120" height="50" rx="6"/><text x="830" y="132" text-anchor="middle" class="t-b">Surescripts</text><text x="830" y="148" text-anchor="middle" class="t-s">certification</text>
+
+<rect class="az" x="140" y="262" width="190" height="170" rx="8"/>
+<text x="155" y="286" class="t-b">Spoke: Dev</text>
+<text x="155" y="306" class="t-s">subscription: sub-rx-dev</text>
+<text x="155" y="324" class="t-s">10.41.0.0/16</text>
+<text x="155" y="348" class="t-s">APIM Developer, SB Standard</text>
+<text x="155" y="366" class="t-s">smallest plans, auto-deploy</text>
+<text x="155" y="390" class="t-s">calls Surescripts certification</text>
+
+<rect class="az" x="350" y="262" width="190" height="170" rx="8"/>
+<text x="365" y="286" class="t-b">Spoke: QA</text>
+<text x="365" y="306" class="t-s">subscription: sub-rx-qa</text>
+<text x="365" y="324" class="t-s">10.42.0.0/16</text>
+<text x="365" y="348" class="t-s">prod-like tiers for testing</text>
+<text x="365" y="366" class="t-s">approval before deploy</text>
+<text x="365" y="390" class="t-s">calls Surescripts certification</text>
+
+<rect class="ok" x="560" y="262" width="190" height="170" rx="8"/>
+<text x="575" y="286" class="t-b">Spoke: Prod</text>
+<text x="575" y="306" class="t-s">subscription: sub-rx-prod</text>
+<text x="575" y="324" class="t-s">10.43.0.0/16</text>
+<text x="575" y="348" class="t-s">SB Premium, zone redundant</text>
+<text x="575" y="366" class="t-s">restricted access, approvals</text>
+<text x="575" y="390" class="t-s">calls Surescripts production</text>
+<text x="575" y="414" class="t-s">section 10 layout inside</text>
+
+<path class="ln-d" d="M200 190 V260"/><path class="ln-d" d="M420 160 V260"/><path class="ln-d" d="M680 190 V260"/>
+<text x="206" y="240" class="t-s">peering</text>
+<path class="ln-rx" d="M120 85 H158" marker-end="url(#hg)"/>
+<path class="ln-rx" d="M270 116 V222 H610 V260" marker-end="url(#hg)"/>
+<text x="440" y="216" class="t-s">WAF to prod APIM</text>
+<path class="ln" d="M720 262 V118" marker-end="url(#h)"/>
+<text x="726" y="226" class="t-s">UDR</text><text x="726" y="240" class="t-s">0.0.0.0/0</text>
+<path class="ln" d="M730 76 L768 60" marker-end="url(#h)"/>
+<path class="ln-d" d="M730 104 L768 132" marker-end="url(#h)"/>
+</svg>
+<figcaption>Teal is inbound. Black is outbound from prod. Dashed lines are peering, and dev/QA outbound to the Surescripts certification environment. Spokes never peer with each other.</figcaption>
+</figure>
+
+<h3>Environments: separate spokes, same code</h3>
+<ul>
+<li><strong>One subscription per environment.</strong> Clean RBAC, cost tracking and Azure Policy boundaries. Few people get access to prod.</li>
+<li><strong>Same Terraform, different variables.</strong> Dev uses cheap tiers. QA mirrors prod closely enough to test performance and networking. Prod gets Premium Service Bus, zone redundancy and approvals.</li>
+<li><strong>Non-overlapping address ranges</strong> (10.41, 10.42, 10.43). Peering fails if ranges overlap, so plan them up front.</li>
+<li><strong>Spokes don't peer with each other.</strong> Dev can't reach prod, even by mistake.</li>
+<li><strong>Surescripts has its own environments.</strong> Dev and QA talk to the Surescripts certification environment. Only prod talks to Surescripts production. The <code>SurescriptsEndpoint</code> app setting is what switches it.</li>
+</ul>
+<p class="cap">Many companies go further and use one hub for non-prod and a separate hub for prod. Same idea, stronger isolation.</p>
+
+<h3>WAF and firewall do different jobs</h3>
+<div class="tbl"><table>
+<tr><th></th><th>WAF (App Gateway or Front Door)</th><th>Azure Firewall</th></tr>
+<tr><td>Direction</td><td>Inbound web traffic</td><td>Outbound, and traffic between networks</td></tr>
+<tr><td>Understands</td><td>HTTP: SQL injection, bad headers, OWASP rules</td><td>IPs, ports, domain names (FQDNs)</td></tr>
+<tr><td>In this design</td><td>In front of APIM for the EHRs</td><td>Controls what Logic Apps can call out to</td></tr>
+</table></div>
+<p>APIM and the WAF also overlap a little. The WAF blocks attack patterns. APIM handles identity, rate limits and API contracts. You want both.</p>
+
+<h3>The egress story</h3>
+<p>This is where an integration architect stands out, because partners care about it.</p>
+<ol>
+<li>A <strong>route table (UDR)</strong> on <code>snet-la-int</code> sends <code>0.0.0.0/0</code> to the firewall's private IP.</li>
+<li>The Logic App must route <em>all</em> outbound traffic through its VNet integration (the "route all" / outbound internet traffic setting). If it's off, internet calls skip the VNet and bypass the firewall completely.</li>
+<li>The firewall has an <strong>application rule allowlist</strong>: the Surescripts endpoints, plus PDMP registries or aggregators and ePA intermediaries if you support those transactions. Everything else is denied. A misbehaving workflow can't send patient data anywhere else.</li>
+<li>Traffic leaves from the <strong>firewall's static public IP</strong>. Surescripts and similar partners allowlist your source IP during onboarding, along with your client certificate. A fixed IP is what makes that possible.</li>
+</ol>
+<div class="warn"><strong>Classic failure after go-live</strong>Everything works in dev, then prod calls to Surescripts time out. Common causes: the prod firewall IP was never given to Surescripts for allowlisting, the FQDN rule is missing in the prod firewall, or "route all" is off so traffic leaves from a different IP.</div>
+
+<h3>What to say, in about 30 seconds</h3>
+<div class="pitch">
+<p>Each environment is a spoke in its own subscription, built from the same Terraform with different variables. They peer to a central hub that holds the WAF, Azure Firewall, Bastion and private DNS. EHR traffic comes in through the WAF to APIM. Logic App outbound traffic is forced through the firewall with a UDR, allowed only to Surescripts and the other partners we support, and leaves from a static IP that Surescripts has allowlisted. Dev and QA use the Surescripts certification environment. Only prod reaches production.</p>
+</div>
+
+<h2 id="obs">12. Observability</h2>
+<p>When someone says "prescription RX-100245 never reached the pharmacy," you want one query, not an afternoon.</p>
+
+<h3>The correlation ID thread</h3>
+<ol>
+<li>APIM sets or keeps <code>x-correlation-id</code>.</li>
+<li>Intake copies it into the Service Bus message's <code>CorrelationId</code>.</li>
+<li>Transform reads it and writes it as a <strong>tracked property</strong> on key actions, along with <code>rxId</code>.</li>
+<li>The Function logs it. The Event Grid event carries it.</li>
+</ol>
+<p>Same ID, every hop. That's the design choice that makes troubleshooting fast.</p>
+
+<pre><code>// App Insights: everything for one prescription, in order
+union requests, dependencies, traces, exceptions
+| where timestamp &gt; ago(1d)
+| where tostring(customDimensions) has "RX-100245"
+| project timestamp, itemType, cloud_RoleName, name, resultCode, message
+| order by timestamp asc</code></pre>
+
+<h3>Where to look for what</h3>
+<div class="tbl"><table>
+<tr><th>Question</th><th>Look here</th></tr>
+<tr><td>Did the request reach us?</td><td>APIM analytics, or App Insights requests for APIM</td></tr>
+<tr><td>Which step of the workflow failed?</td><td>Logic App run history (stateful), inputs and outputs of each action</td></tr>
+<tr><td>Are messages piling up?</td><td>Service Bus metrics: active messages, dead-lettered messages</td></tr>
+<tr><td>Why was it dead-lettered?</td><td>Service Bus Explorer, DLQ, <code>DeadLetterReason</code></td></tr>
+<tr><td>Did subscribers get the event?</td><td>Event Grid metrics: delivered, failed, dead-lettered</td></tr>
+<tr><td>Function exceptions?</td><td>App Insights exceptions and failures blade</td></tr>
+</table></div>
+
+<h3>Alerts worth setting</h3>
+<ul>
+<li>DLQ message count above 0.</li>
+<li>Active message count growing for 15 minutes (processor is stuck or down).</li>
+<li>Workflow run failure rate above a threshold.</li>
+<li>APIM 5xx rate and 401 spikes (a partner's certificate or secret expired).</li>
+<li>Event Grid delivery failures.</li>
+</ul>
+
+<h2 id="tf">13. Terraform shape</h2>
+<p>Not a full module. Just enough to see how each setting from the earlier sections becomes code.</p>
+
+<h3>Service Bus</h3>
+<pre><code>resource "azurerm_servicebus_namespace" "rx" {
+  name                = "sb-rx-${var.env}"
+  location            = var.location
+  resource_group_name = var.rg
+  sku                 = "Standard"
+  local_auth_enabled  = false          # RBAC only, no SAS keys
+}
+
+resource "azurerm_servicebus_topic" "inbound" {
+  name                                    = "rx-inbound"
+  namespace_id                            = azurerm_servicebus_namespace.rx.id
+  requires_duplicate_detection            = true   # can't be changed later
+  duplicate_detection_history_time_window = "PT10M"
+}
+
+resource "azurerm_servicebus_subscription" "newrx" {
+  name                                 = "sub-newrx"
+  topic_id                             = azurerm_servicebus_topic.inbound.id
+  max_delivery_count                   = 5
+  lock_duration                        = "PT5M"
+  dead_lettering_on_message_expiration = true
+}
+
+# WARNING: every new subscription starts with a "$Default" rule
+# (TrueFilter = accept everything). Adding a rule does NOT remove it.
+# Remove $Default (e.g. az CLI step after apply), or CancelRx and
+# RxChange will also land in sub-newrx.
+resource "azurerm_servicebus_subscription_rule" "newrx_only" {
+  name            = "only-newrx"
+  subscription_id = azurerm_servicebus_subscription.newrx.id
+  filter_type     = "SqlFilter"
+  sql_filter      = "messageType = 'NewRx'"
+}</code></pre>
+
+<h3>Logic App Standard and its access</h3>
+<pre><code>resource "azurerm_service_plan" "ws" {
+  name                = "asp-rx-${var.env}"
+  location            = var.location
+  resource_group_name = var.rg
+  os_type             = "Windows"
+  sku_name            = "WS1"
+}
+
+resource "azurerm_logic_app_standard" "rx" {
+  name                       = "la-rx-${var.env}"
+  location                   = var.location
+  resource_group_name        = var.rg
+  app_service_plan_id        = azurerm_service_plan.ws.id
+  storage_account_name       = azurerm_storage_account.la.name
+  storage_account_access_key = azurerm_storage_account.la.primary_access_key
+  version                    = "~4"
+
+  identity { type = "SystemAssigned" }
+
+  app_settings = {
+    serviceBus_fullyQualifiedNamespace = "${azurerm_servicebus_namespace.rx.name}.servicebus.windows.net"
+    SurescriptsEndpoint                = var.surescripts_endpoint   # staging in dev/qa, production in prod
+    SurescriptsPassword                = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.surescripts.versionless_id})"
+  }
+}
+
+resource "azurerm_role_assignment" "la_sb_receiver" {
+  scope                = azurerm_servicebus_namespace.rx.id
+  role_definition_name = "Azure Service Bus Data Receiver"
+  principal_id         = azurerm_logic_app_standard.rx.identity[0].principal_id
+}</code></pre>
+<p class="cap">Terraform builds the Logic App <em>resource</em> and its settings. The workflows themselves are deployed by the pipeline as a zip. Keep those two lifecycles separate.</p>
+
+<h3>Event Grid custom topic</h3>
+<pre><code>resource "azurerm_eventgrid_topic" "rx_events" {
+  name                  = "egt-rx-events-${var.env}"
+  location              = var.location
+  resource_group_name   = var.rg
+  input_schema          = "CloudEventSchemaV1_0"
+  local_auth_enabled    = false        # Entra auth for publishers
+}</code></pre>
+
+<div class="note">The Logic App's own storage account holds workflow state and run history. Treat it as part of the app: don't share it, don't delete it casually, and lock it down.<br><br><strong>Caveat:</strong> this snippet connects host storage with an account key, which breaks the "no secrets" goal. Logic Apps Standard can use managed identity for host storage too (<code>AzureWebJobsStorage__*</code> identity-based settings plus storage RBAC roles). In an interview, mention that as the production choice.</div>
+
+<h2 id="cicd">14. Azure DevOps CI/CD</h2>
+<p>Two pipelines, because infrastructure and workflows change at different speeds.</p>
+
+<figure>
+<svg viewBox="0 0 900 230" role="img" aria-label="Two pipelines: infrastructure with Terraform plan and apply, and application build that zips the Logic App and Function and deploys through dev, test and prod with approvals">
+<defs><marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker></defs>
+<text x="20" y="30" class="t-b">Infra pipeline</text>
+<rect class="box" x="20" y="44" width="130" height="44" rx="5"/><text x="85" y="71" text-anchor="middle" style="font-size:12.5px">PR: fmt, validate</text>
+<rect class="box" x="180" y="44" width="130" height="44" rx="5"/><text x="245" y="71" text-anchor="middle">terraform plan</text>
+<rect class="ok" x="340" y="44" width="130" height="44" rx="5"/><text x="405" y="71" text-anchor="middle">approval</text>
+<rect class="az" x="500" y="44" width="130" height="44" rx="5"/><text x="565" y="71" text-anchor="middle" style="font-size:12.5px">terraform apply</text>
+<path class="ln" d="M150 66 H178" marker-end="url(#c)"/><path class="ln" d="M310 66 H338" marker-end="url(#c)"/><path class="ln" d="M470 66 H498" marker-end="url(#c)"/>
+<text x="20" y="130" class="t-b">App pipeline</text>
+<rect class="box" x="20" y="144" width="130" height="56" rx="5"/><text x="85" y="168" text-anchor="middle">Build</text><text x="85" y="186" text-anchor="middle" class="t-s">test Function, zip</text>
+<rect class="az" x="180" y="144" width="130" height="56" rx="5"/><text x="245" y="168" text-anchor="middle">Deploy dev</text><text x="245" y="186" text-anchor="middle" class="t-s">auto</text>
+<rect class="az" x="340" y="144" width="130" height="56" rx="5"/><text x="405" y="168" text-anchor="middle">Deploy test</text><text x="405" y="186" text-anchor="middle" class="t-s">smoke test</text>
+<rect class="ok" x="500" y="144" width="130" height="56" rx="5"/><text x="565" y="168" text-anchor="middle">approval</text>
+<rect class="az" x="660" y="144" width="130" height="56" rx="5"/><text x="725" y="168" text-anchor="middle">Deploy prod</text><text x="725" y="186" text-anchor="middle" class="t-s">same zip</text>
+<path class="ln" d="M150 172 H178" marker-end="url(#c)"/><path class="ln" d="M310 172 H338" marker-end="url(#c)"/><path class="ln" d="M470 172 H498" marker-end="url(#c)"/><path class="ln" d="M630 172 H658" marker-end="url(#c)"/>
+</svg>
+<figcaption>Build once, deploy the same artifact everywhere. Only settings change between environments.</figcaption>
+</figure>
+
+<h3>Key Azure DevOps pieces</h3>
+<div class="tbl"><table>
+<tr><th>Piece</th><th>Role</th></tr>
+<tr><td>Service connection (workload identity federation)</td><td>Pipeline logs into Azure with a federated token. No stored secret. Same idea as your GitHub OIDC setup.</td></tr>
+<tr><td>Environments</td><td>dev, test, prod, with approvals and checks on test and prod</td></tr>
+<tr><td>Variable groups</td><td>Per-environment values, optionally linked to Key Vault</td></tr>
+<tr><td>Stages and deployment jobs</td><td>Deployment jobs record history per environment</td></tr>
+<tr><td>Templates</td><td>Reuse the deploy stage for every environment</td></tr>
+</table></div>
+
+<h3>App pipeline (trimmed)</h3>
+<pre><code>trigger: { branches: { include: [ main ] } }
+
+stages:
+- stage: Build
+  jobs:
+  - job: build
+    pool: { vmImage: ubuntu-latest }
+    steps:
+    - script: dotnet test src/func-rx-validate.Tests
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: logicapp
+        includeRootFolder: false
+        archiveFile: $(Build.ArtifactStagingDirectory)/logicapp.zip
+    - publish: $(Build.ArtifactStagingDirectory)
+      artifact: drop
+
+- template: templates/deploy.yml
+  parameters: { env: dev,  serviceConnection: sc-rx-dev  }
+- template: templates/deploy.yml
+  parameters: { env: prod, serviceConnection: sc-rx-prod }</code></pre>
+
+<pre><code># templates/deploy.yml (core step)
+- deployment: logicapp
+  environment: rx-${{ parameters.env }}      # approvals live here
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - task: AzureFunctionApp@2
+          inputs:
+            azureSubscription: ${{ parameters.serviceConnection }}
+            appType: functionApp                 # Windows WS plan (functionAppLinux for Linux)
+            appName: la-rx-${{ parameters.env }}
+            package: $(Pipeline.Workspace)/drop/logicapp.zip
+            deploymentMethod: zipDeploy</code></pre>
+<p>Notice the task name: <code>AzureFunctionApp</code>. That's the "Logic Apps Standard runs on the Functions runtime" fact showing up again. Older examples use <code>AzureFunctionApp@1</code> with <code>appType: workflowapp</code>; current Microsoft guidance uses <code>@2</code> as above. Microsoft also publishes a dedicated Azure Logic Apps Standard tasks extension for Azure DevOps.</p>
+<h3>Rollback</h3>
+<p>Every build produces an immutable zip. Rolling back means redeploying the previous known-good artifact to that environment, not rebuilding from an old commit. Smoke tests after each deployment tell you when to do it.</p>
+
+<div class="warn"><strong>The classic CI/CD trap</strong>The designer writes managed connector connections with environment-specific IDs into <code>connections.json</code>. Parameterize them with <code>@appsetting()</code> and <code>@parameters()</code> before committing, or prod will quietly point at dev.</div>
+
+<h2 id="trouble">15. Troubleshooting playbook</h2>
+<p>For each problem, know three things: the <strong>symptom</strong>, <strong>where you'd see it</strong>, and the <strong>fix</strong>. This section is the one most likely to come up.</p>
+<div class="tbl"><table>
+<tr><th>Symptom</th><th>Where you see it</th><th>Likely cause</th><th>Fix</th></tr>
+<tr><td>401 from APIM, token looks fine</td><td>APIM trace, validate-jwt error</td><td>Audience or issuer mismatch (v1 vs v2)</td><td>Match <code>aud</code> to the app ID URI, match issuer to token version</td></tr>
+<tr><td>403 or 401 citing roles</td><td>APIM trace</td><td>App role not assigned, or admin consent missing</td><td>Assign <code>Prescriptions.Write</code>, grant consent, get a new token</td></tr>
+<tr><td>APIM returns 500/401 from backend</td><td>APIM trace, backend section</td><td>Easy Auth on Logic App rejects APIM's token, or SAS sig wrong</td><td>Check allowed audiences and APIM MI app role</td></tr>
+<tr><td>Messages sent, workflow never runs</td><td>Service Bus active count rising, no runs</td><td>MI missing Data Receiver, wrong topic/subscription name, workflow disabled</td><td>Assign role, check trigger parameters and app setting for namespace</td></tr>
+<tr><td>Subscription gets messages it shouldn't</td><td>Wrong message types in runs</td><td><code>$Default</code> TrueFilter rule still there</td><td>Delete <code>$Default</code>, keep only your filter rule</td></tr>
+<tr><td>Message never reaches subscription</td><td>Topic count moves, subscription stays 0</td><td>Filter doesn't match (property name, case, value)</td><td>Check application property vs SQL filter. Add a catch-all subscription</td></tr>
+<tr><td>Same prescription sent twice</td><td>Two runs, same rxId</td><td>Processing longer than lock duration, or Complete missing</td><td>Longer lock, faster flow, idempotency check, always settle</td></tr>
+<tr><td>DLQ filling up</td><td>Dead-lettered message metric</td><td><code>MaxDeliveryCountExceeded</code> = keeps failing. Custom reason = your Catch</td><td>Read the reason, fix data or code, replay</td></tr>
+<tr><td>Transform action fails</td><td>Run history, failed action inputs</td><td>Null field, wrong map name, invalid JSON after Liquid</td><td>Check input payload, add <code>default</code> filters, test map locally</td></tr>
+<tr><td>App setting shows the raw <code>@Microsoft.KeyVault(...)</code> text</td><td>Configuration blade, Key Vault reference status</td><td>MI lacks Secrets User, firewall blocks, wrong URI</td><td>Grant role, allow access, fix URI, restart</td></tr>
+<tr><td>Function call returns 401</td><td>Run history, HTTP action output</td><td>Wrong audience on the MI token</td><td>Set audience to the Function's app ID URI</td></tr>
+<tr><td>Event subscribers get nothing</td><td>Event Grid delivery failure metric</td><td>Endpoint validation failed, filter wrong, subscriber down</td><td>Check handshake, filters, dead-letter blob</td></tr>
+<tr><td>429 on a connector</td><td>Run history, action retries</td><td>Managed connector throttling limits</td><td>Switch to a built-in connector, spread the load</td></tr>
+<tr><td>Works in dev, broken after prod deploy</td><td>Prod runs fail at first connector</td><td>Hardcoded dev values in connections or workflow</td><td>Parameterize, check prod app settings</td></tr>
+</table></div>
+
+<h3>A good way to talk through any incident</h3>
+<p>Walk the path from the outside in. Did it reach APIM? Did APIM forward it? Did intake run? Is it in the topic? In the subscription? Did transform run, and which action failed? Did Surescripts reply? The correlation ID lets you do all of that from one query. Saying this out loud in an interview shows method, not just knowledge.</p>
+
+<h2 id="decisions">16. Design decisions</h2>
+<p>Interviewers like "why not X?" Have these ready.</p>
+<div class="tbl"><table>
+<tr><th>Decision</th><th>Chosen</th><th>Because</th></tr>
+<tr><td>Consumption or Standard</td><td>Standard</td><td>Networking, built-in connectors, stateless option, many workflows per app, app-style project and deployment</td></tr>
+<tr><td>Call transform directly or via queue</td><td>Via Service Bus</td><td>Survives downtime, absorbs bursts, decouples, gives retries and DLQ</td></tr>
+<tr><td>Queue or topic</td><td>Topic</td><td>Several message types to different processors, easy to add more</td></tr>
+<tr><td>Service Bus or Event Grid for the Rx</td><td>Service Bus</td><td>It's a job with data that must be processed, maybe in order</td></tr>
+<tr><td>Event Grid or Service Bus for "sent"</td><td>Event Grid</td><td>It's a fact with many possible listeners</td></tr>
+<tr><td>Logic in workflow or Function</td><td>Function for NPI and lookup</td><td>Testable, readable, reusable</td></tr>
+<tr><td>Canonical model</td><td>Yes</td><td>N sources and M targets need N+M maps, not N times M</td></tr>
+<tr><td>Secrets</td><td>Managed identity, Key Vault for the rest</td><td>Nothing to leak, automatic rotation</td></tr>
+<tr><td>Service Bus tier</td><td>Premium in prod, Standard in lab</td><td>Premium brings private endpoints, which healthcare usually requires</td></tr>
+</table></div>
+
+<h2 id="biztalk">17. BizTalk to Azure map</h2>
+<p>This is your strongest angle. Use it to show you understand the <em>why</em>, not just the new names.</p>
+<div class="tbl"><table>
+<tr><th>BizTalk</th><th>Azure Integration Services</th></tr>
+<tr><td>Receive location + adapter</td><td>APIM + Logic App trigger</td></tr>
+<tr><td>Receive pipeline (validate, disassemble)</td><td>Schema validation, Parse JSON, <code>splitOn</code></td></tr>
+<tr><td>MessageBox persistence</td><td>Service Bus + stateful workflow checkpoints</td></tr>
+<tr><td>MessageBox subscriptions, promoted properties</td><td>Topic subscriptions, SQL filters on application properties</td></tr>
+<tr><td>Orchestration</td><td>Stateful Logic App workflow</td></tr>
+<tr><td>Scope with exception handler</td><td>Scope + run-after (Try/Catch)</td></tr>
+<tr><td>Dehydration</td><td>Automatic checkpointing</td></tr>
+<tr><td>BizTalk maps (XSLT)</td><td>XSLT and Liquid maps in Artifacts</td></tr>
+<tr><td>Custom functoids, .NET helpers</td><td>Azure Functions, custom .NET code</td></tr>
+<tr><td>Suspended instances, resume</td><td>Dead-letter queue, replay, run resubmit</td></tr>
+<tr><td>Port retries</td><td>Action retry policy + message redelivery</td></tr>
+<tr><td>Binding files per environment</td><td>App settings + parameters.json</td></tr>
+<tr><td>SSO database</td><td>Key Vault</td></tr>
+<tr><td>BAM / HAT tracking</td><td>Tracked properties, App Insights, run history</td></tr>
+<tr><td>Host instances, throttling</td><td>WS plan scale-out, trigger concurrency settings</td></tr>
+</table></div>
+<p>The big mindset shift: BizTalk gave you persistence, routing and error handling as one engine. Azure gives you separate services for each. You assemble them, and you own the seams between them.</p>
+
+<h2 id="qa">18. Interview questions</h2>
+<p>Try answering each out loud before you open it.</p>
+<div class="qa">
+<details><summary>When would you choose Logic Apps Standard over Consumption?</summary>
+<p>When I need VNet integration or private endpoints, built-in connectors for throughput, several related workflows deployed together, stateless workflows, or an application-style project with local development and zip deployment. Consumption also supports CI/CD, usually through ARM or Bicep. Consumption fits small, low-volume, internet-facing automations where pay-per-action is cheaper.</p></details>
+
+<details><summary>How do you guarantee a message isn't lost?</summary>
+<p>Accept fast and put it on Service Bus before replying. Process with peek-lock so a crash leads to redelivery, not loss. Use stateful workflows for multi-step work. Dead-letter poison messages instead of deleting them, and alert on the DLQ.</p></details>
+
+<details><summary>How do you prevent duplicate processing?</summary>
+<p>First, I say it honestly: Service Bus is at-least-once, so I design for duplicates rather than promise exactly-once. Duplicate detection with a stable per-command MessageId catches sender retries. A sensible lock duration plus lock renewal avoids redelivery during long runs. The processor is idempotent: it checks whether that command was already sent. And I send a stable message ID to the partner, with status checks or reconciliation when the outcome is unknown.</p></details>
+
+<details><summary>Explain peek-lock vs receive-and-delete.</summary>
+<p>Receive-and-delete removes the message as soon as it's handed over. If the receiver crashes, it's gone. Peek-lock hides the message for the lock duration. The receiver then completes, abandons or dead-letters it. If the lock expires, it becomes available again and the delivery count goes up.</p></details>
+
+<details><summary>Service Bus vs Event Grid vs Event Hubs?</summary>
+<p>Service Bus for commands and business messages that must be processed reliably, with ordering, sessions and DLQ. Event Grid for discrete notifications fanned out to many subscribers. Event Hubs for high-volume streams like telemetry, where consumers read from a partitioned log at their own pace.</p></details>
+
+<details><summary>How do you handle errors in a Logic App?</summary>
+<p>Retry policies on actions for short blips. A Try scope and a Catch scope with run-after set to Failed and TimedOut. In Catch, I read <code>result('Try')</code>, classify the error, abandon for transient ones and dead-letter with a clear reason for business ones, then publish a failure event and log the correlation ID.</p></details>
+
+<details><summary>How does APIM authenticate callers and backends?</summary>
+<p>Inbound, validate-jwt checks signature, issuer, audience and required roles on the caller's Entra token. Outbound, APIM uses its managed identity with <code>authentication-managed-identity</code> to get a fresh token for the backend. The caller's token isn't passed through.</p></details>
+
+<details><summary>What's the difference between roles and scp claims?</summary>
+<p><code>roles</code> carries app roles, used in app-only flows like client credentials. <code>scp</code> carries delegated scopes when a user is involved. A daemon token has roles and no scp.</p></details>
+
+<details><summary>How do Logic Apps get secrets?</summary>
+<p>Preferably they don't need any, thanks to managed identity. When a partner needs a key or certificate, it lives in Key Vault, and the app setting uses a Key Vault reference without a version, so rotation is picked up automatically. The Logic App's identity has Key Vault Secrets User.</p></details>
+
+<details><summary>When do you use a Function instead of Logic App actions?</summary>
+<p>When logic needs loops, calculations, complex string handling, libraries, or unit tests. Logic Apps orchestrate, Functions compute. I call the Function with managed identity behind Easy Auth.</p></details>
+
+<details><summary>How do you deploy Logic Apps Standard with Azure DevOps?</summary>
+<p>Infra with Terraform in one pipeline. Workflows as a project folder in Git, zipped in build, deployed with the Azure Functions task using app type workflowapp, through environments with approvals. The service connection uses workload identity federation. Environment differences live in app settings and parameters.json, so the same zip goes everywhere.</p></details>
+
+<details><summary>A partner says messages are missing. How do you investigate?</summary>
+<p>Get an ID or time window. Search App Insights by correlation ID. Walk the path: APIM request, intake run, topic and subscription counts, DLQ, transform run history, the partner call result. Most often it's a filter mismatch, a dead-lettered message, or a failed partner call that was handled but not alerted on.</p></details>
+
+<details><summary>Why use a canonical data model?</summary>
+<p>It decouples sources from targets. Each new source needs one map into the canonical model, and each target one map out. Without it, every source-target pair needs its own map, and changes ripple everywhere.</p></details>
+
+<details><summary>What does splitOn do?</summary>
+<p>It debatches a trigger's array output into one run per item. Each message is processed and settled on its own, so one bad item doesn't fail the batch, and run history is clearer.</p></details>
+
+<details><summary>How do you guarantee order for related messages?</summary>
+<p>Service Bus sessions. Set SessionId to the grouping key, like the prescription group, and use a session-aware receiver. Messages in a session are processed in order by one receiver at a time. Important: ordering holds only inside one session-enabled queue or subscription. In my design NewRx and CancelRx go to different subscriptions, so if strict order matters I route both through one session-aware subscription, or the CancelRx workflow checks the prescription's state first. Sessions lower parallelism, so use them only where order really matters.</p></details>
+
+<details><summary>How do you secure the platform network-wise in production?</summary>
+<p>APIM in internal VNet mode, or behind Application Gateway with WAF for external callers. Logic App with VNet integration for outbound and a private endpoint for inbound. Service Bus Premium, Key Vault and storage with private endpoints and private DNS zones. Public access disabled wherever possible.</p></details>
+</div>
+
+<h2 id="pitch">19. The 60-second pitch</h2>
+<p>If they say "walk me through an integration you'd design," this is the shape.</p>
+<div class="pitch">
+<p>An EHR sends FHIR prescriptions that pharmacies need as NCPDP NewRx. APIM is the front door: it validates the Entra token and app role, rate-limits per partner, and stamps a correlation ID. A stateless Logic App validates the payload, puts it on a Service Bus topic with a stable per-command MessageId, and returns 202.</p>
+<p>A stateful Logic App picks it up with peek-lock. It maps FHIR to a canonical model with Liquid, calls a Function to validate the NPI and map RxNorm to NDC, then uses XSLT to build the NewRx and sends it to Surescripts with a certificate from Key Vault. Success completes the message. Business errors are dead-lettered with a reason, transient ones are abandoned for retry.</p>
+<p>Then it publishes an event to Event Grid so notification and audit can react without coupling. Every hop uses managed identity. The correlation ID runs end to end into App Insights. Terraform builds the platform, and Azure DevOps deploys the same package to each environment with approvals.</p>
+</div>
+<p>That's roughly 60 seconds out loud. Every sentence maps to a section above, so any follow-up question has somewhere to go.</p>
+
+</main>
+</div>
+</body>
+</html>

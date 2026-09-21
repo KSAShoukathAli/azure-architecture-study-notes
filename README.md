@@ -32,6 +32,20 @@ The Q&A covers:
 
 The interview answers are the short form. The topic notes below hold the full mechanism behind each one.
 
+- **[Rx Integration Lab: FHIR to NCPDP on Azure Integration Services](https://ksashoukathali.github.io/azure-architecture-study-notes/rx-integration-lab/)**
+
+A read-through lab that follows one prescription end to end. An EHR sends a FHIR R4 MedicationRequest. APIM validates the caller, Logic Apps Standard accepts it and queues it on Service Bus, a second workflow transforms it to an NCPDP SCRIPT NewRx with help from a Function, and Event Grid announces the result. Payloads are simplified on purpose; the focus is the platform.
+
+The lab covers:
+
+- the business requirements and which Azure service delivers each one
+- APIM, Logic Apps Standard, Service Bus, Functions, and Event Grid, each with the reason it sits where it does
+- Entra ID, OAuth 2.0 client credentials, managed identity, and Key Vault
+- production networking and a real multi-environment topology
+- observability, Terraform shape, and Azure DevOps CI/CD
+- a troubleshooting playbook, design decisions, and a BizTalk to Azure map
+- interview questions and a 60-second pitch
+
 ---
 
 ## OAuth2 & Azure Identity
@@ -402,6 +416,9 @@ azure-architecture-study-notes/
 ├── interview-prep/
 │   └── index.html
 │
+├── rx-integration-lab/
+│   └── index.html
+│
 ├── private-connectivity-dns/   (placeholder)
 │   └── index.html
 ├── workload-identity/          (placeholder)
@@ -470,11 +487,11 @@ The goal is to be able to answer:
 
 GitHub Pages publishes the files that are actually committed to the configured publishing branch.
 
-For the Interview Prep page and the updated hub, verify the files exist locally:
+For the Rx Integration Lab and the updated hub, verify the files exist locally:
 
 ```powershell
 Test-Path .\index.html
-Test-Path .\interview-prep\index.html
+Test-Path .\rx-integration-lab\index.html
 ```
 
 Both commands should return `True`.
@@ -483,23 +500,24 @@ Then stage the hub, the README, and the new folder explicitly:
 
 ```powershell
 git status
-git add index.html README.md interview-prep
+git add index.html README.md rx-integration-lab
 git status
 git diff --cached --name-status
-git commit -m "Add interview prep Q&A and refresh the hub page"
+git commit -m "Add Rx Integration Lab"
 git push origin main
 ```
 
 After the push, verify Git is tracking the published paths:
 
 ```powershell
-git ls-tree -r --name-only HEAD | Select-String "^interview-prep/"
+git ls-tree -r --name-only HEAD | Select-String "^rx-integration-lab/"
 ```
 
 Expected published URLs:
 
 - **https://ksashoukathali.github.io/azure-architecture-study-notes/**
 - **https://ksashoukathali.github.io/azure-architecture-study-notes/interview-prep/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/rx-integration-lab/**
 
 Live site:
 
