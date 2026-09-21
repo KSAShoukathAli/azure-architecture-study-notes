@@ -1,6 +1,6 @@
 # Azure Architecture Study Notes
 
-A visual architecture notebook for Azure integration, identity, networking, security, and platform concepts.
+A visual architecture notebook for Azure integration, identity, networking, security, messaging, and platform concepts.
 
 The notes are organized in two complementary styles:
 
@@ -33,7 +33,7 @@ Topics include OAuth2 flows, Entra ID, access tokens, managed identities, App Se
 
 Core mental model:
 
-> **Name → Address → Route → Allow**
+> **Name -> Address -> Route -> Allow**
 
 Topics include VNets, CIDR, subnets, routing, NSGs, VNet peering, service endpoints, private endpoints, Private Link, private DNS, DNS Private Resolver, APIM networking modes, hybrid DNS, network policies, UDRs, and troubleshooting.
 
@@ -61,17 +61,6 @@ The Logic Apps material covers:
 - long-running workflows, delays, Until loops, and webhook callbacks
 - Application Insights, run history, correlation IDs, and observability
 - architecture limits and Consumption vs Standard cost considerations
-
-Feynman questions used throughout the Logic Apps section:
-
-> **What wakes it?**  
-> **What must survive?**  
-> **Where does the operation run?**  
-> **What happens when it fails?**  
-> **How much concurrency is safe?**  
-> **How does the data change shape?**  
-> **What if the process takes hours?**  
-> **Can I trace one business transaction end-to-end?**
 
 ---
 
@@ -104,13 +93,53 @@ The APIM material covers:
 - workspaces and delegated API governance
 - boundaries between APIM and B2B / messaging integration workloads
 
-Feynman questions used throughout the APIM section:
+---
 
-> **Who may call?**  
-> **Where does the request go?**  
-> **What changes in flight?**  
-> **How much traffic and failure is safe?**  
-> **How do I know what actually happened?**
+## Azure Messaging
+
+- **[Azure Messaging - All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/messaging/)**
+- **[Azure Messaging - Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/messaging/azure-messaging-reference/)**
+- **[Azure Messaging - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/messaging/azure-messaging-feynman/)**
+
+Core decision model:
+
+> **Durable command/work -> Service Bus**  
+> **Discrete event notification -> Event Grid**  
+> **High-volume replayable stream -> Event Hubs**
+
+The Messaging material covers:
+
+- Service Bus queues vs topics/subscriptions
+- competing consumers
+- Peek-Lock vs Receive-and-Delete
+- lock duration, renewal, lock loss, and prefetch implications
+- at-least-once delivery and idempotent consumers
+- sessions and per-key FIFO ordering
+- duplicate detection and its limits
+- dead-letter queues and poison-message handling
+- forwarding, deferral, scheduling, TTL, filters, and transactions
+- Standard vs Premium Service Bus architecture
+- message-size limits and the claim-check pattern
+- Service Bus vs Azure Storage Queues
+- Geo-DR vs Geo-Replication
+- Managed Identity, RBAC, Private Link, and networking
+- Event Grid classic resource model vs Event Grid Namespaces
+- Event Grid push vs pull delivery
+- Event Grid retry, dead-lettering, and no-order guarantee
+- Event Hubs partitions, partition keys, offsets, and consumer groups
+- checkpointing and replay
+- Event Hubs Capture
+- Event Hubs tiers and Kafka compatibility
+- why a retained stream is not automatically a work queue
+- current Azure SDK guidance and legacy Service Bus SDK/SBMP retirement
+
+Feynman questions used throughout the Messaging section:
+
+> **Must the work survive?**  
+> **Who owns processing?**  
+> **What exactly must stay ordered?**  
+> **Can the same message arrive twice?**  
+> **Do consumers need to replay history?**
 
 ---
 
@@ -151,9 +180,23 @@ azure-architecture-study-notes/
 │   └── azure-api-management-feynman/
 │       └── index.html
 │
-├── private-endpoint/
-├── aks-identity/
-└── terraform/
+├── messaging/
+│   ├── index.html
+│   ├── azure-messaging-reference/
+│   │   └── index.html
+│   └── azure-messaging-feynman/
+│       └── index.html
+│
+├── functions/
+├── observability/
+├── biztalk-to-azure/
+├── reliability-patterns/
+├── private-connectivity-dns/
+├── workload-identity/
+├── terraform-cicd/
+├── integration-security/
+├── ai-gateway-mcp/
+└── healthcare-integration/
 ```
 
 ---
@@ -185,6 +228,56 @@ The goal is to be able to answer:
 
 ---
 
+## Roadmap
+
+### Next
+
+1. **Azure Functions + Durable Functions**
+   - triggers and bindings
+   - Flex Consumption
+   - scaling and cold starts
+   - Service Bus triggers
+   - Durable orchestration
+   - fan-out / fan-in
+   - saga / compensation
+   - async HTTP and human-interaction patterns
+
+2. **End-to-End Observability**
+   - Application Insights
+   - Log Analytics
+   - KQL
+   - distributed correlation
+   - trace APIM -> Logic Apps -> Service Bus -> Function
+
+3. **BizTalk to Azure Mapping**
+   - receive locations and ports
+   - pipelines
+   - maps
+   - orchestrations
+   - send ports
+   - correlation
+   - suspended messages
+   - where there is no one-to-one Azure replacement
+
+4. **Reliability & Idempotency Patterns**
+   - retry / backoff / jitter
+   - poison-message handling
+   - outbox
+   - saga / compensation
+   - idempotency
+   - exactly-once misconceptions
+
+### Then
+
+5. **Private Connectivity & DNS**
+6. **Workload Identity**
+7. **Terraform + CI/CD + APIOps**
+8. **Integration Security Architecture**
+9. **AI Gateway + MCP**
+10. **Healthcare Integration**
+
+---
+
 ## Updating the Site
 
 After changing or adding study pages:
@@ -201,21 +294,3 @@ GitHub Pages publishes from the `main` branch.
 Live site:
 
 **https://ksashoukathali.github.io/azure-architecture-study-notes/**
-
----
-
-## Planned Topics
-
-Future sections can follow the same Reference + Feynman pattern:
-
-- Azure Service Bus
-- Private Endpoint / Private Link deep dive
-- AKS identity and networking
-- Terraform for Azure architecture
-- Azure security architecture
-- traffic management and load balancing
-- outbound connectivity, SNAT, NAT Gateway, and Azure Firewall
-- APIM AI Gateway and MCP
-- APIOps / CI-CD
-- APIM multi-region and disaster recovery
-- message-level security and enterprise integration patterns
