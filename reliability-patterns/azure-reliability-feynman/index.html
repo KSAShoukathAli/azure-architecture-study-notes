@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Reliability & Idempotency Patterns - Feynman</title><style>@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Space+Mono:wght@400;700&family=Patrick+Hand&display=swap');
+:root{--ink:#2b2b2b;--paper:#faf6ee;--paper2:#f1ead8;--accent:#d0662e;--green:#3b6e5e;--blue:#4a5fa5;--soft:#817969;--yellow:#f2df9d;--rose:#efd2ca;--white:#fffdf8;}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{background:var(--paper);color:var(--ink);font-family:'Patrick Hand','Comic Sans MS',sans-serif;font-size:18px;line-height:1.52;max-width:960px;margin:0 auto;padding:30px 24px 90px}
+h1,h2,h3{font-family:'Architects Daughter','Patrick Hand',sans-serif;margin-bottom:7px}h1{font-size:2.15em;text-align:center;border-bottom:3px solid var(--ink);padding-bottom:14px;margin-bottom:4px}h2{font-size:1.55em;margin-top:56px;display:flex;align-items:center;gap:10px}h3{font-size:1.22em;margin-top:30px;color:var(--green)}p{margin:10px 0}.subtitle{text-align:center;color:var(--soft);margin-bottom:32px}.num{font-family:'Space Mono',monospace;font-weight:700;color:var(--paper);background:var(--accent);border:2px solid var(--ink);border-radius:50%;width:35px;height:35px;display:inline-flex;align-items:center;justify-content:center;font-size:.58em;flex:0 0 auto}
+.card{background:var(--paper2);border:2.5px solid var(--ink);border-radius:14px 18px 16px 20px/18px 14px 20px 16px;padding:16px 20px;margin:16px 0;box-shadow:4px 4px 0 rgba(43,43,43,.13)}.card.note{border-color:var(--blue)}.card.good{border-color:var(--green)}.card.warn{border-color:var(--accent)}.card.question{border-color:#ad8f2f;background:#fff8dd}.tag{display:inline-block;font-family:'Space Mono',monospace;font-size:.7em;font-weight:700;text-transform:uppercase;letter-spacing:.45px;padding:2px 9px;border-radius:20px;border:2px solid var(--ink);margin-bottom:7px}.tag.note{background:#d6ddf0}.tag.good{background:#cfe3d8}.tag.warn{background:#f5d5bd}.tag.question{background:#f5e6a7}
+.glance{background:#fff;border-left:5px solid var(--accent);padding:12px 17px;margin:16px 0;font-size:.97em}.glance b{color:var(--accent);font-family:'Architects Daughter',sans-serif}.svg-wrap{overflow-x:auto;margin:18px 0 8px}.svg-wrap svg{display:block;margin:0 auto;max-width:100%;height:auto}.sketch-box{fill:var(--paper2);stroke:var(--ink);stroke-width:2.4}.sketch-box.accent{fill:#f5d5bd}.sketch-box.good{fill:#cfe3d8}.sketch-box.note{fill:#d6ddf0}.sketch-box.yellow{fill:#f5e6a7}.sketch-box.rose{fill:#efd2ca}.sketch-box.dim{fill:#eee7d6;stroke-dasharray:5 4}.lbl{font-family:'Patrick Hand',sans-serif;fill:var(--ink)}.small{font-family:'Space Mono',monospace;fill:var(--soft);font-size:11px}.title-lbl{font-family:'Architects Daughter',sans-serif;font-weight:700;fill:var(--ink)}.arrow{stroke:var(--ink);stroke-width:2.2;fill:none}.arrow.dashed{stroke-dasharray:6 5}.arrow.red{stroke:var(--accent)}.line{stroke:var(--ink);stroke-width:2;fill:none}.bracket{stroke:var(--green);stroke-width:2.2;fill:none;stroke-dasharray:5 4}
+table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border:2px solid var(--ink);padding:9px 12px;text-align:left;vertical-align:top}th{background:var(--paper2);font-family:'Architects Daughter',sans-serif}tr:nth-child(even) td{background:rgba(0,0,0,.018)}code{font-family:'Space Mono',monospace;background:#eee2c9;padding:1px 6px;border-radius:4px;font-size:.86em}pre{font-family:'Space Mono',monospace;background:#fffaf0;border:2px dashed var(--soft);border-radius:12px;padding:14px 16px;overflow-x:auto;font-size:.76em;line-height:1.55}.flow-key{background:#fffaf0;border:2px dashed var(--soft);border-radius:12px;padding:12px 17px;margin:8px 0 20px}.flow-key ol,.flow-key ul{margin:0;padding-left:24px}.flow-key li{margin:4px 0}.mono{font-family:'Space Mono',monospace;font-size:.86em}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.mini-card{background:#fff;border:2px solid var(--ink);border-radius:12px;padding:12px 14px}.mini-card b{font-family:'Architects Daughter',sans-serif}.footer{text-align:center;color:var(--soft);font-family:'Space Mono',monospace;font-size:.78em;margin-top:62px;border-top:2px dashed var(--soft);padding-top:16px}.toc{background:#fff;border:2px dashed var(--soft);border-radius:12px;padding:12px 18px;margin:22px 0}.toc a{color:var(--blue);text-decoration:none}.source-list a{color:var(--blue)}.feynman-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:20px 0}.feynman-strip div{border:2px solid var(--ink);border-radius:10px;background:#fff;padding:9px;text-align:center;font-family:'Architects Daughter',sans-serif;font-size:.88em}.checklist{background:#fff;border-left:5px solid var(--green);padding:12px 18px;margin:16px 0}.back{font-family:'Space Mono',monospace;font-size:.76em}.back a{color:var(--blue);text-decoration:none}.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}.hero-card{display:block;text-decoration:none;color:inherit;background:#fff;border:2.5px solid var(--ink);border-radius:16px;padding:18px;box-shadow:4px 4px 0 rgba(43,43,43,.13)}.hero-card h3{margin:0 0 8px;color:var(--ink)}.pill{display:inline-block;font-family:'Space Mono',monospace;font-size:.68em;border:2px solid var(--ink);border-radius:20px;padding:2px 8px;margin-bottom:8px}.pill.ref{background:#d6ddf0}.pill.fey{background:#f5e6a7}.muted{color:var(--soft)}ul,ol{padding-left:27px}li{margin:5px 0}.tight td,.tight th{padding:7px 9px;font-size:.94em}.truth{font-family:'Space Mono',monospace;background:#fff;border:2px solid var(--ink);border-radius:10px;padding:10px 14px;margin:12px 0}.quote{font-family:'Architects Daughter',sans-serif;font-size:1.12em;background:#fff8dd;border-left:5px solid #ad8f2f;padding:14px 18px;margin:18px 0}.kicker{font-family:'Space Mono',monospace;color:var(--accent);text-transform:uppercase;font-size:.72em;letter-spacing:.5px;font-weight:700}.source-list li{margin:8px 0}.sep{border:0;border-top:2px dashed var(--soft);margin:36px 0}.smallprint{font-size:.9em;color:var(--soft)}
+@media(max-width:700px){body{font-size:17px;padding:22px 15px 70px}.two-col,.three-col,.feynman-strip,.hero-grid{grid-template-columns:1fr}h1{font-size:1.82em}table{font-size:.93em}.svg-wrap{margin-left:-4px;margin-right:-4px}}</style></head><body><svg aria-hidden="true" height="0" style="position:absolute" width="0"><defs><marker id="rel-arrow" markerHeight="8" markerWidth="10" orient="auto" refX="8.5" refY="4"><polygon fill="#2b2b2b" points="0 0,10 4,0 8"/></marker></defs></svg><div class="back"><a href="../">&larr; Reliability & Idempotency Patterns</a></div>
+<h1>Reliability &amp; Idempotency Patterns</h1>
+<div class="subtitle">Feynman way of understanding</div>
+<div class="quote">A request times out. The caller knows it did not get an answer. But did the other system already do the work?</div>
+<div class="feynman-strip"><div>1. Find ambiguity</div><div>2. Predict failure</div><div>3. Derive guarantee</div><div>4. Break the model</div><div>5. Repair it</div></div>
+
+<h2><span class="num">1</span> Start with the uncomfortable scenario</h2>
+<div class="svg-wrap"><svg viewBox="0 0 920 380" xmlns="http://www.w3.org/2000/svg">
+<rect class="sketch-box note" height="76" rx="12" width="210" x="70" y="92"></rect><text class="title-lbl" font-size="15" text-anchor="middle" x="175" y="124">YOUR FUNCTION</text><text class="small" text-anchor="middle" x="175" y="148">the HTTP caller</text>
+<path class="arrow" d="M280,130 L620,130" marker-end="url(#rel-arrow)"></path><text class="small" text-anchor="middle" x="450" y="112">POST prescription</text>
+<rect class="sketch-box good" height="76" rx="12" width="210" x="635" y="92"></rect><text class="title-lbl" font-size="15" text-anchor="middle" x="740" y="124">PARTNER</text><text class="small" text-anchor="middle" x="740" y="148">commits successfully</text>
+<path class="arrow dashed red" d="M635,158 C535,220 405,220 296,169"></path><text class="title-lbl" font-size="25" text-anchor="middle" x="310" y="194">X</text><text class="small" text-anchor="middle" x="470" y="230">response never reaches the caller</text>
+<rect class="sketch-box accent" height="86" rx="14" width="620" x="150" y="270"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="460" y="301">THE HARD PART IS NOT THE TIMEOUT</text><text class="lbl" font-size="14" text-anchor="middle" x="460" y="327">the hard part is not knowing whether the effect already happened</text>
+</svg></div>
+<p>If you retry blindly, you might submit twice. If you refuse to retry, you might lose a legitimate request. This is the basic reliability problem.</p>
+<div class="card question"><span class="tag question">predict</span><p>The partner charged the card, but your process crashed before saving "payment succeeded." Which system is wrong?</p><p><b>Answer:</b> neither is necessarily wrong. You created two independent commits with no shared atomic boundary.</p></div>
+
+<h2><span class="num">2</span> Why at-least-once exists</h2>
+<div class="svg-wrap"><svg viewBox="0 0 920 330" xmlns="http://www.w3.org/2000/svg">
+<rect class="sketch-box rose" height="78" rx="13" width="245" x="95" y="90"></rect><text class="title-lbl" font-size="15" text-anchor="middle" x="217" y="121">REMOVE MESSAGE FIRST</text><text class="small" text-anchor="middle" x="217" y="145">crash -> work can be lost</text>
+<text class="title-lbl" font-size="20" text-anchor="middle" x="460" y="132">OR</text>
+<rect class="sketch-box good" height="78" rx="13" width="245" x="580" y="90"></rect><text class="title-lbl" font-size="15" text-anchor="middle" x="702" y="121">REMOVE AFTER SUCCESS</text><text class="small" text-anchor="middle" x="702" y="145">crash -> work may repeat</text>
+<rect class="sketch-box yellow" height="76" rx="13" width="610" x="155" y="220"></rect><text class="title-lbl" font-size="15" text-anchor="middle" x="460" y="251">AT-LEAST-ONCE CHOOSES DUPLICATE RISK OVER SILENT LOSS</text><text class="small" text-anchor="middle" x="460" y="277">then idempotency makes duplicate processing safe</text>
+</svg></div>
+<p>Service Bus PeekLock follows the second model. It removes the message only after you settle it successfully. If your process dies first, the message returns. That is not a bug. That is the reliability contract.</p>
+
+<h2><span class="num">3</span> So derive idempotency</h2>
+<p>Suppose the logical command is:</p>
+<pre>SubmitPrescription RX-4182</pre>
+<p>The system needs a durable way to recognize that exact logical operation again:</p>
+<pre>IdempotencyKey = "SubmitPrescription:RX-4182"</pre>
+<div class="svg-wrap"><svg viewBox="0 0 920 350" xmlns="http://www.w3.org/2000/svg">
+<rect class="sketch-box note" height="58" rx="11" width="190" x="40" y="80"></rect><text class="lbl" font-size="14" text-anchor="middle" x="135" y="115">attempt 1</text>
+<rect class="sketch-box note" height="58" rx="11" width="190" x="40" y="165"></rect><text class="lbl" font-size="14" text-anchor="middle" x="135" y="200">attempt 2</text>
+<path class="arrow" d="M230,109 L350,140" marker-end="url(#rel-arrow)"></path><path class="arrow" d="M230,194 L350,151" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box yellow" height="92" rx="13" width="250" x="365" y="105"></rect><text class="title-lbl" font-size="15" text-anchor="middle" x="490" y="136">SAME OPERATION KEY</text><text class="small" text-anchor="middle" x="490" y="160">lookup / unique insert</text><text class="small" text-anchor="middle" x="490" y="180">second attempt is duplicate</text>
+<path class="arrow" d="M615,151 L725,151" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box good" height="72" rx="12" width="160" x="740" y="115"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="820" y="146">ONE EFFECT</text><text class="small" text-anchor="middle" x="820" y="169">stable outcome</text>
+</svg></div>
+<p>Idempotent does not mean "run once." It means "run again and the business state does not change again."</p>
+<div class="card note"><span class="tag note">healthcare reality</span><p>Sometimes the protocol gives you useful IDs. NCPDP SCRIPT has <code>MessageID</code> and <code>RelatesToMessageID</code>; X12 has ISA13, GS06, and ST02. But ask what each ID means. A transmission/correlation ID is not automatically the logical business-operation key. The question is still: <b>would the same real-world action produce the same durable key when it is retried?</b></p></div>
+
+<h2><span class="num">4</span> The naive dedupe check breaks under concurrency</h2>
+<pre>if (!AlreadyProcessed(key)) {
+    ApplyBusinessEffect();
+    SaveProcessed(key);
+}</pre>
+<p>Two workers can both check before either saves the key.</p>
+<div class="svg-wrap"><svg viewBox="0 0 920 360" xmlns="http://www.w3.org/2000/svg">
+<rect class="sketch-box note" height="62" rx="12" width="160" x="80" y="85"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="160" y="121">WORKER A</text>
+<rect class="sketch-box note" height="62" rx="12" width="160" x="80" y="190"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="160" y="226">WORKER B</text>
+<path class="arrow" d="M240,116 L380,145" marker-end="url(#rel-arrow)"></path><path class="arrow" d="M240,221 L380,156" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box rose" height="88" rx="14" width="230" x="395" y="105"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="510" y="136">CHECK ONLY</text><text class="small" text-anchor="middle" x="510" y="160">both see "not processed"</text><text class="small" text-anchor="middle" x="510" y="180">race</text>
+<path class="arrow red" d="M625,149 L750,149" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box accent" height="74" rx="12" width="135" x="765" y="112"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="832" y="143">TWICE</text><text class="small" text-anchor="middle" x="832" y="166">bad</text>
+</svg></div>
+<p>The repair is a <b>durable uniqueness constraint or conditional write</b> plus an atomic business update. Let the data store decide which duplicate wins.</p>
+
+<h2><span class="num">5</span> Why broker duplicate detection is not enough</h2>
+<div class="two-col"><div class="mini-card"><b>Duplicate send</b><br/>Producer is unsure whether Service Bus accepted the send. Same <code>MessageId</code> can be discarded within the configured duplicate-detection window.</div><div class="mini-card"><b>Duplicate processing</b><br/>Consumer applied the side effect, crashed before Complete, and receives the same stored message again. Broker send dedupe cannot prevent this.</div></div>
+<div class="card question"><span class="tag question">break the model</span><p>Duplicate detection window is 10 minutes. You replay the same business event two days later using the same MessageId. What happens?</p><p><b>Answer:</b> the broker's old dedupe memory has expired. Consumer-side idempotency still has to protect the business effect.</p></div>
+
+<h2><span class="num">6</span> Retries can make outages worse</h2>
+<div class="svg-wrap"><svg viewBox="0 0 920 350" xmlns="http://www.w3.org/2000/svg">
+<rect class="sketch-box note" height="58" rx="11" width="150" x="45" y="85"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="120" y="120">100 CALLERS</text>
+<path class="arrow" d="M195,114 L320,114" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box rose" height="58" rx="11" width="180" x="335" y="85"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="425" y="120">DEPENDENCY SLOW</text>
+<path class="arrow red" d="M335,143 C285,210 170,205 120,150" marker-end="url(#rel-arrow)"></path><text class="small" text-anchor="middle" x="228" y="205">everyone retries</text>
+<path class="arrow red" d="M515,114 L565,114" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box accent" height="84" rx="13" width="280" x="580" y="75"></rect><text class="title-lbl" font-size="15" text-anchor="middle" x="720" y="106">RETRY STORM</text><text class="small" text-anchor="middle" x="720" y="131">extra calls amplify the outage</text>
+<rect class="sketch-box good" height="78" rx="13" width="620" x="150" y="245"></rect><text class="title-lbl" font-size="15" text-anchor="middle" x="460" y="275">BACKOFF + JITTER + RETRY BUDGET + CIRCUIT BREAKER / BACKPRESSURE</text><text class="small" text-anchor="middle" x="460" y="301">reliability sometimes means doing less work for a while</text>
+</svg></div>
+<p>Retry is not courage. Sometimes the reliable thing is to stop calling the dependency and give it room to recover.</p><p>And count carefully: <b>4 retries means 5 attempts</b>. If another layer then makes 3 attempts, one business request can become 15 downstream calls.</p>
+
+<div class="card good"><span class="tag good">structural fix for HTTP ambiguity</span><p>For a long-running POST, stop holding the caller open. Accept a stable <code>Idempotency-Key</code>, return <b>202 Accepted</b> with a status URL, and let the caller query that same operation. A repeated key returns the existing operation/status instead of creating a second one.</p></div>
+<h2><span class="num">7</span> Poison is different from transient</h2>
+<div class="truth">Transient: "same input may succeed later."<br/>Poison: "same input will keep failing until something changes."</div>
+<p>Retries are useful for the first. Repeating the second only wastes capacity.</p>
+<div class="svg-wrap"><svg viewBox="0 0 920 330" xmlns="http://www.w3.org/2000/svg">
+<rect class="sketch-box yellow" height="64" rx="12" width="180" x="55" y="95"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="145" y="131">MESSAGE</text>
+<path class="arrow" d="M235,127 L360,127" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box rose" height="64" rx="12" width="190" x="375" y="95"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="470" y="131">FAILS REPEATEDLY</text>
+<path class="arrow" d="M565,127 L690,127" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box accent" height="64" rx="12" width="180" x="705" y="95"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="795" y="131">DLQ</text>
+<rect class="sketch-box good" height="70" rx="12" width="500" x="210" y="220"></rect><text class="small" text-anchor="middle" x="460" y="250">inspect -> fix code/data/config -> replay deliberately</text><text class="small" text-anchor="middle" x="460" y="272">not DLQ -> queue -> DLQ forever</text>
+</svg></div>
+
+<h2><span class="num">8</span> The dual-write trap</h2>
+<p>Your service needs to:</p><ol><li>save the prescription status, and</li><li>publish <code>PrescriptionSubmitted</code>.</li></ol>
+<p>If they are separate commits, a crash can occur between them.</p>
+<div class="svg-wrap"><svg viewBox="0 0 920 380" xmlns="http://www.w3.org/2000/svg">
+<rect class="sketch-box note" height="64" rx="12" width="170" x="55" y="85"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="140" y="121">SAVE STATE</text>
+<path class="arrow" d="M225,117 L340,117" marker-end="url(#rel-arrow)"></path>
+<text class="title-lbl" font-size="28" text-anchor="middle" x="400" y="126">X</text><text class="small" text-anchor="middle" x="400" y="151">crash</text>
+<path class="arrow" d="M435,117 L550,117" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box yellow" height="64" rx="12" width="180" x="565" y="85"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="655" y="121">PUBLISH EVENT</text>
+<rect class="sketch-box accent" height="78" rx="13" width="600" x="160" y="230"></rect><text class="title-lbl" font-size="15" text-anchor="middle" x="460" y="260">OUTBOX: STATE + EVENT RECORD COMMIT TOGETHER</text><text class="small" text-anchor="middle" x="460" y="286">relay later; relay may repeat; consumer remains idempotent</text>
+</svg></div>
+<p>The outbox does not create magic exactly-once delivery. It removes the dangerous gap between business state and the intent to publish.</p><p>In a SQL-backed integration, that usually means one database transaction writes both the business change and an <code>Outbox</code> row. A separate relay polls or consumes change information and publishes later. The relay itself can repeat, so the consumer still needs idempotency.</p>
+
+<h2><span class="num">9</span> Compensation is not rollback</h2>
+<p>Imagine three steps completed in different systems:</p>
+<pre>Reserve medication stock
+Authorize payment
+Create shipment</pre>
+<p>If shipment fails, there is no database rollback spanning those systems. You issue new business commands:</p>
+<pre>Void payment authorization
+Release stock reservation</pre>
+<div class="card question"><span class="tag question">predict</span><p>What if "void payment" times out?</p><p><b>Answer:</b> compensation itself needs retries, durable progress, and idempotency. Recovery logic is production logic.</p></div>
+
+<h2><span class="num">10</span> Exactly-once is usually a boundary claim</h2>
+<div class="svg-wrap"><svg viewBox="0 0 920 365" xmlns="http://www.w3.org/2000/svg">
+<rect class="sketch-box yellow" height="70" rx="12" width="220" x="55" y="90"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="165" y="121">BROKER DEDUPE</text><text class="small" text-anchor="middle" x="165" y="144">one stored message in window</text>
+<path class="arrow" d="M275,125 L380,125" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box note" height="70" rx="12" width="220" x="395" y="90"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="505" y="121">CONSUMER</text><text class="small" text-anchor="middle" x="505" y="144">can still crash / redeliver</text>
+<path class="arrow" d="M615,125 L720,125" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box rose" height="70" rx="12" width="160" x="735" y="90"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="815" y="121">SIDE EFFECT</text>
+<rect class="sketch-box good" height="90" rx="14" width="660" x="130" y="235"></rect><text class="title-lbl" font-size="15" text-anchor="middle" x="460" y="266">END-TO-END "ONCE" REQUIRES EVERY BOUNDARY TO AGREE</text><text class="small" text-anchor="middle" x="460" y="291">in practice: durable delivery + idempotent processing + reconciliation</text>
+</svg></div>
+<p>If documentation says duplicate detection provides "exactly once delivery" within a broker window, read the boundary carefully. That does not prove your external API call, SQL write, email, prescription submission, or shipment happened exactly once.</p><p>And there is one more layer: <b>reconciliation</b>. At the end of the day, compare authoritative business outcomes across systems. Reliability controls prevent many errors; reconciliation finds the exceptions that still escaped.</p>
+
+<h2><span class="num">11</span> Break the model scenarios</h2>
+<div class="card question"><span class="tag question">scenario 1</span><p>A Service Bus Function updates SQL successfully, then crashes before the message is completed. What protects SQL from the redelivery?</p><p><b>Model answer:</b> an idempotent write or dedupe record committed atomically with the SQL change.</p></div>
+<div class="card question"><span class="tag question">scenario 2</span><p>Logic Apps HTTP action has the default retry policy. The partner's POST creates a new row every time. What is wrong?</p><p><b>Model answer:</b> retry was enabled at a non-idempotent boundary with no operation key or status lookup.</p></div>
+<div class="card question"><span class="tag question">scenario 3</span><p>You enable Service Bus duplicate detection and remove consumer dedupe. Safe?</p><p><b>Model answer:</b> no. Sender duplicates and consumer redelivery are different failure modes.</p></div>
+<div class="card question"><span class="tag question">scenario 4</span><p>A poison message keeps cycling from DLQ back to the queue every five minutes. Reliable?</p><p><b>Model answer:</b> no. That is automated repetition of a known failure, not recovery.</p></div>
+<div class="card question"><span class="tag question">scenario 5</span><p>Event Hubs replays a batch after a checkpoint gap. Your consumer sends an email per event. What happens?</p><p><b>Model answer:</b> duplicate side effects unless the consumer tracks processed event identity or models the side effect idempotently.</p></div>
+<div class="card question"><span class="tag question">scenario 6</span><p>APIM gives up before a slower inner call has actually stopped, and the caller retries. What can happen?</p><p><b>Model answer:</b> two operations can overlap. Timeout is not cancellation. Align nested timeout/retry budgets or redesign the operation as asynchronous request-reply.</p></div>
+
+<h2><span class="num">12</span> Final mental model</h2>
+<div class="svg-wrap"><svg viewBox="0 0 920 400" xmlns="http://www.w3.org/2000/svg">
+<rect class="sketch-box note" height="60" rx="12" width="165" x="45" y="70"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="127" y="106">FAILURE</text>
+<path class="arrow" d="M210,100 L320,100" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box yellow" height="60" rx="12" width="200" x="335" y="70"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="435" y="106">CLASSIFY</text>
+<path class="arrow" d="M535,100 L645,100" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box good" height="60" rx="12" width="225" x="660" y="70"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="772" y="106">CHOOSE RESPONSE</text>
+<rect class="sketch-box" height="60" rx="12" width="170" x="85" y="205"></rect><text class="lbl" font-size="14" text-anchor="middle" x="170" y="240">Retry transient</text>
+<rect class="sketch-box" height="60" rx="12" width="170" x="285" y="205"></rect><text class="lbl" font-size="14" text-anchor="middle" x="370" y="240">DLQ poison</text>
+<rect class="sketch-box" height="60" rx="12" width="170" x="485" y="205"></rect><text class="lbl" font-size="14" text-anchor="middle" x="570" y="240">Compensate partial</text>
+<rect class="sketch-box" height="60" rx="12" width="170" x="685" y="205"></rect><text class="lbl" font-size="14" text-anchor="middle" x="770" y="240">Break persistent</text>
+<path class="arrow dashed" d="M772,130 C772,160 620,170 470,170" marker-end="url(#rel-arrow)"></path><path class="bracket" d="M170,170 L770,170"></path><path class="arrow" d="M170,170 L170,197" marker-end="url(#rel-arrow)"></path><path class="arrow" d="M370,170 L370,197" marker-end="url(#rel-arrow)"></path><path class="arrow" d="M570,170 L570,197" marker-end="url(#rel-arrow)"></path><path class="arrow" d="M770,170 L770,197" marker-end="url(#rel-arrow)"></path>
+<rect class="sketch-box accent" height="74" rx="14" width="650" x="135" y="305"></rect><text class="title-lbl" font-size="15" text-anchor="middle" x="460" y="335">IDEMPOTENCY SITS UNDER ALL REPEATABLE RECOVERY</text><text class="small" text-anchor="middle" x="460" y="360">if recovery can repeat an operation, make repetition safe</text>
+</svg></div>
+<div class="quote">Reliable systems do not eliminate failure. They turn failure into a bounded, observable, repeatable recovery path.</div>
+<div class="footer">Azure Architecture Study Notes - Reliability &amp; Idempotency Patterns - Feynman</div>
+</body></html>

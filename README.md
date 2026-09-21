@@ -267,6 +267,47 @@ Key migration model:
 
 ---
 
+
+## Reliability & Idempotency Patterns
+
+- **[Reliability & Idempotency Patterns - All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/reliability-patterns/)**
+- **[Reliability & Idempotency Patterns - Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/reliability-patterns/azure-reliability-reference/)**
+- **[Reliability & Idempotency Patterns - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/reliability-patterns/azure-reliability-feynman/)**
+
+Core mental model:
+
+> **At-least-once delivery accepts possible duplicates to avoid losing work. Reliability comes from making retries bounded, duplicate execution harmless, and recovery observable and replayable.**
+
+The reliability material covers:
+
+- transient vs persistent vs poison failures
+- retry, exponential backoff, jitter, attempt budgets, and retry storms
+- APIM retry and circuit-breaker behavior
+- Logic Apps retry behavior and HTTP ambiguity
+- Service Bus PeekLock, redelivery, lock expiry, settlement, and DLQ behavior
+- producer duplicate detection vs consumer idempotency
+- idempotency keys, correlation IDs, and protocol identifiers
+- atomic dedupe records and concurrency races
+- Service Bus transactions, same-entity limits, and send-via for cross-entity handoff
+- transactional outbox and inbox patterns
+- SQL and Cosmos DB outbox approaches
+- saga and compensating transactions
+- Event Grid retry and dead-letter behavior
+- Event Hubs replay and checkpoint implications
+- Functions runtime retry caveats and Event Hubs head-of-line blocking
+- HTTP Idempotency-Key and 202 Accepted plus status-endpoint patterns
+- Queue-Based Load Leveling and Bulkhead isolation
+- timeout budgets across APIM, Logic Apps, Functions, and Service Bus
+- reconciliation as the final safety net
+- healthcare-oriented examples using NCPDP and X12 identifiers
+
+Key reliability model:
+
+> **Duplicate delivery is normal. Duplicate business effect is the bug.**  
+> Design the system so the same logical operation can be executed again without creating a second business effect.
+
+---
+
 ## Repository Structure
 
 ```text
@@ -333,6 +374,12 @@ azure-architecture-study-notes/
 │       └── index.html
 │
 ├── reliability-patterns/
+│   ├── index.html
+│   ├── azure-reliability-reference/
+│   │   └── index.html
+│   └── azure-reliability-feynman/
+│       └── index.html
+│
 ├── private-connectivity-dns/
 ├── workload-identity/
 ├── terraform-cicd/
@@ -374,24 +421,24 @@ The goal is to be able to answer:
 
 ### Next
 
-1. **Reliability & Idempotency Patterns**
-   - retry / backoff / jitter
-   - poison-message handling
-   - idempotent consumers
-   - duplicate detection
-   - outbox / inbox
-   - saga / compensation
-   - exactly-once misconceptions
-   - replay and recovery
+1. **Private Connectivity & DNS**
+   - Private Endpoint vs VNet Integration
+   - Private Link
+   - private DNS zones
+   - DNS Private Resolver
+   - split-horizon DNS
+   - hub-spoke DNS
+   - hybrid name resolution
+   - PaaS public access restrictions
+   - common private-endpoint failure modes
 
 ### Then
 
-2. **Private Connectivity & DNS**
-3. **Workload Identity**
-4. **Terraform + CI/CD + APIOps**
-5. **Integration Security Architecture**
-6. **AI Gateway + MCP**
-7. **Healthcare Integration**
+2. **Workload Identity**
+3. **Terraform + CI/CD + APIOps**
+4. **Integration Security Architecture**
+5. **AI Gateway + MCP**
+6. **Healthcare Integration**
 
 ---
 
@@ -399,12 +446,12 @@ The goal is to be able to answer:
 
 GitHub Pages publishes the files that are actually committed to the configured publishing branch.
 
-For BizTalk to Azure Mapping, verify the files exist locally:
+For Reliability & Idempotency Patterns, verify the files exist locally:
 
 ```powershell
-Test-Path .\biztalk-to-azure\index.html
-Test-Path .\biztalk-to-azure\biztalk-to-azure-reference\index.html
-Test-Path .\biztalk-to-azure\biztalk-to-azure-feynman\index.html
+Test-Path .\reliability-patterns\index.html
+Test-Path .\reliability-patterns\azure-reliability-reference\index.html
+Test-Path .\reliability-patterns\azure-reliability-feynman\index.html
 ```
 
 All three commands should return `True`.
@@ -413,24 +460,24 @@ Then stage the README and topic folder explicitly:
 
 ```powershell
 git status
-git add README.md biztalk-to-azure
+git add README.md reliability-patterns
 git status
 git diff --cached --name-status
-git commit -m "Add BizTalk to Azure migration study notes"
+git commit -m "Add reliability and idempotency study notes"
 git push origin main
 ```
 
 After the push, verify Git is tracking the published paths:
 
 ```powershell
-git ls-tree -r --name-only HEAD | Select-String "^biztalk-to-azure/"
+git ls-tree -r --name-only HEAD | Select-String "^reliability-patterns/"
 ```
 
 Expected published URLs:
 
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/biztalk-to-azure/**
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/biztalk-to-azure/biztalk-to-azure-reference/**
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/biztalk-to-azure/biztalk-to-azure-feynman/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/reliability-patterns/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/reliability-patterns/azure-reliability-reference/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/reliability-patterns/azure-reliability-feynman/**
 
 Live site:
 
