@@ -2,126 +2,173 @@
 
 A visual architecture notebook for Azure integration, identity, networking, security, and platform concepts.
 
+The notes are organized in two complementary styles:
+
+- **Reference Notes** - concise architecture reference for quick lookup.
+- **Feynman Way of Understanding** - first-principles explanations focused on mechanisms, tradeoffs, failure modes, and rebuilding the concept from fundamentals.
+
+---
+
 ## 🌐 Live Study Site
 
 **[Open Azure Architecture Study Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/)**
 
-### OAuth2 & Azure Identity
+---
 
-- **[OAuth2 & Azure Identity — All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/oauth/)**
-- **[OAuth2, App Service & AKS Identity — Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/oauth/oauth2-app-service-aks-identity-reference/)**
-- **[OAuth2, App Service & AKS Identity — Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/oauth/oauth2-app-service-aks-identity-feynman/)**
+## OAuth2 & Azure Identity
 
-### Azure Networking
+- **[OAuth2 & Azure Identity - All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/oauth/)**
+- **[OAuth2, App Service & AKS Identity - Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/oauth/oauth2-app-service-aks-identity-reference/)**
+- **[OAuth2, App Service & AKS Identity - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/oauth/oauth2-app-service-aks-identity-feynman/)**
 
-- **[Azure Networking — All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/networking/)**
-- **[Azure Networking Concepts — Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/networking/azure-networking-concepts-reference/)**
-- **[Azure Networking Concepts — Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/networking/azure-networking-concepts-feynman/)**
+Topics include OAuth2 flows, Entra ID, access tokens, managed identities, App Service authentication, AKS workload identity, and identity boundaries.
+
+---
+
+## Azure Networking
+
+- **[Azure Networking - All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/networking/)**
+- **[Azure Networking Concepts - Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/networking/azure-networking-concepts-reference/)**
+- **[Azure Networking Concepts - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/networking/azure-networking-concepts-feynman/)**
+
+Core mental model:
+
+> **Name → Address → Route → Allow**
+
+Topics include VNets, CIDR, subnets, routing, NSGs, VNet peering, service endpoints, private endpoints, Private Link, private DNS, DNS Private Resolver, APIM networking modes, hybrid DNS, network policies, UDRs, and troubleshooting.
+
+---
+
+## Azure Logic Apps
+
+- **[Azure Logic Apps - All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/logic-apps/)**
+- **[Azure Logic Apps - Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/logic-apps/azure-logic-apps-reference/)**
+- **[Azure Logic Apps - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/logic-apps/azure-logic-apps-feynman/)**
+
+The Logic Apps material covers:
+
+- Consumption vs Standard
+- triggers and actions
+- stateful vs stateless workflows
+- built-in vs managed connectors
+- managed identity and authentication
+- Private Endpoint and VNet Integration
+- Standard storage dependencies
+- retries, `runAfter`, scopes, and idempotency
+- B2B / EDI with X12, EDIFACT, AS2, schemas, maps, agreements, and Integration Accounts
+- concurrency, `splitOn`, ordering, and parallel vs sequential processing
+- Liquid, XSLT, Flat File, XML, and Data Mapper transformations
+- long-running workflows, delays, Until loops, and webhook callbacks
+- Application Insights, run history, correlation IDs, and observability
+- architecture limits and Consumption vs Standard cost considerations
+
+Feynman questions used throughout the Logic Apps section:
+
+> **What wakes it?**  
+> **What must survive?**  
+> **Where does the operation run?**  
+> **What happens when it fails?**  
+> **How much concurrency is safe?**  
+> **How does the data change shape?**  
+> **What if the process takes hours?**  
+> **Can I trace one business transaction end-to-end?**
+
+---
 
 ## Repository Structure
 
 ```text
 azure-architecture-study-notes/
+│
 ├── index.html
-├── .nojekyll
 ├── README.md
+├── .nojekyll
+│
 ├── oauth/
 │   ├── index.html
 │   ├── oauth2-app-service-aks-identity-reference/
 │   │   └── index.html
 │   └── oauth2-app-service-aks-identity-feynman/
 │       └── index.html
+│
 ├── networking/
 │   ├── index.html
 │   ├── azure-networking-concepts-reference/
 │   │   └── index.html
 │   └── azure-networking-concepts-feynman/
 │       └── index.html
-├── private-endpoint/
-│   └── index.html
-├── apim/
-│   └── index.html
+│
 ├── logic-apps/
-│   └── index.html
+│   ├── index.html
+│   ├── azure-logic-apps-reference/
+│   │   └── index.html
+│   └── azure-logic-apps-feynman/
+│       └── index.html
+│
+├── private-endpoint/
+├── apim/
 ├── aks-identity/
-│   └── index.html
 └── terraform/
-    └── index.html
 ```
 
-## GitHub Pages
+---
 
-This repository is published from the `main` branch at the repository root.
+## Learning Approach
 
-**Rendered site**  
-https://ksashoukathali.github.io/azure-architecture-study-notes/
+These notes are designed around a first-principles / Feynman-style learning loop:
 
-**GitHub repository**  
-https://github.com/KSAShoukathAli/azure-architecture-study-notes
+1. Start with the **problem**, not the Azure product name.
+2. Identify the few **fundamental facts**.
+3. Rebuild the mechanism from those facts.
+4. Remove unnecessary jargon.
+5. Draw the **smallest useful diagram**.
+6. Predict what should happen.
+7. Change one thing and predict again.
+8. Find where the model breaks.
+9. Explain the concept from a blank page.
+10. Return to documentation only for the gaps.
 
-## Adding a New Study Note
+The goal is not just to recognize Azure terminology.
 
-Use a descriptive topic-based folder name and place the finished self-contained HTML inside it as `index.html`.
+The goal is to be able to answer:
 
-Example:
+> **Why?**  
+> **How?**  
+> **What if?**  
+> **Where does it break?**  
+> **Can I rebuild it from first principles?**
 
-```text
-private-endpoint/
-└── private-endpoint-feynman/
-    └── index.html
-```
-
-That page would render at:
-
-```text
-https://ksashoukathali.github.io/azure-architecture-study-notes/private-endpoint/private-endpoint-feynman/
-```
-
-For topics with multiple documents, use the topic folder as a landing page:
-
-```text
-oauth/
-├── index.html
-├── oauth2-app-service-aks-identity-reference/
-│   └── index.html
-└── oauth2-app-service-aks-identity-feynman/
-    └── index.html
-```
-
-## Recommended Learning-Note Structure
-
-For deeper Feynman-style notes, use this pattern:
-
-```text
-Problem
-  ↓
-Fundamental facts
-  ↓
-Rebuild the mechanism
-  ↓
-Smallest useful diagram
-  ↓
-What if I remove/change something?
-  ↓
-Boundary / where the statement stops being true
-  ↓
-Blank-page explanation
-```
-
-Reference notes can stay more concise and focus on the final architecture, workflow, terminology, and diagrams.
+---
 
 ## Updating the Site
 
-After adding or editing notes:
+After changing or adding study pages:
 
 ```powershell
+git status
 git add .
-git commit -m "Update study notes"
+git commit -m "Update Azure architecture study notes"
 git push
 ```
 
-GitHub Pages will republish the site from the latest commit on `main`.
+GitHub Pages publishes from the `main` branch.
 
-## Privacy
+Live site:
 
-GitHub Pages is public for this repository. Do not publish employer-confidential architecture, credentials, internal URLs, customer data, or proprietary diagrams here.
+**https://ksashoukathali.github.io/azure-architecture-study-notes/**
+
+---
+
+## Planned Topics
+
+Future sections can follow the same Reference + Feynman pattern:
+
+- Azure API Management
+- Private Endpoint / Private Link deep dive
+- Azure Service Bus
+- AKS identity and networking
+- Terraform for Azure architecture
+- Azure security architecture
+- traffic management and load balancing
+- outbound connectivity, SNAT, NAT Gateway, and Azure Firewall
+- message-level security and enterprise integration patterns
