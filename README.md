@@ -12,6 +12,12 @@ A visual architecture notebook for Azure integration, identity, networking, secu
 - **[OAuth2, App Service & AKS Identity — Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/oauth/oauth2-app-service-aks-identity-reference/)**
 - **[OAuth2, App Service & AKS Identity — Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/oauth/oauth2-app-service-aks-identity-feynman/)**
 
+### Azure Networking
+
+- **[Azure Networking — All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/networking/)**
+- **[Azure Networking Concepts — Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/networking/azure-networking-concepts-reference/)**
+- **[Azure Networking Concepts — Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/networking/azure-networking-concepts-feynman/)**
+
 ## Repository Structure
 
 ```text
@@ -26,7 +32,11 @@ azure-architecture-study-notes/
 │   └── oauth2-app-service-aks-identity-feynman/
 │       └── index.html
 ├── networking/
-│   └── index.html
+│   ├── index.html
+│   ├── azure-networking-concepts-reference/
+│   │   └── index.html
+│   └── azure-networking-concepts-feynman/
+│       └── index.html
 ├── private-endpoint/
 │   └── index.html
 ├── apim/
