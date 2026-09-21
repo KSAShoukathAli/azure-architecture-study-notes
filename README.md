@@ -15,6 +15,25 @@ The notes are organized in two complementary styles:
 
 ---
 
+## Interview Prep
+
+- **[Azure Integration Services - Interview Q&A](https://ksashoukathali.github.io/azure-architecture-study-notes/interview-prep/)**
+
+35 interview questions for Azure Integration Services architect and senior engineer roles. Each answer has a short version for the first 20 seconds, the detail for follow-ups, and a note on what the interviewer is really testing. Answers are collapsible, so you can answer out loud first and then compare.
+
+The Q&A covers:
+
+- core services: Logic Apps Consumption vs Standard, Service Bus vs Event Grid vs Event Hubs, queues vs topics, sessions, DLQ, Durable Functions, APIM policy scopes
+- design patterns: idempotency, ordering, claim-check, retries, async request-reply, API versioning
+- security and networking: locking a backend to APIM, `validate-jwt`, managed identity, private endpoints and DNS, APIM internal mode with Application Gateway
+- operations: CI/CD across environments and end-to-end tracing with correlation IDs
+- scenarios: BizTalk migration, month-end traffic spikes, a silent DLQ backlog, and HL7/X12 over SFTP to FHIR
+- reliability and platform choices: sagas, Logic Apps try/catch scopes, routing and transformation, Integration Account, Service Bus Standard vs Premium, Event Grid schemas, circuit breakers, hybrid connectivity, Functions hosting plans, and delivery semantics
+
+The interview answers are the short form. The topic notes below hold the full mechanism behind each one.
+
+---
+
 ## OAuth2 & Azure Identity
 
 - **[OAuth2 & Azure Identity - All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/oauth/)**
@@ -380,13 +399,18 @@ azure-architecture-study-notes/
 │   └── azure-reliability-feynman/
 │       └── index.html
 │
-├── private-connectivity-dns/
-├── workload-identity/
-├── terraform-cicd/
-├── integration-security/
-├── ai-gateway-mcp/
-└── healthcare-integration/
+├── interview-prep/
+│   └── index.html
+│
+├── private-connectivity-dns/   (placeholder)
+│   └── index.html
+├── workload-identity/          (placeholder)
+│   └── index.html
+└── terraform-cicd/             (placeholder)
+    └── index.html
 ```
+
+Placeholder folders match the roadmap names. Integration Security, AI Gateway + MCP, and Healthcare Integration get their folders when each one is written.
 
 ---
 
@@ -446,38 +470,36 @@ The goal is to be able to answer:
 
 GitHub Pages publishes the files that are actually committed to the configured publishing branch.
 
-For Reliability & Idempotency Patterns, verify the files exist locally:
+For the Interview Prep page and the updated hub, verify the files exist locally:
 
 ```powershell
-Test-Path .\reliability-patterns\index.html
-Test-Path .\reliability-patterns\azure-reliability-reference\index.html
-Test-Path .\reliability-patterns\azure-reliability-feynman\index.html
+Test-Path .\index.html
+Test-Path .\interview-prep\index.html
 ```
 
-All three commands should return `True`.
+Both commands should return `True`.
 
-Then stage the README and topic folder explicitly:
+Then stage the hub, the README, and the new folder explicitly:
 
 ```powershell
 git status
-git add README.md reliability-patterns
+git add index.html README.md interview-prep
 git status
 git diff --cached --name-status
-git commit -m "Add reliability and idempotency study notes"
+git commit -m "Add interview prep Q&A and refresh the hub page"
 git push origin main
 ```
 
 After the push, verify Git is tracking the published paths:
 
 ```powershell
-git ls-tree -r --name-only HEAD | Select-String "^reliability-patterns/"
+git ls-tree -r --name-only HEAD | Select-String "^interview-prep/"
 ```
 
 Expected published URLs:
 
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/reliability-patterns/**
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/reliability-patterns/azure-reliability-reference/**
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/reliability-patterns/azure-reliability-feynman/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/interview-prep/**
 
 Live site:
 

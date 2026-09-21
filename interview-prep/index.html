@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Azure Integration Services Interview Q&amp;A - Azure Architecture Study Notes</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Space+Mono:wght@400;700&family=Patrick+Hand&display=swap');
+:root{--bg:#faf6ee;--card:#f1ead8;--white:#fffdf8;--ink:#2b2b2b;--muted:#817969;--line:#2b2b2b;--accent:#3b6e5e;--soft:#cfe3d8;--warn:#d0662e;--warn-soft:#f5d5bd;--code:#eee2c9;--blue:#4a5fa5}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Patrick Hand','Comic Sans MS',sans-serif;font-size:18px;line-height:1.52}
+.wrap{max-width:960px;margin:0 auto;padding:30px 24px 90px}
+.back{font-family:'Space Mono',monospace;font-size:.76em;margin:0 0 14px}.back a{color:var(--blue);text-decoration:none}
+h1,h2,h3{font-family:'Architects Daughter','Patrick Hand',sans-serif}
+header h1{font-size:2.15em;text-align:center;border-bottom:3px solid var(--ink);padding-bottom:14px;margin:0 0 10px;line-height:1.2}
+header p{color:var(--muted);text-align:center;max-width:70ch;margin:6px auto}
+.glance{background:#fff;border-left:5px solid var(--warn);padding:12px 17px;margin:22px 0 10px}.glance a{color:var(--blue)}.glance b{color:var(--warn);font-family:'Architects Daughter',sans-serif}
+.tools{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:20px 0 8px}
+.tools button{font:700 .72rem 'Space Mono',monospace;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:20px;padding:6px 14px;cursor:pointer;box-shadow:2px 2px 0 rgba(43,43,43,.14)}
+.tools button:hover{background:var(--soft)}
+nav.toc{background:#fff;border:2px dashed var(--muted);border-radius:12px;padding:12px 18px;margin:16px 0 26px;display:flex;flex-wrap:wrap;gap:6px 22px}
+nav.toc a{color:var(--blue);text-decoration:none}
+h2{font-size:1.55em;margin:52px 0 4px;color:var(--ink)}
+h2 + p.lede{color:var(--muted);margin:0 0 14px}
+details{background:var(--card);border:2.5px solid var(--ink);border-left:7px solid var(--accent);border-radius:14px 18px 16px 20px/18px 14px 20px 16px;margin:14px 0;box-shadow:4px 4px 0 rgba(43,43,43,.13)}
+details.scn{border-left-color:var(--warn)}
+summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;gap:14px;align-items:baseline}
+summary::-webkit-details-marker{display:none}
+summary:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.qn{font:700 .8rem 'Space Mono',monospace;color:var(--muted);min-width:2.8em}
+.qt{font-family:'Architects Daughter','Patrick Hand',sans-serif;font-size:1.08em;line-height:1.4}
+summary::after{content:"+";margin-left:auto;font-family:'Space Mono',monospace;font-weight:700;color:var(--muted)}
+details[open] summary::after{content:"-"}
+.ans{padding:2px 22px 18px;border-top:2px dashed var(--muted)}
+.ans p,.ans li{max-width:75ch}
+.ans ul,.ans ol{padding-left:1.3em}.ans li{margin:4px 0}
+.short{background:#fff;border-left:5px solid var(--accent);padding:10px 14px;margin:16px 0 14px}
+details.scn .short{border-left-color:var(--warn)}
+.probe{color:var(--muted);border-top:2px dashed var(--muted);padding-top:10px;margin-top:16px}
+.probe strong{color:var(--ink);font-family:'Architects Daughter',sans-serif}
+code{font-family:'Space Mono',monospace;background:var(--code);padding:1px 6px;border-radius:4px;font-size:.8em}
+pre{background:#fff;border:2px solid var(--ink);padding:12px 14px;border-radius:10px;overflow-x:auto;font:.78rem/1.55 'Space Mono',monospace}
+pre code{background:none;padding:0;font-size:1em}
+.tbl{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;min-width:520px;background:#fff}
+th,td{text-align:left;vertical-align:top;padding:8px 11px;border:2px solid var(--ink)}
+th{background:var(--card);font-family:'Architects Daughter',sans-serif}
+figure{margin:18px 0;overflow-x:auto;background:#fff;border:2px solid var(--ink);border-radius:12px;padding:12px}
+figure svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:.9em;color:var(--muted);margin-top:6px}
+.dg text{fill:var(--ink);font:15px 'Patrick Hand',sans-serif}
+.dg text.s{fill:var(--muted);font:10px 'Space Mono',monospace}
+.dg text.h{font-family:'Architects Daughter',sans-serif;font-weight:700}
+.dg rect.b{fill:var(--card);stroke:var(--ink);stroke-width:2}
+.dg rect.a{fill:var(--soft);stroke:var(--ink);stroke-width:2}
+.dg rect.w{fill:var(--warn-soft);stroke:var(--ink);stroke-width:2}
+.dg rect.z{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:6 5}
+.dg .l{stroke:var(--ink);stroke-width:2;fill:none;marker-end:url(#arr)}
+.dg .d{stroke:var(--warn);stroke-width:2;fill:none;stroke-dasharray:6 5;marker-end:url(#arrw)}
+.dg .lane{stroke:var(--muted);stroke-width:1.4;stroke-dasharray:4 4}
+.ah{fill:var(--ink)}.ahw{fill:var(--warn)}
+footer{text-align:center;color:var(--muted);font-family:'Space Mono',monospace;font-size:.78em;margin-top:62px;border-top:2px dashed var(--muted);padding-top:16px}
+@media (max-width:600px){header h1{font-size:1.75em}.ans{padding:2px 14px 14px}summary{padding:12px 14px}.wrap{padding:22px 14px 60px}}
+@media print{details{break-inside:avoid;box-shadow:none}.tools{display:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+<marker id="arrw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ahw"/></marker>
+</defs></svg>
+<div class="wrap">
+<p class="back"><a href="../">&larr; Study Notes Home</a></p>
+<header>
+<h1>Azure Integration Services: 35 interview questions, answered</h1>
+<p>For architect and senior engineer rounds. Read the question, answer it out loud first, then open it and compare.</p>
+<p>Each answer starts with the short version you'd say in the first 20 seconds. The detail below it is what you use when they push on follow-ups. Scenario questions have an orange edge.</p>
+</header>
+<div class="glance"><b>How this connects:</b> the answers here are the interview-length version. For the full mechanism behind each one, go to the topic notes: <a href="../messaging/">Messaging</a>, <a href="../logic-apps/">Logic Apps</a>, <a href="../apim/">APIM</a>, <a href="../networking/">Networking</a>, <a href="../functions/">Functions</a>, <a href="../reliability-patterns/">Reliability</a>, <a href="../observability/">Observability</a>, and <a href="../biztalk-to-azure/">BizTalk to Azure</a>.</div>
+<div class="tools">
+<button type="button" id="openAll">Open all answers</button>
+<button type="button" id="closeAll">Close all answers</button>
+</div>
+<nav class="toc" aria-label="Sections">
+<a href="#s-core">Core services (1-8)</a>
+<a href="#s-design">Design and patterns (9-14)</a>
+<a href="#s-sec">Security and networking (15-19)</a>
+<a href="#s-ops">Operations and DevOps (20-21)</a>
+<a href="#s-scn">Scenarios (22-25)</a>
+<a href="#s-more">Reliability, routing, platform choices (26-35)</a>
+</nav>
+<h2 id="s-core">Core services</h2>
+<p class="lede">They start here to check you know the building blocks and when each one fits.</p>
+
+<details id="q1"><summary><span class="qn">Q1</span><span class="qt">When would you choose Logic Apps Standard over Consumption? What changes in hosting, networking, and cost?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Standard for enterprise work: private networking, many workflows in one app, predictable cost at volume, and local development. Consumption for small, spiky, low-volume flows where pay-per-action is cheapest.</p>
+<div class="tbl"><table>
+<tr><th></th><th>Consumption</th><th>Standard</th></tr>
+<tr><td>Hosting</td><td>Multi-tenant, shared by Microsoft</td><td>Single-tenant, runs on the Functions runtime in a Workflow Standard plan (or ASE v3)</td></tr>
+<tr><td>Workflows</td><td>One workflow per resource</td><td>Many workflows per Logic App</td></tr>
+<tr><td>Billing</td><td>Per trigger and action execution</td><td>Plan compute, plus managed connector calls</td></tr>
+<tr><td>Networking</td><td>Public endpoints only</td><td>Outbound VNet integration, inbound private endpoints</td></tr>
+<tr><td>Workflow types</td><td>Stateful only</td><td>Stateful and stateless</td></tr>
+<tr><td>Connectors</td><td>Managed (shared) connectors</td><td>Built-in connectors run in-process (Service Bus, Blob, SQL, Event Hubs) plus managed</td></tr>
+<tr><td>Dev and deploy</td><td>Mostly portal</td><td>VS Code, run locally, deploy as a zip like app code</td></tr>
+</table></div>
+<p>The built-in connectors matter more than people expect. In Standard, the Service Bus trigger runs inside your app. It uses your VNet, your identity, and scales with your plan. A managed connector call goes out through Microsoft's shared connector infrastructure instead.</p>
+<p>Cost flips with volume. A flow that runs 50 times a day is almost free on Consumption. The same flow at 2 million actions a day is far cheaper on a fixed Standard plan.</p>
+<p class="probe"><strong>What they're probing:</strong> whether you know the cost model and the networking story, not just "Standard is newer." Bonus point: ISE was retired in 2024, and Standard is its replacement for isolated workloads.</p>
+</div></details>
+
+<details id="q2"><summary><span class="qn">Q2</span><span class="qt">Compare Service Bus, Event Grid, and Event Hubs. Give a use case for each.</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Service Bus for business messages you cannot lose. Event Grid for reacting when something happened. Event Hubs for high-volume streams you want to read and replay.</p>
+<figure><svg class="dg" viewBox="0 0 720 240" role="img" aria-label="Service Bus, Event Grid and Event Hubs flows side by side">
+<rect class="z" x="10" y="6" width="220" height="228" rx="8"/>
+<text class="h" x="120" y="30" text-anchor="middle">Service Bus</text>
+<text class="s" x="120" y="48" text-anchor="middle">pull, lock, settle</text>
+<rect class="b" x="30" y="64" width="180" height="32" rx="5"/><text x="120" y="85" text-anchor="middle">Order API</text>
+<line class="l" x1="120" y1="96" x2="120" y2="120"/>
+<rect class="a" x="30" y="122" width="180" height="32" rx="5"/><text x="120" y="143" text-anchor="middle">queue: orders</text>
+<line class="l" x1="120" y1="154" x2="120" y2="178"/>
+<rect class="b" x="30" y="180" width="180" height="32" rx="5"/><text x="120" y="201" text-anchor="middle">Fulfillment worker</text>
+
+<rect class="z" x="250" y="6" width="220" height="228" rx="8"/>
+<text class="h" x="360" y="30" text-anchor="middle">Event Grid</text>
+<text class="s" x="360" y="48" text-anchor="middle">push, filter, fan out</text>
+<rect class="b" x="270" y="64" width="180" height="32" rx="5"/><text x="360" y="85" text-anchor="middle">Blob storage</text>
+<line class="l" x1="360" y1="96" x2="360" y2="120"/>
+<rect class="a" x="270" y="122" width="180" height="32" rx="5"/><text x="360" y="143" text-anchor="middle">BlobCreated event</text>
+<line class="l" x1="340" y1="154" x2="310" y2="178"/>
+<line class="l" x1="380" y1="154" x2="410" y2="178"/>
+<rect class="b" x="260" y="180" width="95" height="32" rx="5"/><text x="307" y="201" text-anchor="middle">Function</text>
+<rect class="b" x="365" y="180" width="95" height="32" rx="5"/><text x="412" y="201" text-anchor="middle">Logic App</text>
+
+<rect class="z" x="490" y="6" width="220" height="228" rx="8"/>
+<text class="h" x="600" y="30" text-anchor="middle">Event Hubs</text>
+<text class="s" x="600" y="48" text-anchor="middle">stream, retain, replay</text>
+<rect class="b" x="510" y="64" width="180" height="32" rx="5"/><text x="600" y="85" text-anchor="middle">Devices and apps</text>
+<line class="l" x1="600" y1="96" x2="600" y2="120"/>
+<rect class="a" x="510" y="122" width="180" height="32" rx="5"/><text x="600" y="143" text-anchor="middle">hub: 4 partitions</text>
+<line class="l" x1="600" y1="154" x2="600" y2="178"/>
+<rect class="b" x="510" y="180" width="180" height="32" rx="5"/><text x="600" y="201" text-anchor="middle">Consumer at own offset</text>
+</svg></figure>
+<ul>
+<li><strong>Service Bus.</strong> A broker. Consumers pull, lock a message, and complete it. You get dead-lettering, sessions, transactions, and duplicate detection. Use it for "submit this prescription" or "create this order."</li>
+<li><strong>Event Grid.</strong> A router. It pushes lightweight notifications to subscribers, with filtering and retries (up to 24 hours by default), and can dead-letter to Blob. Use it for "a file landed, go process it."</li>
+<li><strong>Event Hubs.</strong> A partitioned log. Events are retained, and each consumer group tracks its own position, so you can replay. It speaks the Kafka protocol too. Use it for telemetry, clickstream, or audit streams feeding analytics.</li>
+</ul>
+<p>The cleanest way to say it: a <em>message</em> carries intent, and the sender expects it to be processed. An <em>event</em> is a fact, and the sender doesn't care who reacts.</p>
+<p class="probe"><strong>What they're probing:</strong> the message vs event distinction. Many candidates list features. Fewer explain why you'd pick one.</p>
+</div></details>
+
+<details id="q3"><summary><span class="qn">Q3</span><span class="qt">Service Bus queues vs topics with subscriptions. How do filters and actions work?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> A queue has one logical consumer. A topic is publish-subscribe: each subscription gets its own copy and behaves like its own queue. Filters decide which copies each subscription receives.</p>
+<figure><svg class="dg" viewBox="0 0 720 190" role="img" aria-label="Publisher sends to a topic that fans out to three filtered subscriptions">
+<rect class="b" x="10" y="75" width="130" height="40" rx="5"/><text x="75" y="100" text-anchor="middle">Publisher</text>
+<line class="l" x1="140" y1="95" x2="188" y2="95"/>
+<rect class="a" x="190" y="75" width="140" height="40" rx="5"/><text x="260" y="100" text-anchor="middle">Topic: rx-events</text>
+<line class="l" x1="330" y1="90" x2="398" y2="40"/>
+<line class="l" x1="330" y1="95" x2="398" y2="95"/>
+<line class="l" x1="330" y1="100" x2="398" y2="150"/>
+<rect class="b" x="400" y="20" width="310" height="40" rx="5"/><text x="415" y="45">sub: nc-pharmacy</text><text class="s" x="545" y="45">region = 'NC'</text>
+<rect class="b" x="400" y="75" width="310" height="40" rx="5"/><text x="415" y="100">sub: urgent</text><text class="s" x="545" y="100">priority &gt; 3</text>
+<rect class="b" x="400" y="130" width="310" height="40" rx="5"/><text x="415" y="155">sub: audit</text><text class="s" x="545" y="155">1=1 (everything)</text>
+</svg></figure>
+<ul>
+<li><strong>Correlation filter.</strong> Exact match on properties. Cheapest and fastest. Use it when you can.</li>
+<li><strong>SQL filter.</strong> Expressions like <code>region = 'NC' AND priority &gt; 3</code>. More flexible, more CPU on the broker.</li>
+<li><strong>Actions.</strong> A SQL action can change properties on that subscription's copy, for example <code>SET routedBy = 'nc-rule'</code>.</li>
+</ul>
+<p>Filters read message properties, never the body. So the publisher must put routing fields into application properties. If you came from BizTalk, this is the same idea as promoted properties on the MessageBox.</p>
+<p>Topics need Standard or Premium tier. Basic has queues only.</p>
+<p class="probe"><strong>What they're probing:</strong> that you know filters work on properties, and that adding a new consumer means adding a subscription, not changing the publisher.</p>
+</div></details>
+
+<details id="q4"><summary><span class="qn">Q4</span><span class="qt">What are Service Bus sessions, and when do you need them?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Sessions give you ordered, exclusive processing for a group of related messages that share a <code>SessionId</code>. You get order per key while still processing many keys in parallel.</p>
+<p>A receiver locks one session and gets all its messages in FIFO order. Other receivers work on other sessions at the same time. So all updates for patient 123 apply in order, while patient 456 is handled by another worker.</p>
+<p>Sessions also have session state. You can store a small blob of progress on the session itself, which helps with aggregation or convoy patterns, like "collect all 5 parts, then release."</p>
+<ul>
+<li>You must enable sessions when you create the queue or subscription. You can't switch it on later.</li>
+<li>Every message must then carry a SessionId.</li>
+<li>One hot key limits throughput for that key. One stuck message blocks that session until it's settled or dead-lettered.</li>
+</ul>
+<p>In Logic Apps Standard, the Service Bus built-in trigger supports sessions, which is how you build the sequential convoy pattern.</p>
+<p class="probe"><strong>What they're probing:</strong> that ordering is per key, not global, and that you know the cost of a stuck session.</p>
+</div></details>
+
+<details id="q5"><summary><span class="qn">Q5</span><span class="qt">What is the dead-letter queue? What sends messages there, and how do you reprocess them?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> The DLQ is a sub-queue for messages that couldn't be delivered or processed. It never empties itself. Someone has to watch it, fix the cause, and resubmit.</p>
+<figure><svg class="dg" viewBox="0 0 720 210" role="img" aria-label="Message fails repeatedly, moves to dead-letter queue, is triaged and resubmitted">
+<rect class="b" x="10" y="36" width="120" height="44" rx="5"/><text x="70" y="63" text-anchor="middle">Sender</text>
+<line class="l" x1="130" y1="58" x2="178" y2="58"/>
+<rect class="a" x="180" y="36" width="150" height="44" rx="5"/><text x="255" y="63" text-anchor="middle">Queue</text>
+<line class="l" x1="330" y1="50" x2="418" y2="50"/>
+<line class="d" x1="420" y1="68" x2="332" y2="68"/>
+<text class="s" x="375" y="96" text-anchor="middle">fails, redelivered</text>
+<rect class="b" x="420" y="36" width="150" height="44" rx="5"/><text x="495" y="63" text-anchor="middle">Consumer</text>
+<line class="l" x1="255" y1="80" x2="255" y2="138"/>
+<text class="s" x="245" y="115" text-anchor="end">delivery count &gt; 10</text>
+<rect class="w" x="180" y="140" width="150" height="44" rx="5"/><text x="255" y="160" text-anchor="middle">Dead-letter queue</text><text class="s" x="255" y="176" text-anchor="middle">orders/$deadletterqueue</text>
+<line class="l" x1="330" y1="162" x2="418" y2="162"/>
+<rect class="b" x="420" y="140" width="150" height="44" rx="5"/><text x="495" y="167" text-anchor="middle">Triage and fix</text>
+<path class="d" d="M570 162 H640 V20 H255 V34"/>
+<text class="s" x="648" y="95">resubmit</text>
+</svg></figure>
+<p>Messages land in the DLQ when:</p>
+<ul>
+<li>Delivery count passes <code>MaxDeliveryCount</code> (default 10). This is your poison message.</li>
+<li>The message TTL expires and dead-lettering on expiration is turned on. If it's off, expired messages just disappear.</li>
+<li>Your code explicitly dead-letters it with a reason, for example a validation failure.</li>
+<li>A subscription filter throws an error, or a forward fails, when those options are enabled.</li>
+</ul>
+<p>Each dead-lettered message carries <code>DeadLetterReason</code> and <code>DeadLetterErrorDescription</code>. Group by those first. Fix the root cause. Then resubmit to the main queue with Service Bus Explorer in the portal, or a small replay Function. Your consumer must be idempotent before you replay anything.</p>
+<p>Never build an automatic loop that pushes DLQ messages straight back. A true poison message will just cycle forever.</p>
+<p class="probe"><strong>What they're probing:</strong> whether you've actually run this in production. Mention alerting on the dead-lettered message count metric.</p>
+</div></details>
+
+<details id="q6"><summary><span class="qn">Q6</span><span class="qt">Logic Apps vs Azure Functions. How do you decide which one owns a piece of logic?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Logic Apps orchestrate and connect. Functions compute. Most good designs use both: the workflow owns the flow, and Functions own the heavy logic.</p>
+<p>Pick Logic Apps when the work is mostly "call A, check the result, call B, handle errors." You get connectors, retry policies, run history your support team can read, and B2B/EDI support.</p>
+<p>Pick Functions when the work is real code: parsing HL7, complex transforms, custom libraries, high-throughput processing, or anything you want to unit test properly.</p>
+<p>A simple test: if you'd need 40 actions full of string expressions to do something, it belongs in code. Logic Apps Standard makes the line softer. It can run inline JavaScript, C# scripts, and local .NET functions from inside the workflow.</p>
+<p class="probe"><strong>What they're probing:</strong> judgment. Say where you draw the line and why, with a real example.</p>
+</div></details>
+
+<details id="q7"><summary><span class="qn">Q7</span><span class="qt">What are the APIM policy scopes, and how does inheritance work?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Global, workspace, product, API, operation. The most specific scope's policy runs, and the <code>&lt;base /&gt;</code> tag decides where the parent scope's policy runs inside it.</p>
+<figure><svg class="dg" viewBox="0 0 720 240" role="img" aria-label="Nested APIM policy scopes from global to operation">
+<rect class="z" x="10" y="10" width="700" height="222" rx="8"/><text class="h" x="24" y="32">Global (all APIs)</text>
+<rect class="z" x="28" y="42" width="664" height="182" rx="8"/><text class="h" x="42" y="64">Workspace</text>
+<rect class="z" x="46" y="74" width="628" height="142" rx="8"/><text class="h" x="60" y="96">Product</text>
+<rect class="z" x="64" y="106" width="592" height="102" rx="8"/><text class="h" x="78" y="128">API</text>
+<rect class="a" x="82" y="138" width="556" height="62" rx="6"/><text class="h" x="96" y="160">Operation</text>
+<text class="s" x="96" y="182">&lt;inbound&gt; &lt;base /&gt; your policy here &lt;/inbound&gt;   -   base pulls in everything above</text>
+</svg></figure>
+<p>Each policy has four sections: <code>inbound</code>, <code>backend</code>, <code>outbound</code>, and <code>on-error</code>.</p>
+<pre><code>&lt;inbound&gt;
+  &lt;base /&gt;
+  &lt;rate-limit-by-key calls="100" renewal-period="60"
+      counter-key="@(context.Subscription.Id)" /&gt;
+&lt;/inbound&gt;</code></pre>
+<p>Put your policy after <code>&lt;base /&gt;</code> and the parent runs first. Put it before and yours runs first. Delete <code>&lt;base /&gt;</code> and the parent policy is skipped at that scope.</p>
+<p>That last one is a real security bug. If <code>validate-jwt</code> lives at global scope and someone removes <code>&lt;base /&gt;</code> on one operation, that operation is now open.</p>
+<p class="probe"><strong>What they're probing:</strong> whether you understand <code>&lt;base /&gt;</code> and policy order, not just the list of scopes.</p>
+</div></details>
+
+<details id="q8"><summary><span class="qn">Q8</span><span class="qt">Explain Durable Functions. When would you use them instead of a Logic App?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Durable Functions are code-first stateful workflows. Use them when the orchestration is complex, owned by developers, and should be tested as code.</p>
+<ul>
+<li><strong>Client function</strong> starts an orchestration.</li>
+<li><strong>Orchestrator</strong> defines the steps. Its state is saved to storage and rebuilt by replaying history.</li>
+<li><strong>Activity functions</strong> do the actual work.</li>
+<li><strong>Entities</strong> hold small bits of durable state.</li>
+</ul>
+<p>Common patterns: chaining, fan-out/fan-in, async HTTP APIs with a built-in status endpoint, monitors, and waiting for a human approval with a timeout.</p>
+<p>The catch is replay. The orchestrator re-runs from the start many times, so it must be deterministic. No <code>DateTime.Now</code>, no random numbers, no direct I/O. Use <code>context.CurrentUtcDateTime</code> and push all I/O into activities.</p>
+<p>Choose Durable over Logic Apps for dynamic fan-out across thousands of items, heavy branching logic, or when you want full unit tests. Choose Logic Apps when it's connector-heavy and your operations team needs to read run history.</p>
+<p class="probe"><strong>What they're probing:</strong> replay and the determinism rules. That's the part people get burned by.</p>
+</div></details>
+<h2 id="s-design">Design and patterns</h2>
+<p class="lede">This is where architect rounds are won. They want trade-offs, not feature lists.</p>
+
+<details id="q9"><summary><span class="qn">Q9</span><span class="qt">How do you guarantee idempotency in an integration flow?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Assume every message arrives at least twice. Give each business operation a stable key, and make the second delivery harmless.</p>
+<ul>
+<li><strong>Stable key.</strong> Use a business ID, like prescription ID plus version. Set it as the Service Bus <code>MessageId</code>.</li>
+<li><strong>Duplicate detection.</strong> Service Bus (Standard and Premium) drops messages with the same MessageId inside a time window. This only catches the <em>sender</em> retrying. It doesn't help if your consumer processes a message and then crashes before completing it.</li>
+<li><strong>Idempotent receiver.</strong> Record processed keys in a table with a unique constraint. Insert the key in the same transaction as the side effect when you can.</li>
+<li><strong>Safe operations.</strong> Prefer upserts and "set status to Shipped" over "add 1 to count."</li>
+<li><strong>Downstream APIs.</strong> Send an <code>Idempotency-Key</code> header when the API supports it.</li>
+</ul>
+<p>Watch the check-then-act race. Two workers can both check "not processed" at the same time. The unique constraint is what actually saves you.</p>
+<p class="probe"><strong>What they're probing:</strong> that you understand at-least-once delivery and know duplicate detection alone isn't enough.</p>
+</div></details>
+
+<details id="q10"><summary><span class="qn">Q10</span><span class="qt">How do you handle message ordering when consumers scale out?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> You can't have global order and full parallelism at the same time. Pick an ordering key and keep order per key. Better still, design so order doesn't matter.</p>
+<ul>
+<li><strong>Service Bus sessions.</strong> Set <code>SessionId</code> to the order or patient ID. Order per key, parallel across keys.</li>
+<li><strong>Event Hubs partition key.</strong> Events with the same key go to the same partition and stay in order there.</li>
+<li><strong>Resequencer.</strong> If the source can't guarantee order, carry a sequence number and buffer until the gap fills.</li>
+<li><strong>Version-aware consumers.</strong> Carry a version or timestamp. The consumer ignores anything older than what it already has. This is often the simplest and most robust answer.</li>
+</ul>
+<p>One trap: setting Logic Apps trigger concurrency to 1 does give you order, but it serializes everything. Throughput collapses.</p>
+<p class="probe"><strong>What they're probing:</strong> whether you know the trade-off and can name more than one way out.</p>
+</div></details>
+
+<details id="q11"><summary><span class="qn">Q11</span><span class="qt">Explain claim-check, competing consumers, and publish-subscribe. Where have you used them?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Claim-check keeps big payloads out of the broker. Competing consumers scale out processing. Publish-subscribe lets you add consumers without touching the sender.</p>
+<figure><svg class="dg" viewBox="0 0 720 180" role="img" aria-label="Claim-check: payload stored in Blob, reference sent through Service Bus">
+<rect class="b" x="10" y="70" width="130" height="40" rx="5"/><text x="75" y="95" text-anchor="middle">Sender</text>
+<line class="l" x1="140" y1="80" x2="188" y2="38"/>
+<text class="s" x="110" y="56" text-anchor="middle">1 store</text>
+<rect class="a" x="190" y="12" width="160" height="40" rx="5"/><text x="270" y="37" text-anchor="middle">Blob: payload.json</text>
+<line class="l" x1="140" y1="100" x2="188" y2="138"/>
+<text class="s" x="100" y="134" text-anchor="middle">2 send ref</text>
+<rect class="a" x="190" y="120" width="160" height="40" rx="5"/><text x="270" y="145" text-anchor="middle">SB: blob URI + ids</text>
+<line class="l" x1="350" y1="140" x2="418" y2="140"/>
+<text class="s" x="384" y="132" text-anchor="middle">3</text>
+<rect class="b" x="420" y="120" width="140" height="40" rx="5"/><text x="490" y="145" text-anchor="middle">Receiver</text>
+<path class="l" d="M490 120 V32 H352"/>
+<text class="s" x="482" y="80" text-anchor="end">4 fetch payload</text>
+<rect class="z" x="575" y="55" width="140" height="66" rx="6"/>
+<text class="s" x="645" y="80" text-anchor="middle">Standard: 256 KB</text>
+<text class="s" x="645" y="100" text-anchor="middle">Premium: up to 100 MB</text>
+</svg><figcaption>Claim-check. The broker carries a small pointer. The payload lives in Blob.</figcaption></figure>
+<ul>
+<li><strong>Claim-check.</strong> Store the payload in Blob, send only a reference. This avoids message size limits and keeps sensitive data like PHI out of the broker and its logs.</li>
+<li><strong>Competing consumers.</strong> Many workers read one queue. Peek-lock makes sure each message is processed by one worker at a time. Scale workers on queue depth.</li>
+<li><strong>Publish-subscribe.</strong> One topic, many subscriptions. A new audit or reporting consumer is just a new subscription.</li>
+</ul>
+<p>Have one real story ready for each. For example, one prescription event fanned out to pharmacy routing, audit, and a state PDMP feed, each on its own subscription.</p>
+<p class="probe"><strong>What they're probing:</strong> real use, not textbook definitions.</p>
+</div></details>
+
+<details id="q12"><summary><span class="qn">Q12</span><span class="qt">How do you design retries without creating duplicates downstream?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Retry only transient failures. Back off with jitter. Cap the attempts. And make the call idempotent, because a timeout doesn't tell you whether the first call worked.</p>
+<p>Retries hide in many layers: the SDK, the Logic Apps action retry policy (exponential, 4 retries by default), the APIM <code>retry</code> policy, and Service Bus redelivery. Stack three of them and one failure can turn into 64 calls. Pick one layer to own retries and turn the others down.</p>
+<ul>
+<li><strong>Retry:</strong> timeouts, 408, 429 (honor <code>Retry-After</code>), 500, 502, 503, 504.</li>
+<li><strong>Don't retry:</strong> 400, 401, 403, 404, 422. Fail fast and send to an error path.</li>
+<li><strong>Circuit breaker:</strong> if a dependency is clearly down, stop hammering it. APIM backends support a circuit breaker rule.</li>
+</ul>
+<p>The subtle part is the timeout. The backend may have committed the change and failed to answer. That's exactly why the retry must carry the same idempotency key.</p>
+<p class="probe"><strong>What they're probing:</strong> retry storms and the timeout ambiguity. Say both.</p>
+</div></details>
+
+<details id="q13"><summary><span class="qn">Q13</span><span class="qt">Synchronous vs asynchronous integration. How do you decide, and how does the caller get the result for async calls?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Go synchronous when the caller needs the answer to continue and the work is fast. Otherwise accept the request, queue it, and return 202 with a status URL.</p>
+<figure><svg class="dg" viewBox="0 0 720 225" role="img" aria-label="Async request-reply sequence with 202 Accepted and status polling">
+<text class="h" x="50" y="18" text-anchor="middle">Client</text>
+<text class="h" x="230" y="18" text-anchor="middle">API (APIM)</text>
+<text class="h" x="400" y="18" text-anchor="middle">Queue</text>
+<text class="h" x="550" y="18" text-anchor="middle">Worker</text>
+<text class="h" x="670" y="18" text-anchor="middle">Status store</text>
+<line class="lane" x1="50" y1="26" x2="50" y2="220"/><line class="lane" x1="230" y1="26" x2="230" y2="220"/>
+<line class="lane" x1="400" y1="26" x2="400" y2="220"/><line class="lane" x1="550" y1="26" x2="550" y2="220"/><line class="lane" x1="670" y1="26" x2="670" y2="220"/>
+<line class="l" x1="50" y1="50" x2="228" y2="50"/><text class="s" x="140" y="44" text-anchor="middle">1 POST /orders</text>
+<line class="l" x1="230" y1="76" x2="398" y2="76"/><text class="s" x="315" y="70" text-anchor="middle">2 enqueue</text>
+<line class="l" x1="230" y1="102" x2="52" y2="102"/><text class="s" x="140" y="96" text-anchor="middle">3 202 + Location /status/42</text>
+<line class="l" x1="400" y1="128" x2="548" y2="128"/><text class="s" x="475" y="122" text-anchor="middle">4 process</text>
+<line class="l" x1="550" y1="154" x2="668" y2="154"/><text class="s" x="610" y="148" text-anchor="middle">5 done</text>
+<line class="l" x1="50" y1="182" x2="228" y2="182"/><text class="s" x="140" y="176" text-anchor="middle">6 GET /status/42</text>
+<line class="l" x1="230" y1="208" x2="52" y2="208"/><text class="s" x="140" y="202" text-anchor="middle">7 200 + result link</text>
+</svg><figcaption>Async request-reply. The caller never holds a connection open while work happens.</figcaption></figure>
+<p>Sync is simpler, but it couples the caller to your slowest dependency. Gateways and load balancers also have hard timeouts, often a couple of minutes, so long work over sync HTTP will eventually fail in a confusing way.</p>
+<p>For async, you have three ways to hand back the result: polling a status URL (shown above), a callback webhook the caller registers, or an event the caller subscribes to. Durable Functions give you the polling pattern out of the box.</p>
+<p class="probe"><strong>What they're probing:</strong> whether you know the 202 pattern by name and can explain timeouts.</p>
+</div></details>
+
+<details id="q14"><summary><span class="qn">Q14</span><span class="qt">How do you version APIs in APIM without breaking existing consumers?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Versions for breaking changes, revisions for non-breaking ones. Keep old versions running until traffic shows nobody uses them.</p>
+<ul>
+<li><strong>Versions</strong> live in a version set. The scheme is path (<code>/v2/orders</code>), header (<code>Api-Version: 2</code>), or query string (<code>?api-version=2</code>). Path is the most visible and easiest to route and cache.</li>
+<li><strong>Revisions</strong> let you change an API safely. You test the new revision on its own URL (<code>;rev=3</code>), then make it current with a change log entry. Consumers see no URL change.</li>
+</ul>
+<p>What counts as non-breaking: adding optional fields or new operations. Renaming, removing, or changing a field's type is breaking.</p>
+<p>Retiring a version is a process. Announce it, send a deprecation or sunset header, watch calls per version in APIM analytics, and contact the teams still calling it. Only then turn it off.</p>
+<p class="probe"><strong>What they're probing:</strong> versions vs revisions, and a sane deprecation process.</p>
+</div></details>
+<h2 id="s-sec">Security and networking</h2>
+<p class="lede">Architect panels go deep here, especially on DNS and private endpoints. Rehearse these out loud.</p>
+
+<details id="q15"><summary><span class="qn">Q15</span><span class="qt">How do you make sure a backend only accepts traffic from APIM?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Lock the network first, then check identity. Never rely on the subscription key or a shared secret header alone.</p>
+<ol>
+<li><strong>Network.</strong> Put APIM in a VNet. Give the backend a private endpoint, or access restrictions that only allow APIM's subnet. Turn off public access on the backend.</li>
+<li><strong>Identity.</strong> APIM calls the backend with its managed identity using the <code>authentication-managed-identity</code> policy. The backend validates the token: right audience, and the caller is APIM's identity.</li>
+<li><strong>Optional mTLS.</strong> APIM presents a client certificate with <code>authentication-certificate</code>, and the backend checks it.</li>
+</ol>
+<p>Why not a secret header? It's static, it leaks into logs and config, and rotating it means touching both sides at once. A managed identity token expires on its own and has no secret to manage.</p>
+<p class="probe"><strong>What they're probing:</strong> defense in depth. Two independent controls, network and identity.</p>
+</div></details>
+
+<details id="q16"><summary><span class="qn">Q16</span><span class="qt">Walk through validate-jwt in APIM. What do you check and why?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Is the token real (signature), meant for this API (audience), from someone we trust (issuer), still valid (expiry), and allowed to do this (roles or scopes)?</p>
+<pre><code>&lt;validate-jwt header-name="Authorization" require-scheme="Bearer"
+    failed-validation-httpcode="401"&gt;
+  &lt;openid-config url="https://login.microsoftonline.com/{tenant-id}/v2.0/.well-known/openid-configuration" /&gt;
+  &lt;audiences&gt;&lt;audience&gt;api://prescription-api&lt;/audience&gt;&lt;/audiences&gt;
+  &lt;issuers&gt;&lt;issuer&gt;https://login.microsoftonline.com/{tenant-id}/v2.0&lt;/issuer&gt;&lt;/issuers&gt;
+  &lt;required-claims&gt;
+    &lt;claim name="roles" match="any"&gt;&lt;value&gt;Prescriptions.Write&lt;/value&gt;&lt;/claim&gt;
+  &lt;/required-claims&gt;
+&lt;/validate-jwt&gt;</code></pre>
+<ul>
+<li><strong>openid-config</strong> pulls the signing keys. Key rotation is handled for you.</li>
+<li><strong>Audience</strong> stops a token issued for another API from being replayed against yours.</li>
+<li><strong>Issuer</strong> must match the token version. v1 tokens use <code>https://sts.windows.net/{tenant-id}/</code>. v2 tokens use <code>https://login.microsoftonline.com/{tenant-id}/v2.0</code>. The app registration's <code>accessTokenAcceptedVersion</code> decides which you get. A mismatch here is the most common 401 in real projects.</li>
+<li><strong>roles vs scp.</strong> App-to-app calls (client credentials) carry <code>roles</code>. Calls on behalf of a user carry <code>scp</code>. Check the one that matches your flow.</li>
+</ul>
+<p>Also worth knowing: <code>validate-azure-ad-token</code> is a simpler Entra-specific policy. For multi-tenant APIs, check the <code>tid</code> claim against an allow-list.</p>
+<p class="probe"><strong>What they're probing:</strong> the v1/v2 issuer trap and roles vs scp. Those separate people who've done it from people who've read about it.</p>
+</div></details>
+
+<details id="q17"><summary><span class="qn">Q17</span><span class="qt">Managed identity vs service principal vs Key Vault secrets. When do you use each?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Managed identity for anything in Azure calling Azure. Federated credentials for pipelines and workloads outside Azure. Key Vault only for secrets you can't get rid of.</p>
+<ul>
+<li><strong>System-assigned managed identity</strong> lives and dies with the resource. Simple, one per resource.</li>
+<li><strong>User-assigned managed identity</strong> is created separately. You can grant its RBAC before the app exists, share it across instances, and it survives redeploys.</li>
+<li><strong>Service principal with a secret or cert</strong> is the older way, for systems outside Azure. For GitHub Actions and similar, use workload identity federation (OIDC) instead. No secret to store or rotate.</li>
+<li><strong>Key Vault</strong> is for things only a secret can unlock: a partner's API key, SFTP credentials, a certificate. Read it with a managed identity, often through Key Vault references in app settings.</li>
+</ul>
+<p>Grant the narrowest role. Use <em>Azure Service Bus Data Sender</em> or <em>Data Receiver</em>, not Owner. Then disable local (SAS key) auth on the namespace so the keys can't be used at all.</p>
+<p class="probe"><strong>What they're probing:</strong> "no secrets" as a design goal, and least-privilege data-plane roles.</p>
+</div></details>
+
+<details id="q18"><summary><span class="qn">Q18</span><span class="qt">How do private endpoints and VNet integration work for Logic Apps Standard and Service Bus? What breaks with DNS?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> A private endpoint gives a service a private IP inside your VNet. It only works if DNS turns the service's normal name into that private IP. Most private endpoint problems are DNS problems.</p>
+<figure><svg class="dg" viewBox="0 0 720 262" role="img" aria-label="Logic App resolves Service Bus name through private DNS zone to a private endpoint IP">
+<rect class="z" x="10" y="10" width="475" height="220" rx="8"/><text class="s" x="22" y="30">Your VNet</text>
+<rect class="b" x="30" y="42" width="150" height="46" rx="5"/><text x="105" y="62" text-anchor="middle">Logic App Standard</text><text class="s" x="105" y="79" text-anchor="middle">VNet integration</text>
+<rect class="a" x="250" y="38" width="220" height="80" rx="5"/>
+<text class="h" x="262" y="60">Private DNS zone</text>
+<text class="s" x="262" y="80">privatelink.servicebus.windows.net</text>
+<text class="s" x="262" y="100">A  sb-orders  -&gt;  10.1.2.5</text>
+<line class="l" x1="180" y1="56" x2="248" y2="56"/><text class="s" x="214" y="50" text-anchor="middle">1 lookup</text>
+<line class="d" x1="248" y1="80" x2="182" y2="80"/><text class="s" x="214" y="100" text-anchor="middle">2 10.1.2.5</text>
+<line class="l" x1="105" y1="88" x2="105" y2="168"/><text class="s" x="115" y="132">3 connect to 10.1.2.5</text>
+<rect class="a" x="30" y="170" width="170" height="46" rx="5"/><text x="115" y="190" text-anchor="middle">Private endpoint</text><text class="s" x="115" y="207" text-anchor="middle">NIC 10.1.2.5</text>
+<line class="l" x1="200" y1="193" x2="538" y2="193"/><text class="s" x="370" y="185" text-anchor="middle">4 Private Link</text>
+<rect class="b" x="540" y="170" width="170" height="46" rx="5"/><text x="625" y="190" text-anchor="middle">Service Bus</text><text class="s" x="625" y="207" text-anchor="middle">public access: off</text>
+<text class="s" x="10" y="254">Public DNS: sb-orders.servicebus.windows.net  CNAME  sb-orders.privatelink.servicebus.windows.net</text>
+</svg><figcaption>The app still uses the normal hostname. DNS does the redirect to the private IP.</figcaption></figure>
+<p><strong>How it fits together.</strong> Public DNS already points the service name at a <code>privatelink</code> name. If your VNet is linked to a private DNS zone for that <code>privatelink</code> name, the lookup returns the private IP. If not, it returns the public IP, and with public access off, the call fails.</p>
+<ul>
+<li>Create the private endpoint and attach a DNS zone group, so the A record is created for you.</li>
+<li>Link the private DNS zone to every VNet that must resolve it. In hub-spoke, keep the zones central in the hub and link spokes to them.</li>
+<li>On-premises clients need a conditional forwarder to an Azure DNS Private Resolver inbound endpoint.</li>
+<li>If your VNet uses custom DNS servers, they must forward to Azure DNS (<code>168.63.129.16</code>), or the private zone is never consulted.</li>
+</ul>
+<p><strong>Logic Apps Standard specifics.</strong> Two separate directions:</p>
+<ul>
+<li><strong>Outbound</strong> (the app calling private things): VNet integration into a subnet delegated to <code>Microsoft.Web/serverFarms</code>.</li>
+<li><strong>Inbound</strong> (callers reaching Request triggers privately): a private endpoint on the Logic App.</li>
+</ul>
+<p>The classic failure: the Logic App's own storage account. If you lock it down, it needs private endpoints for blob, queue, table, and file, each with its DNS zone. Miss one and the runtime can't start, and the error message won't say "DNS."</p>
+<p><strong>Debug checklist.</strong> Run <code>nslookup sb-orders.servicebus.windows.net</code> from inside the VNet (Kudu console works). A 10.x answer is good. A public IP means the zone isn't linked or DNS isn't forwarding.</p>
+<p class="probe"><strong>What they're probing:</strong> that you can explain the CNAME-to-privatelink chain and troubleshoot it, not just "we used private endpoints."</p>
+</div></details>
+
+<details id="q19"><summary><span class="qn">Q19</span><span class="qt">APIM Internal vs External VNet mode. What does Application Gateway add?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> External: the gateway has a public IP and can reach backends in the VNet. Internal: the gateway has only a private IP. For public traffic, put Application Gateway with WAF in front of it.</p>
+<figure><svg class="dg" viewBox="0 0 720 235" role="img" aria-label="Internet to Application Gateway to internal APIM to backends; on-prem reaches APIM directly">
+<rect class="b" x="10" y="75" width="100" height="44" rx="5"/><text x="60" y="102" text-anchor="middle">Internet</text>
+<rect class="z" x="140" y="20" width="575" height="152" rx="8"/><text class="s" x="152" y="40">VNet</text>
+<line class="l" x1="110" y1="97" x2="158" y2="97"/>
+<rect class="a" x="160" y="75" width="150" height="44" rx="5"/><text x="235" y="94" text-anchor="middle">Application Gateway</text><text class="s" x="235" y="110" text-anchor="middle">WAF, public IP</text>
+<line class="l" x1="310" y1="97" x2="368" y2="97"/><text class="s" x="340" y="70" text-anchor="middle">path rules</text>
+<rect class="a" x="370" y="75" width="150" height="44" rx="5"/><text x="445" y="94" text-anchor="middle">APIM (Internal)</text><text class="s" x="445" y="110" text-anchor="middle">private IP only</text>
+<line class="l" x1="520" y1="97" x2="568" y2="97"/>
+<rect class="b" x="570" y="75" width="135" height="44" rx="5"/><text x="637" y="94" text-anchor="middle">Backends</text><text class="s" x="637" y="110" text-anchor="middle">private endpoints</text>
+<rect class="b" x="370" y="190" width="150" height="36" rx="5"/><text x="445" y="213" text-anchor="middle">On-prem (VPN/ER)</text>
+<line class="l" x1="445" y1="190" x2="445" y2="121"/>
+</svg></figure>
+<p>Application Gateway gives you three things APIM alone doesn't: a WAF, one controlled public entry point, and path rules. You can expose only <code>/external/*</code> to the internet and keep internal APIs reachable only from the VNet and on-premises.</p>
+<p>Things that trip people up with Internal mode:</p>
+<ul>
+<li><strong>DNS.</strong> The gateway, developer portal, and management hostnames need private DNS records, or custom domains that resolve to the private IP.</li>
+<li><strong>NSG rules.</strong> APIM's management traffic must be allowed in (port 3443 from the <code>ApiManagement</code> service tag).</li>
+<li><strong>Health probe.</strong> Point Application Gateway's probe at APIM's <code>/status-0123456789abcdef</code> endpoint.</li>
+</ul>
+<p>Tier matters. Classic VNet injection is Developer and Premium. The v2 tiers use a different model (outbound VNet integration, inbound private endpoints), so confirm the tier before you design.</p>
+<p class="probe"><strong>What they're probing:</strong> why App Gateway is there, and whether you've dealt with the DNS and NSG details.</p>
+</div></details>
+
+<h2 id="s-ops">Operations and DevOps</h2>
+<p class="lede">They want to know you can run this thing, not just draw it.</p>
+
+<details id="q20"><summary><span class="qn">Q20</span><span class="qt">How do you deploy Logic Apps, APIM, and Service Bus through CI/CD across environments?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Everything is code. Infrastructure through IaC, workflows and policies from source control, environment differences through parameters only. Build once, deploy the same artifact everywhere.</p>
+<figure><svg class="dg" viewBox="0 0 720 110" role="img" aria-label="Pipeline: PR checks, build artifact, deploy dev, test, prod with approvals">
+<rect class="b" x="10" y="30" width="110" height="44" rx="5"/><text x="65" y="57" text-anchor="middle">PR checks</text>
+<line class="l" x1="120" y1="52" x2="148" y2="52"/>
+<rect class="a" x="150" y="30" width="120" height="44" rx="5"/><text x="210" y="57" text-anchor="middle">Build artifact</text>
+<line class="l" x1="270" y1="52" x2="298" y2="52"/>
+<rect class="b" x="300" y="30" width="110" height="44" rx="5"/><text x="355" y="57" text-anchor="middle">Dev</text>
+<line class="l" x1="410" y1="52" x2="438" y2="52"/><text class="s" x="424" y="22" text-anchor="middle">approve</text>
+<rect class="b" x="440" y="30" width="110" height="44" rx="5"/><text x="495" y="57" text-anchor="middle">Test</text>
+<line class="l" x1="550" y1="52" x2="578" y2="52"/><text class="s" x="564" y="22" text-anchor="middle">approve</text>
+<rect class="b" x="580" y="30" width="130" height="44" rx="5"/><text x="645" y="57" text-anchor="middle">Prod</text>
+<text class="s" x="210" y="96" text-anchor="middle">zip + IaC plan</text>
+<text class="s" x="495" y="96" text-anchor="middle">same artifact, new parameters</text>
+</svg></figure>
+<div class="tbl"><table>
+<tr><th>Component</th><th>Source of truth</th><th>How it deploys</th></tr>
+<tr><td>Namespaces, queues, APIM instance, plans, identities, RBAC</td><td>Terraform or Bicep</td><td>Plan on PR, apply with approval</td></tr>
+<tr><td>Logic Apps Standard</td><td><code>workflow.json</code> per workflow, <code>connections.json</code>, <code>parameters.json</code>, <code>host.json</code></td><td>Zip deploy. Environment values come from app settings via <code>@appsetting('...')</code></td></tr>
+<tr><td>APIM APIs and policies</td><td>OpenAPI specs and policy XML</td><td>APIOps (extract from dev, publish with per-environment overrides) or Terraform</td></tr>
+<tr><td>Functions</td><td>Project code</td><td>Build, unit test, zip deploy</td></tr>
+</table></div>
+<p>Pipelines sign in to Azure with OIDC federated credentials. No stored secrets. Each environment has its own approval gate.</p>
+<p>Testing: unit test the Functions. Logic Apps Standard has a test framework you can run in the pipeline, and a smoke test after each deploy catches broken connections early.</p>
+<p class="probe"><strong>What they're probing:</strong> build once, promote many, and how you handle per-environment values without editing workflow files.</p>
+</div></details>
+
+<details id="q21"><summary><span class="qn">Q21</span><span class="qt">How do you trace one request end to end across APIM, Logic Apps, Service Bus, and Functions?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Create one correlation ID at the front door and carry it through every hop: HTTP header, message property, log field. Send all telemetry to one Application Insights and query by that ID.</p>
+<figure><svg class="dg" viewBox="0 0 720 195" role="img" aria-label="Correlation ID carried through APIM, Logic App, Service Bus, Function into Application Insights">
+<rect class="b" x="10" y="30" width="90" height="44" rx="5"/><text x="55" y="57" text-anchor="middle">Client</text>
+<line class="l" x1="100" y1="52" x2="128" y2="52"/>
+<rect class="a" x="130" y="30" width="120" height="44" rx="5"/><text x="190" y="57" text-anchor="middle">APIM</text>
+<line class="l" x1="250" y1="52" x2="278" y2="52"/>
+<rect class="a" x="280" y="30" width="120" height="44" rx="5"/><text x="340" y="57" text-anchor="middle">Logic App</text>
+<line class="l" x1="400" y1="52" x2="428" y2="52"/>
+<rect class="a" x="430" y="30" width="120" height="44" rx="5"/><text x="490" y="57" text-anchor="middle">Service Bus</text>
+<line class="l" x1="550" y1="52" x2="578" y2="52"/>
+<rect class="a" x="580" y="30" width="130" height="44" rx="5"/><text x="645" y="57" text-anchor="middle">Function</text>
+<text class="s" x="190" y="94" text-anchor="middle">set x-correlation-id</text>
+<text class="s" x="340" y="94" text-anchor="middle">client tracking id</text>
+<text class="s" x="490" y="94" text-anchor="middle">CorrelationId prop</text>
+<text class="s" x="645" y="94" text-anchor="middle">logger scope</text>
+<line class="d" x1="190" y1="102" x2="250" y2="140"/>
+<line class="d" x1="340" y1="102" x2="340" y2="140"/>
+<line class="d" x1="645" y1="102" x2="522" y2="152"/>
+<rect class="w" x="200" y="142" width="320" height="40" rx="5"/><text x="360" y="167" text-anchor="middle">Application Insights: query by one ID</text>
+</svg></figure>
+<ul>
+<li><strong>APIM.</strong> Set the header if the caller didn't send one: <code>&lt;set-header name="x-correlation-id" exists-action="skip"&gt;</code> with <code>@(context.RequestId.ToString())</code>. Turn on the Application Insights diagnostic.</li>
+<li><strong>Logic Apps.</strong> The <code>x-ms-client-tracking-id</code> header becomes the run's tracking ID. Add tracked properties for business keys.</li>
+<li><strong>Service Bus.</strong> Put the ID in <code>CorrelationId</code> or an application property. The Azure SDKs also pass W3C trace context automatically.</li>
+<li><strong>Functions.</strong> Read the ID and add it to the logging scope so every log line carries it.</li>
+</ul>
+<pre><code>union requests, dependencies, traces, exceptions
+| where timestamp &gt; ago(1d)
+| where customDimensions has "c0ffee-1234"
+| order by timestamp asc</code></pre>
+<p>In healthcare, keep PHI out of tracked properties and custom dimensions. Log IDs, not names or member data.</p>
+<p class="probe"><strong>What they're probing:</strong> a concrete mechanism at each hop. "We used App Insights" isn't an answer.</p>
+</div></details>
+<h2 id="s-scn">Scenarios</h2>
+<p class="lede">Talk through these like a design session. State assumptions, ask one or two questions, then commit to a design.</p>
+
+<details id="q22" class="scn"><summary><span class="qn">Q22</span><span class="qt">A client has 200 BizTalk orchestrations, maps, and custom pipelines. How do you migrate them to Azure?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Don't migrate 200 things one by one. Inventory everything, retire what's dead, group the rest by pattern, build the shared platform first, then move in waves with parallel runs.</p>
+<ol>
+<li><strong>Inventory.</strong> Applications, ports, adapters, maps, pipelines, orchestrations, BRE policies, BAM, bindings, and real traffic volumes from the tracking database. Use an assessment tool to export it, then verify by hand.</li>
+<li><strong>Retire.</strong> Anything with no traffic in 12 months is a candidate to switch off. In most estates a real chunk is dead.</li>
+<li><strong>Classify.</strong> Simple routing, transform-and-send, long-running orchestration, B2B/EDI. Each class gets one target pattern, not 200 custom designs.</li>
+<li><strong>Build the platform first.</strong> Landing zone, networking, CI/CD, logging, and a standard error-handling framework. Every wave reuses it.</li>
+<li><strong>Migrate in waves.</strong> Start low-risk but representative. Run old and new in parallel, compare outputs, cut over per partner or per interface.</li>
+<li><strong>Decommission</strong> BizTalk hosts as each wave clears.</li>
+</ol>
+<div class="tbl"><table>
+<tr><th>BizTalk</th><th>Azure target</th></tr>
+<tr><td>MessageBox pub/sub, promoted properties</td><td>Service Bus topics, filters on application properties</td></tr>
+<tr><td>Receive locations and send ports</td><td>Logic Apps triggers and connectors, APIM for HTTP</td></tr>
+<tr><td>Orchestrations</td><td>Logic Apps Standard stateful workflows (Durable Functions for complex code)</td></tr>
+<tr><td>XSLT maps</td><td>XSLT maps in Logic Apps Standard or Data Mapper</td></tr>
+<tr><td>Custom functoids, pipeline components</td><td>Functions, or local .NET code in Logic Apps Standard</td></tr>
+<tr><td>EDI parties and agreements (X12, EDIFACT, AS2)</td><td>Integration Account</td></tr>
+<tr><td>Business Rules Engine</td><td>Azure Logic Apps Rules Engine (Standard)</td></tr>
+<tr><td>Correlation sets, convoys</td><td>Service Bus sessions</td></tr>
+<tr><td>BAM and tracking</td><td>Application Insights, business process tracking, Log Analytics</td></tr>
+<tr><td>SSO config store</td><td>Key Vault and app settings</td></tr>
+<tr><td>Atomic scopes, MSDTC transactions</td><td>No direct equivalent. Idempotent steps plus explicit compensation</td></tr>
+</table></div>
+<p>Call out the hard parts honestly. Distributed transactions don't exist here. Long-running orchestrations with complex correlation need redesign, not translation. And heavy map logic can get ugly as workflow expressions, so it moves to code.</p>
+<p>For the "why now" context: BizTalk Server 2020 is the last release, and its support ends in 2030.</p>
+<p class="probe"><strong>What they're probing:</strong> program thinking. Inventory, patterns, platform, waves, parallel run. With your BizTalk history, tell this as a story you lived.</p>
+</div></details>
+
+<details id="q23" class="scn"><summary><span class="qn">Q23</span><span class="qt">A partner sends 10x normal volume at month-end and your backend falls over. What do you change?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Protect the backend first, then absorb the burst. Throttle at APIM, buffer in a queue, and let workers pull at the rate the backend can actually handle.</p>
+<figure><svg class="dg" viewBox="0 0 720 205" role="img" aria-label="Partner to APIM throttling, intake returns 202, Service Bus buffers, capped workers call backend">
+<text class="s" x="60" y="58" text-anchor="middle">10x at month-end</text>
+<rect class="b" x="10" y="66" width="100" height="44" rx="5"/><text x="60" y="93" text-anchor="middle">Partner</text>
+<line class="l" x1="110" y1="80" x2="138" y2="80"/>
+<line class="d" x1="140" y1="98" x2="112" y2="98"/>
+<text class="s" x="125" y="132" text-anchor="middle">429 + Retry-After</text>
+<rect class="a" x="140" y="66" width="130" height="44" rx="5"/><text x="205" y="85" text-anchor="middle">APIM</text><text class="s" x="205" y="101" text-anchor="middle">rate-limit-by-key</text>
+<line class="l" x1="270" y1="88" x2="298" y2="88"/>
+<rect class="b" x="300" y="66" width="110" height="44" rx="5"/><text x="355" y="85" text-anchor="middle">Intake</text><text class="s" x="355" y="101" text-anchor="middle">validate, 202</text>
+<line class="l" x1="410" y1="88" x2="438" y2="88"/>
+<rect class="a" x="440" y="66" width="110" height="44" rx="5"/><text x="495" y="85" text-anchor="middle">Service Bus</text><text class="s" x="495" y="101" text-anchor="middle">absorbs burst</text>
+<line class="l" x1="550" y1="88" x2="578" y2="88"/>
+<rect class="b" x="580" y="66" width="130" height="44" rx="5"/><text x="645" y="85" text-anchor="middle">Workers</text><text class="s" x="645" y="101" text-anchor="middle">capped concurrency</text>
+<line class="l" x1="645" y1="110" x2="645" y2="158"/>
+<text class="s" x="653" y="140">steady rate</text>
+<rect class="w" x="580" y="160" width="130" height="36" rx="5"/><text x="645" y="183" text-anchor="middle">Backend / DB</text>
+</svg><figcaption>Queue-based load leveling. The burst lands in the queue, not on the database.</figcaption></figure>
+<p><strong>Right now:</strong> add <code>rate-limit-by-key</code> or <code>quota-by-key</code> per partner in APIM, returning 429 with <code>Retry-After</code>. Then call the partner and agree on a rate.</p>
+<p><strong>Structural fix:</strong></p>
+<ul>
+<li>Accept the request, validate it, put it on a queue, return 202. The caller is decoupled from the backend.</li>
+<li>Cap worker concurrency to what the backend can take: Functions <code>maxConcurrentCalls</code>, Logic Apps trigger concurrency, or KEDA on AKS scaling on queue length with a max replica count.</li>
+<li>If APIM itself saturates, add units or autoscale on the capacity metric. If Service Bus throttles, move to Premium messaging units.</li>
+<li>Cache read-heavy calls with <code>cache-lookup</code> and <code>cache-store</code>.</li>
+<li>Month-end is predictable. Pre-scale on a schedule and load test before it happens.</li>
+</ul>
+<p>The key point: you often can't scale the backend. A legacy database has a ceiling. The queue lets you accept at burst speed and process at backend speed.</p>
+<p class="probe"><strong>What they're probing:</strong> load leveling, and that you protect the weakest component instead of scaling everything.</p>
+</div></details>
+
+<details id="q24" class="scn"><summary><span class="qn">Q24</span><span class="qt">Orders have been piling up in a dead-letter queue for two days and nobody noticed. What do you do now, and how do you prevent it?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Stop the bleeding, find the cause, replay safely, then make it impossible to miss again.</p>
+<p><strong>Now:</strong></p>
+<ol>
+<li>Check if it's still happening. If every new message fails, fix or pause the consumer before anything else.</li>
+<li>Sample the DLQ and group by <code>DeadLetterReason</code>. Usually one or two causes explain most of it: a schema change, expired credentials, a downstream outage.</li>
+<li>Fix the root cause and deploy.</li>
+<li>Confirm the consumer is idempotent. Some of these may have partly processed.</li>
+<li>Replay in small batches and watch. Messages with genuinely bad data go to a repair queue for the business team, not back into the flow.</li>
+<li>Tell the business what's delayed and by how much. Two days of orders is a customer issue, not just a technical one.</li>
+</ol>
+<p><strong>Prevent:</strong></p>
+<ul>
+<li>Azure Monitor alert on the dead-lettered message count metric, split by entity name, firing when it's above zero. Route it to on-call, not a mailbox nobody reads.</li>
+<li>A DLQ handler that logs, classifies, and notifies with the reason attached.</li>
+<li>An alert on message age or active message count, so a stuck consumer shows up even when nothing dead-letters.</li>
+<li>Turn on dead-lettering on expiration, so expired messages are kept rather than silently dropped.</li>
+<li>A written replay runbook, and a synthetic heartbeat message that flows end to end every few minutes.</li>
+</ul>
+<p>Finish with a blameless postmortem. The real failure was monitoring, not the message.</p>
+<p class="probe"><strong>What they're probing:</strong> calm incident handling, business awareness, and whether your prevention is concrete.</p>
+</div></details>
+
+<details id="q25" class="scn"><summary><span class="qn">Q25</span><span class="qt">A new partner sends HL7 v2 or X12 over SFTP. Your internal systems expect FHIR JSON over REST. Design it end to end.</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Land the file untouched, validate and acknowledge fast, convert to a canonical model, map to FHIR, and deliver through a queue. Lock down PHI at every hop.</p>
+<figure><svg class="dg" viewBox="0 0 720 325" role="img" aria-label="SFTP to Blob, Event Grid, Logic App validate and ack, Service Bus, Function maps to FHIR, errors to quarantine">
+<rect class="b" x="10" y="30" width="110" height="46" rx="5"/><text x="65" y="50" text-anchor="middle">Partner</text><text class="s" x="65" y="67" text-anchor="middle">SFTP upload</text>
+<line class="l" x1="120" y1="53" x2="148" y2="53"/>
+<rect class="a" x="150" y="30" width="120" height="46" rx="5"/><text x="210" y="50" text-anchor="middle">Blob (SFTP)</text><text class="s" x="210" y="67" text-anchor="middle">raw, immutable</text>
+<line class="l" x1="270" y1="53" x2="298" y2="53"/>
+<rect class="b" x="300" y="30" width="110" height="46" rx="5"/><text x="355" y="50" text-anchor="middle">Event Grid</text><text class="s" x="355" y="67" text-anchor="middle">BlobCreated</text>
+<line class="l" x1="410" y1="53" x2="438" y2="53"/>
+<rect class="a" x="440" y="30" width="140" height="46" rx="5"/><text x="510" y="50" text-anchor="middle">Logic App Std</text><text class="s" x="510" y="67" text-anchor="middle">validate, split</text>
+<line class="d" x1="580" y1="53" x2="608" y2="53"/>
+<rect class="w" x="610" y="30" width="100" height="46" rx="5"/><text x="660" y="50" text-anchor="middle">999 / ACK</text><text class="s" x="660" y="67" text-anchor="middle">to partner</text>
+<line class="l" x1="510" y1="76" x2="510" y2="138"/><text class="s" x="518" y="112">canonical</text>
+<rect class="a" x="440" y="140" width="140" height="46" rx="5"/><text x="510" y="160" text-anchor="middle">Service Bus topic</text><text class="s" x="510" y="177" text-anchor="middle">one msg per txn</text>
+<line class="l" x1="440" y1="163" x2="412" y2="163"/>
+<rect class="b" x="270" y="140" width="140" height="46" rx="5"/><text x="340" y="160" text-anchor="middle">Function</text><text class="s" x="340" y="177" text-anchor="middle">map to FHIR</text>
+<line class="l" x1="270" y1="163" x2="242" y2="163"/>
+<rect class="a" x="60" y="140" width="180" height="46" rx="5"/><text x="150" y="160" text-anchor="middle">FHIR service / API</text><text class="s" x="150" y="177" text-anchor="middle">via APIM, $validate</text>
+<line class="d" x1="510" y1="186" x2="500" y2="238"/>
+<line class="d" x1="340" y1="186" x2="360" y2="238"/>
+<rect class="w" x="270" y="240" width="310" height="46" rx="5"/><text x="425" y="260" text-anchor="middle">Quarantine, DLQ, alert</text><text class="s" x="425" y="277" text-anchor="middle">bad files rejected, partner notified</text>
+<text class="s" x="10" y="315">Across every hop: private endpoints, managed identity, secure inputs/outputs, no PHI in logs</text>
+</svg></figure>
+<p><strong>Ingest.</strong> Use SFTP on Blob storage with local users and SSH keys, plus an IP allow-list. Keep the raw file untouched in its own container for audit. BlobCreated fires Event Grid, which starts the workflow. The file stays in Blob, and messages carry references (claim-check).</p>
+<p><strong>Validate and acknowledge.</strong></p>
+<ul>
+<li><strong>X12:</strong> Integration Account with the partner and agreement. X12 decode validates envelopes and produces the 999 and TA1 acks.</li>
+<li><strong>HL7 v2:</strong> parse in a Function with a proven library (NHapi in .NET), or the built-in HL7 support if your setup has it. Return an HL7 ACK.</li>
+</ul>
+<p><strong>Canonical, then FHIR.</strong> Split the batch into one message per transaction in a canonical model, onto a Service Bus topic. A Function maps to FHIR. For HL7 v2, the FHIR service in Azure Health Data Services has a <code>$convert-data</code> operation with Liquid templates you can customize. Validate the result against your FHIR profiles before you post it.</p>
+<p><strong>Errors, three kinds:</strong></p>
+<ul>
+<li>Syntax errors: reject the file and send a negative ack.</li>
+<li>Business errors: quarantine the transaction and notify the partner or support team.</li>
+<li>Transient errors: retry, then dead-letter.</li>
+</ul>
+<p>Use the standard control numbers as idempotency keys: ISA13, GS06, and ST02 for X12, and MSH-10 for HL7. A resent file then can't create duplicates.</p>
+<p><strong>PHI.</strong> Private endpoints everywhere. Managed identity and RBAC. Encryption at rest, with customer-managed keys if policy requires. TLS 1.2 or later. Turn on secure inputs and outputs in Logic Apps so PHI doesn't land in run history. Keep PHI out of logs and tracked properties. Set retention and purge rules. And have a BAA in place with Microsoft.</p>
+<p><strong>Onboarding.</strong> Drive partner differences from config: IDs, formats, mapping version, contacts. Partner number 12 should be a config change, not new code.</p>
+<p class="probe"><strong>What they're probing:</strong> healthcare depth (acks, control numbers, PHI in run history) on top of good integration design. This is home ground for you, so use real examples from your pharmacy work.</p>
+</div></details>
+
+<h2 id="s-more">Reliability, routing, and platform choices</h2>
+<p class="lede">Added from the carousel review. These fill the gaps: failure handling, B2B, and choosing the right tier or plan.</p>
+
+<details id="q26"><summary><span class="qn">Q26</span><span class="qt">Explain the Saga pattern. How do you handle a transaction that spans several services?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> A saga replaces one big distributed transaction with a chain of local transactions. Each step has a compensating action. If a later step fails, you run the compensations in reverse to undo what already happened.</p>
+<figure><svg class="dg" viewBox="0 0 720 190" role="img" aria-label="Saga with three forward steps; step three fails and compensations run in reverse">
+<rect class="a" x="10" y="30" width="150" height="46" rx="5"/><text x="85" y="50" text-anchor="middle">1 Reserve stock</text><text class="s" x="85" y="67" text-anchor="middle">local txn</text>
+<line class="l" x1="160" y1="53" x2="208" y2="53"/>
+<rect class="a" x="210" y="30" width="150" height="46" rx="5"/><text x="285" y="50" text-anchor="middle">2 Check benefit</text><text class="s" x="285" y="67" text-anchor="middle">local txn</text>
+<line class="l" x1="360" y1="53" x2="408" y2="53"/>
+<rect class="w" x="410" y="30" width="150" height="46" rx="5"/><text x="485" y="50" text-anchor="middle">3 Send to pharmacy</text><text class="s" x="485" y="67" text-anchor="middle">fails</text>
+<rect class="z" x="590" y="30" width="120" height="46" rx="5"/><text class="s" x="650" y="50" text-anchor="middle">orchestrator</text><text class="s" x="650" y="67" text-anchor="middle">tracks state</text>
+<line class="d" x1="485" y1="76" x2="485" y2="128"/>
+<rect class="w" x="210" y="130" width="150" height="46" rx="5"/><text x="285" y="150" text-anchor="middle">Undo 2</text><text class="s" x="285" y="167" text-anchor="middle">release benefit hold</text>
+<rect class="w" x="10" y="130" width="150" height="46" rx="5"/><text x="85" y="150" text-anchor="middle">Undo 1</text><text class="s" x="85" y="167" text-anchor="middle">release stock</text>
+<path class="d" d="M485 128 V153 H362"/>
+<line class="d" x1="210" y1="153" x2="162" y2="153"/>
+<text class="s" x="420" y="148" text-anchor="middle">compensate</text>
+</svg><figcaption>Forward steps commit locally. Failure triggers compensation in reverse order.</figcaption></figure>
+<p>There are two styles:</p>
+<ul>
+<li><strong>Orchestration.</strong> One coordinator (a Durable Functions orchestrator or a Logic App) calls each step and decides what to undo. Easier to follow, test, and support. This is the usual answer.</li>
+<li><strong>Choreography.</strong> Each service reacts to events from the previous one, usually over Service Bus. No central brain, but the flow is hard to see once there are more than three or four steps.</li>
+</ul>
+<p>In Durable Functions, the orchestrator wraps the steps in try/catch. The catch block calls compensating activities in reverse order. Its state survives restarts because it's replayed from history.</p>
+<p>Three things people forget:</p>
+<ul>
+<li>Compensations are business undo, not a rollback. You issue a refund; you don't delete the payment row.</li>
+<li>Compensations can fail too, so they need retries and must be idempotent.</li>
+<li>There's no isolation. Other systems can see the half-done state, so use explicit statuses like <code>Pending</code> until the saga finishes.</li>
+</ul>
+<p class="probe"><strong>What they're probing:</strong> orchestration vs choreography, and whether you know compensation is a business action. Tie it back to BizTalk: this is what replaces atomic scopes and MSDTC.</p>
+</div></details>
+
+<details id="q27"><summary><span class="qn">Q27</span><span class="qt">How do you handle errors inside a Logic App workflow?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Retry policies for transient errors on each action. Scopes with run-after settings for try/catch/finally. And a Terminate action in the catch, so a handled failure still shows as Failed.</p>
+<figure><svg class="dg" viewBox="0 0 720 150" role="img" aria-label="Try scope, Catch scope runs on failure, Finally scope always runs">
+<rect class="a" x="10" y="40" width="190" height="56" rx="5"/><text class="h" x="105" y="62" text-anchor="middle">Scope: Try</text><text class="s" x="105" y="82" text-anchor="middle">the real work</text>
+<line class="d" x1="200" y1="68" x2="258" y2="68"/>
+<text class="s" x="229" y="30" text-anchor="middle">Failed or</text><text class="s" x="229" y="44" text-anchor="middle">TimedOut</text>
+<rect class="w" x="260" y="40" width="210" height="56" rx="5"/><text class="h" x="365" y="62" text-anchor="middle">Scope: Catch</text><text class="s" x="365" y="82" text-anchor="middle">log, alert, Terminate: Failed</text>
+<line class="l" x1="470" y1="68" x2="528" y2="68"/>
+<text class="s" x="499" y="32" text-anchor="middle">any status</text>
+<rect class="b" x="530" y="40" width="180" height="56" rx="5"/><text class="h" x="620" y="62" text-anchor="middle">Scope: Finally</text><text class="s" x="620" y="82" text-anchor="middle">cleanup, always runs</text>
+<path class="l" d="M105 96 V130 H620 V98"/>
+<text class="s" x="360" y="124" text-anchor="middle">Finally also runs after Try succeeds (Catch is Skipped)</text>
+</svg></figure>
+<ul>
+<li><strong>Retry policy.</strong> Per action: none, fixed, or exponential. The default is exponential with 4 retries. Turn it down where another layer already retries.</li>
+<li><strong>Run-after.</strong> Every action runs after the previous one's status: Succeeded, Failed, Skipped, or TimedOut. A Catch scope runs after Try is Failed or TimedOut. A Finally scope runs after Catch in any status.</li>
+<li><strong>Find what failed.</strong> Inside Catch, use <code>result('Try')</code> and filter for items where status is Failed. That gives you the action name and error for logging.</li>
+<li><strong>Terminate.</strong> End the Catch with Terminate set to Failed. Otherwise the run shows as Succeeded because the error was "handled," and your failed-runs alert never fires.</li>
+</ul>
+<pre><code>"Catch": {
+  "type": "Scope",
+  "runAfter": { "Try": [ "Failed", "TimedOut" ] },
+  "actions": { ... }
+}</code></pre>
+<p>For Service Bus triggers, decide what the catch does with the message: dead-letter it with a reason, or abandon it so it's retried. Don't just complete it and lose it.</p>
+<p class="probe"><strong>What they're probing:</strong> the Terminate gotcha, and <code>result()</code> for getting the real error out of a scope.</p>
+</div></details>
+
+<details id="q28"><summary><span class="qn">Q28</span><span class="qt">How do you implement content-based routing and message transformation?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Route at the broker on message properties when you can, in the workflow when you must read the body. Transform with the lightest tool that fits: Liquid for JSON, XSLT for XML, a Function for anything complex.</p>
+<p><strong>Routing options:</strong></p>
+<div class="tbl"><table>
+<tr><th>Where</th><th>How</th><th>Use when</th></tr>
+<tr><td>Service Bus subscriptions</td><td>SQL or correlation filters on properties</td><td>Many consumers, routing on known fields. Most decoupled.</td></tr>
+<tr><td>Logic Apps</td><td>Condition or Switch on body content</td><td>Routing needs fields deep inside the payload</td></tr>
+<tr><td>APIM</td><td><code>set-backend-service</code> on header, path, or claim</td><td>Edge routing of API calls, like per-tenant backends</td></tr>
+</table></div>
+<p>Broker filters can't read the body. If routing depends on a body field, have the publisher copy it into an application property. That keeps routing at the broker and the consumers ignorant of each other.</p>
+<p><strong>Transformation options:</strong></p>
+<div class="tbl"><table>
+<tr><th>Tool</th><th>Best for</th></tr>
+<tr><td>Liquid templates</td><td>JSON to JSON, JSON to text. Also used by the FHIR converter.</td></tr>
+<tr><td>XSLT maps</td><td>XML to XML. Logic Apps Standard supports XSLT 3.0.</td></tr>
+<tr><td>Data Mapper</td><td>Visual mapping in Logic Apps Standard. It generates XSLT under the hood.</td></tr>
+<tr><td>Azure Function</td><td>Complex logic, lookups, HL7 parsing, anything that needs tests</td></tr>
+<tr><td>APIM policies</td><td>Light edge changes: <code>set-body</code>, <code>json-to-xml</code>, <code>xml-to-json</code></td></tr>
+</table></div>
+<p>Keep business transforms out of APIM. Small shape fixes at the edge are fine. Real mapping logic in gateway policies becomes hard to test and hard to find.</p>
+<p class="probe"><strong>What they're probing:</strong> that you pick the tool by payload type and complexity. For you, this is BizTalk maps and promoted properties in new clothes.</p>
+</div></details>
+
+<details id="q29"><summary><span class="qn">Q29</span><span class="qt">What is an Integration Account, and when do you need one?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> It's the store for B2B and enterprise integration artifacts: schemas, maps, trading partners, agreements, and certificates. You need it for EDI trading partner work, and on Consumption for XML validation and maps.</p>
+<p>What it holds:</p>
+<ul>
+<li>Schemas (XSD) and maps (XSLT, Liquid)</li>
+<li>Trading partners and their identities (like ISA qualifiers)</li>
+<li>Agreements for X12, EDIFACT, and AS2: envelopes, validation rules, acknowledgment settings</li>
+<li>Certificates for AS2 signing and encryption, and batch configurations</li>
+</ul>
+<p><strong>Consumption vs Standard.</strong> A Consumption Logic App must link to an Integration Account (in the same region) to use schemas, maps, or B2B actions. Logic Apps Standard can keep schemas and maps inside the project itself, so plain XML validation and transforms don't need one. For partners and agreements, you still use an Integration Account.</p>
+<p><strong>Tiers.</strong> Free is for dev only, with no SLA. Basic covers message handling. Standard covers full B2B. It bills per hour whether you use it or not, so don't create one "just in case."</p>
+<p class="probe"><strong>What they're probing:</strong> when you actually need one. The Standard-without-an-Integration-Account point shows you're current.</p>
+</div></details>
+
+<details id="q30"><summary><span class="qn">Q30</span><span class="qt">Service Bus Standard vs Premium. When do you justify the extra cost?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Premium when you need private networking, predictable latency, large messages, or compliance features. In healthcare, the private endpoint requirement alone usually decides it.</p>
+<div class="tbl"><table>
+<tr><th></th><th>Standard</th><th>Premium</th></tr>
+<tr><td>Capacity</td><td>Shared, multi-tenant. Noisy neighbors possible.</td><td>Dedicated messaging units (1, 2, 4, 8, 16)</td></tr>
+<tr><td>Billing</td><td>Base charge plus per-operation</td><td>Fixed per messaging unit per hour</td></tr>
+<tr><td>Max message size</td><td>256 KB</td><td>Up to 100 MB</td></tr>
+<tr><td>Private endpoints</td><td>No</td><td>Yes</td></tr>
+<tr><td>Customer-managed keys</td><td>No</td><td>Yes</td></tr>
+<tr><td>Other</td><td>Topics, sessions, transactions, DLQ</td><td>All of Standard, plus JMS 2.0, CPU and memory scaling</td></tr>
+</table></div>
+<p>Basic sits below both and has queues only. No topics.</p>
+<p>How to justify it: Premium looks expensive per month, but it removes per-operation charges and gives stable latency. At high volume the cost gap narrows. And if security requires no public endpoints, Standard isn't an option at all.</p>
+<p>Scale Premium by messaging units. Watch CPU and memory metrics on the namespace, and set autoscale rules on them.</p>
+<p class="probe"><strong>What they're probing:</strong> private endpoints as the deciding feature, and that you think about cost at volume, not just the sticker price.</p>
+</div></details>
+
+<details id="q31"><summary><span class="qn">Q31</span><span class="qt">Event Grid: CloudEvents vs the native schema, and what is an Event Domain?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Use CloudEvents 1.0 for new designs. It's the open CNCF standard and works across vendors. An Event Domain is one endpoint that manages thousands of topics, usually one per tenant, with separate access control on each.</p>
+<div class="tbl"><table>
+<tr><th>Native Event Grid schema</th><th>CloudEvents 1.0</th></tr>
+<tr><td><code>id</code>, <code>topic</code>, <code>subject</code>, <code>eventType</code>, <code>eventTime</code>, <code>data</code>, <code>dataVersion</code></td><td><code>id</code>, <code>source</code>, <code>type</code>, <code>subject</code>, <code>time</code>, <code>specversion</code>, <code>data</code></td></tr>
+<tr><td>Azure-specific. Older tooling assumes it.</td><td>Vendor-neutral. SDKs in every major language.</td></tr>
+</table></div>
+<p>You pick the input schema when you create the topic. Conversion between schemas only works in some directions, so decide up front.</p>
+<p><strong>Event Domains</strong> suit a multi-tenant platform. You publish to one endpoint and set the topic per event, like <code>tenant-042</code>. Each tenant subscribes only to their own topic, controlled with RBAC. One domain holds up to 100,000 topics.</p>
+<p>Related details worth knowing:</p>
+<ul>
+<li>Delivery is at-least-once with retries for up to 24 hours. Turn on dead-lettering to Blob, or failed events are dropped.</li>
+<li>Filter by event type, subject prefix or suffix, and advanced filters on data fields.</li>
+<li>Webhook endpoints must pass a validation handshake before they receive events.</li>
+<li>Event Grid namespaces are the newer model. They add pull delivery and MQTT, using CloudEvents.</li>
+</ul>
+<p class="probe"><strong>What they're probing:</strong> schema choice and multi-tenant design. Mentioning dead-letter-to-Blob shows you've run it.</p>
+</div></details>
+
+<details id="q32"><summary><span class="qn">Q32</span><span class="qt">How do you implement a circuit breaker in an Azure integration solution?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> In .NET code, use Polly v8 through <code>Microsoft.Extensions.Http.Resilience</code>. At the gateway, use APIM's backend circuit breaker. For queue consumers, pause receiving while the breaker is open.</p>
+<figure><svg class="dg" viewBox="0 0 720 170" role="img" aria-label="Circuit breaker states: closed, open, half-open">
+<rect class="a" x="30" y="55" width="170" height="56" rx="28"/><text class="h" x="115" y="78" text-anchor="middle">Closed</text><text class="s" x="115" y="96" text-anchor="middle">calls flow normally</text>
+<rect class="w" x="275" y="55" width="170" height="56" rx="28"/><text class="h" x="360" y="78" text-anchor="middle">Open</text><text class="s" x="360" y="96" text-anchor="middle">fail fast, no calls</text>
+<rect class="b" x="520" y="55" width="170" height="56" rx="28"/><text class="h" x="605" y="78" text-anchor="middle">Half-open</text><text class="s" x="605" y="96" text-anchor="middle">let one probe through</text>
+<line class="l" x1="200" y1="72" x2="273" y2="72"/><text class="s" x="237" y="48" text-anchor="middle">failures over</text><text class="s" x="237" y="62" text-anchor="middle">threshold</text>
+<line class="l" x1="445" y1="72" x2="518" y2="72"/><text class="s" x="482" y="62" text-anchor="middle">break ends</text>
+<path class="d" d="M560 111 V140 H360 V113"/><text class="s" x="460" y="156" text-anchor="middle">probe fails</text>
+<path class="l" d="M650 55 V22 H115 V53"/><text class="s" x="380" y="16" text-anchor="middle">probe succeeds</text>
+</svg></figure>
+<p><strong>In code.</strong> The standard handler gives you rate limiting, timeouts, retry, and a circuit breaker in a sensible order:</p>
+<pre><code>builder.Services.AddHttpClient&lt;PharmacyClient&gt;()
+    .AddStandardResilienceHandler(o =&gt;
+    {
+        o.CircuitBreaker.FailureRatio = 0.5;
+        o.CircuitBreaker.MinimumThroughput = 20;
+        o.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
+    });</code></pre>
+<p>Older articles show <code>CircuitBreakerPolicy</code>. That's the Polly v7 API. Say v8 resilience pipelines in an interview.</p>
+<p><strong>At the gateway.</strong> APIM backends can carry a circuit breaker rule: trip after N failures (or specific status codes) in a time window, for a set duration, and honor <code>Retry-After</code>. It's configured on the backend resource through Bicep, Terraform, or the API, not in policy XML. Combine it with backend pools to fail over to a second backend.</p>
+<p><strong>For queue consumers, the key insight.</strong> If the downstream is down and the consumer keeps pulling, every message fails 10 times and dead-letters. You've turned an outage into a DLQ cleanup job. When the breaker opens, stop the processor. Messages wait safely in the queue. Resume when a probe succeeds.</p>
+<p class="probe"><strong>What they're probing:</strong> the three states, current tooling, and the queue-consumer point. That last one is the senior answer.</p>
+</div></details>
+
+<details id="q33"><summary><span class="qn">Q33</span><span class="qt">On-premises data gateway vs VNet integration vs Hybrid Connections vs ExpressRoute. How do you choose?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> They work at different layers. The gateway and Hybrid Connections are app-level tunnels to specific on-prem systems. VNet integration puts your app's traffic into your network. ExpressRoute or VPN is what connects that network to on-premises.</p>
+<figure><svg class="dg" viewBox="0 0 720 250" role="img" aria-label="Three paths from Azure apps to on-premises systems">
+<rect class="z" x="10" y="10" width="330" height="230" rx="8"/><text class="s" x="22" y="30">Azure</text>
+<rect class="z" x="470" y="10" width="240" height="230" rx="8"/><text class="s" x="482" y="30">On-premises</text>
+<rect class="b" x="30" y="42" width="150" height="44" rx="5"/><text x="105" y="62" text-anchor="middle">Logic App</text><text class="s" x="105" y="78" text-anchor="middle">managed connector</text>
+<rect class="a" x="200" y="42" width="120" height="44" rx="5"/><text x="260" y="69" text-anchor="middle">Gateway relay</text>
+<line class="l" x1="180" y1="64" x2="198" y2="64"/>
+<rect class="b" x="490" y="42" width="200" height="44" rx="5"/><text x="590" y="62" text-anchor="middle">Data gateway agent</text><text class="s" x="590" y="78" text-anchor="middle">connects outbound only</text>
+<line class="l" x1="488" y1="64" x2="322" y2="64"/><text class="s" x="405" y="56" text-anchor="middle">outbound HTTPS</text>
+<rect class="b" x="30" y="110" width="150" height="44" rx="5"/><text x="105" y="130" text-anchor="middle">Logic App Std</text><text class="s" x="105" y="146" text-anchor="middle">VNet integration</text>
+<rect class="a" x="200" y="110" width="120" height="44" rx="5"/><text x="260" y="130" text-anchor="middle">Your VNet</text><text class="s" x="260" y="146" text-anchor="middle">hub</text>
+<line class="l" x1="180" y1="132" x2="198" y2="132"/>
+<line class="l" x1="320" y1="132" x2="488" y2="132"/><text class="s" x="405" y="124" text-anchor="middle">ExpressRoute / VPN</text>
+<rect class="b" x="490" y="110" width="200" height="44" rx="5"/><text x="590" y="130" text-anchor="middle">Whole network</text><text class="s" x="590" y="146" text-anchor="middle">any IP, needs DNS + routes</text>
+<rect class="b" x="30" y="178" width="150" height="44" rx="5"/><text x="105" y="198" text-anchor="middle">App Service / Func</text><text class="s" x="105" y="214" text-anchor="middle">Hybrid Connection</text>
+<rect class="a" x="200" y="178" width="120" height="44" rx="5"/><text x="260" y="205" text-anchor="middle">Azure Relay</text>
+<line class="l" x1="180" y1="200" x2="198" y2="200"/>
+<rect class="b" x="490" y="178" width="200" height="44" rx="5"/><text x="590" y="198" text-anchor="middle">Connection Manager</text><text class="s" x="590" y="214" text-anchor="middle">one host:port</text>
+<line class="l" x1="488" y1="200" x2="322" y2="200"/><text class="s" x="405" y="192" text-anchor="middle">outbound</text>
+</svg><figcaption>Gateway and Hybrid Connections are dialed out from on-prem. The VNet path is a real network route.</figcaption></figure>
+<div class="tbl"><table>
+<tr><th>Option</th><th>What it is</th><th>Pick it when</th></tr>
+<tr><td>On-premises data gateway</td><td>Agent on-prem that connects outbound to Azure. Used by managed connectors (SQL, File System, SAP, Oracle).</td><td>Consumption Logic Apps, Power Platform, or no network link to on-prem yet. Run it as a cluster for HA.</td></tr>
+<tr><td>VNet integration</td><td>The app's outbound traffic goes through your VNet. Built-in connectors then reach private IPs directly.</td><td>Enterprise platforms on Logic Apps Standard, Functions Premium or Flex, App Service. Needs a network link to on-prem.</td></tr>
+<tr><td>Hybrid Connections</td><td>App Service feature over Azure Relay. One TCP host and port per connection.</td><td>A quick path from App Service or Functions to one or two on-prem endpoints, no VPN.</td></tr>
+<tr><td>ExpressRoute (or site-to-site VPN)</td><td>The network link itself: a private circuit (or encrypted tunnel) between on-prem and your VNets.</td><td>Always the foundation for serious hybrid work. VPN is cheaper; ExpressRoute is private, faster, more predictable.</td></tr>
+</table></div>
+<p>A typical enterprise answer: hub-spoke VNets, ExpressRoute into the hub, Logic Apps Standard and Functions with VNet integration in spokes, and DNS forwarding both ways. The gateway stays for the few managed connectors that need it, like SAP.</p>
+<p>One more option to know: Logic Apps Standard has a hybrid deployment model that runs workflows on your own Kubernetes through Azure Arc. That's for when the data can't leave the site at all.</p>
+<p class="probe"><strong>What they're probing:</strong> that you see these as layers, not four competing products. Say "VNet integration needs ExpressRoute or VPN to reach on-prem." Many candidates miss that.</p>
+</div></details>
+
+<details id="q34"><summary><span class="qn">Q34</span><span class="qt">Azure Functions hosting plans: which one, and how do you handle cold start?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Flex Consumption is the default choice for new serverless work: it scales to zero, supports VNet integration, and has always-ready instances for cold start. Premium for steady heavy load. Dedicated when you already pay for an App Service plan.</p>
+<div class="tbl"><table>
+<tr><th>Plan</th><th>Scale</th><th>VNet</th><th>Cold start</th><th>Fits</th></tr>
+<tr><td>Consumption</td><td>To zero</td><td>No</td><td>Yes</td><td>Light, bursty, non-critical work. Short timeouts (10 min max).</td></tr>
+<tr><td>Flex Consumption</td><td>To zero, fast, per function</td><td>Yes</td><td>Avoidable with always-ready instances</td><td>Most new serverless integration work</td></tr>
+<tr><td>Premium (Elastic)</td><td>Min 1, elastic up</td><td>Yes</td><td>Reduced by pre-warmed instances</td><td>Steady volume, long runs, bigger instances</td></tr>
+<tr><td>Dedicated (App Service)</td><td>Manual or autoscale</td><td>Yes</td><td>None with Always On</td><td>Spare capacity on an existing plan, predictable cost</td></tr>
+</table></div>
+<p>Microsoft is steering new Linux serverless work to Flex Consumption. Check the current status of the Linux Consumption plan before you pick it.</p>
+<p><strong>Cold start: does it matter?</strong> For a Service Bus-triggered background worker, a few seconds usually doesn't. For a synchronous HTTP API behind APIM, it does.</p>
+<ul>
+<li>Use always-ready instances (Flex), minimum instances (Premium), or Always On (Dedicated).</li>
+<li>Keep startup light: lazy-load heavy clients, trim dependencies, and use ReadyToRun for .NET isolated.</li>
+<li>Remember HTTP triggers are still capped at about 230 seconds by the front-end, whatever the plan's timeout is.</li>
+</ul>
+<p>"Keep-warm pings" appear in older articles. They're a workaround, not a design. Mention them only to say why you don't need them anymore.</p>
+<p class="probe"><strong>What they're probing:</strong> whether you know Flex Consumption exists, and whether you match the plan to the trigger type.</p>
+</div></details>
+
+<details id="q35"><summary><span class="qn">Q35</span><span class="qt">Explain at-most-once, at-least-once, and exactly-once delivery. Where does Azure land?</span></summary>
+<div class="ans">
+<p class="short"><strong>Short answer.</strong> Azure messaging is at-least-once by default. Exactly-once isn't a platform guarantee. You get exactly-once <em>processing</em> by pairing at-least-once delivery with idempotent consumers.</p>
+<figure><svg class="dg" viewBox="0 0 720 190" role="img" aria-label="Receive and delete loses message on crash; peek-lock redelivers after lock expires">
+<text class="h" x="10" y="24">ReceiveAndDelete: at-most-once</text>
+<rect class="a" x="10" y="36" width="130" height="40" rx="5"/><text x="75" y="61" text-anchor="middle">Queue</text>
+<line class="l" x1="140" y1="56" x2="238" y2="56"/><text class="s" x="189" y="48" text-anchor="middle">receive = delete</text>
+<rect class="b" x="240" y="36" width="130" height="40" rx="5"/><text x="305" y="61" text-anchor="middle">Consumer</text>
+<line class="d" x1="370" y1="56" x2="438" y2="56"/>
+<rect class="w" x="440" y="36" width="150" height="40" rx="5"/><text x="515" y="61" text-anchor="middle">crash: message lost</text>
+<text class="h" x="10" y="114">PeekLock: at-least-once</text>
+<rect class="a" x="10" y="126" width="130" height="40" rx="5"/><text x="75" y="151" text-anchor="middle">Queue</text>
+<line class="l" x1="140" y1="146" x2="238" y2="146"/><text class="s" x="189" y="138" text-anchor="middle">receive + lock</text>
+<rect class="b" x="240" y="126" width="130" height="40" rx="5"/><text x="305" y="151" text-anchor="middle">Consumer</text>
+<line class="l" x1="370" y1="146" x2="438" y2="146"/><text class="s" x="404" y="138" text-anchor="middle">ok</text>
+<rect class="b" x="440" y="126" width="110" height="40" rx="5"/><text x="495" y="151" text-anchor="middle">Complete</text>
+<path class="d" d="M305 166 V182 H75 V168"/><text class="s" x="190" y="178" text-anchor="middle">crash: lock expires, redelivered</text>
+</svg></figure>
+<div class="tbl"><table>
+<tr><th>Semantics</th><th>Where you see it</th><th>Risk</th></tr>
+<tr><td>At-most-once</td><td>Service Bus ReceiveAndDelete. Fire-and-forget telemetry.</td><td>Loss on any crash</td></tr>
+<tr><td>At-least-once</td><td>Service Bus PeekLock, Event Grid, Event Hubs replay from the last checkpoint</td><td>Duplicates</td></tr>
+<tr><td>Exactly-once processing</td><td>At-least-once plus an idempotent consumer</td><td>Only as good as your idempotency design</td></tr>
+</table></div>
+<p>Details that show depth:</p>
+<ul>
+<li><strong>Lock duration.</strong> If processing takes longer than the lock, the message is redelivered while you're still working on it. Renew the lock, or keep processing short.</li>
+<li><strong>Event Hubs checkpoints.</strong> If you checkpoint every 100 events and crash at 99, those 99 come again.</li>
+<li><strong>Service Bus transactions.</strong> You can complete an incoming message and send an outgoing one atomically inside the same namespace. That's exactly-once across broker operations, but it doesn't cover your database.</li>
+</ul>
+<p>The practical line to say: "I design every consumer assuming redelivery will happen."</p>
+<p class="probe"><strong>What they're probing:</strong> that you don't claim exactly-once delivery, and that you know which knob (receive mode) controls the trade-off. Links straight to Q9.</p>
+</div></details>
+
+<footer>
+<p>Bonus scenarios to practice without notes: "A downstream system is down for 6 hours. What happens to in-flight messages?" and "Cut this platform's Azure bill by 30 percent."</p>
+</footer>
+</div>
+<script>
+(function(){
+  var all = function(){ return document.querySelectorAll('details'); };
+  document.getElementById('openAll').addEventListener('click', function(){ all().forEach(function(d){ d.open = true; }); });
+  document.getElementById('closeAll').addEventListener('click', function(){ all().forEach(function(d){ d.open = false; }); });
+  if (location.hash) { var t = document.querySelector(location.hash); if (t && t.tagName === 'DETAILS') t.open = true; }
+})();
+</script>
+</body>
+</html>
