@@ -186,6 +186,46 @@ Key Durable mental model:
 
 ---
 
+
+## End-to-End Observability
+
+- **[End-to-End Observability - All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/observability/)**
+- **[End-to-End Observability - Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/observability/azure-observability-reference/)**
+- **[End-to-End Observability - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/observability/azure-observability-feynman/)**
+
+Core mental model:
+
+> **Observability is not "collect logs from everything."**  
+> **It is reconstructing what happened to one business transaction across a distributed system.**
+
+The Observability material covers:
+
+- metrics, logs, traces, spans, and causal relationships
+- W3C trace context and distributed tracing
+- technical trace IDs vs runtime execution IDs vs business correlation IDs
+- Application Insights and workspace-based architecture
+- Azure Monitor and Log Analytics
+- OpenTelemetry and Azure Monitor OpenTelemetry instrumentation
+- APIM, Logic Apps, Service Bus, Functions, Event Grid, and Event Hubs telemetry
+- Service Bus trace propagation and queue residence time
+- cross-service KQL using an opaque business correlation ID
+- sampling, cardinality, retention, and telemetry cost
+- SLI, SLO, error budgets, burn rate, and alerting
+- alert processing rules and maintenance-window suppression
+- Standard availability tests and private-endpoint monitoring patterns
+- Azure Monitor Private Link Scope (AMPLS)
+- PHI-safe telemetry patterns for healthcare integration
+- avoiding patient identifiers and payload bodies in telemetry
+- DCR/workspace transformations for filtering or redaction before storage
+
+Key observability model:
+
+> **Trace ID = technical causal journey**  
+> **Business correlation ID = stable business journey**  
+> A retry, redelivery, or asynchronous boundary can change the technical trace without changing the business transaction.
+
+---
+
 ## Repository Structure
 
 ```text
@@ -238,6 +278,12 @@ azure-architecture-study-notes/
 │       └── index.html
 │
 ├── observability/
+│   ├── index.html
+│   ├── azure-observability-reference/
+│   │   └── index.html
+│   └── azure-observability-feynman/
+│       └── index.html
+│
 ├── biztalk-to-azure/
 ├── reliability-patterns/
 ├── private-connectivity-dns/
@@ -281,14 +327,7 @@ The goal is to be able to answer:
 
 ### Next
 
-1. **End-to-End Observability**
-   - Application Insights
-   - Log Analytics
-   - KQL
-   - distributed correlation
-   - trace APIM -> Logic Apps -> Service Bus -> Function
-
-2. **BizTalk to Azure Mapping**
+1. **BizTalk to Azure Mapping**
    - receive locations and ports
    - pipelines
    - maps
@@ -298,7 +337,7 @@ The goal is to be able to answer:
    - suspended messages
    - where there is no one-to-one Azure replacement
 
-3. **Reliability & Idempotency Patterns**
+2. **Reliability & Idempotency Patterns**
    - retry / backoff / jitter
    - poison-message handling
    - outbox
@@ -308,27 +347,61 @@ The goal is to be able to answer:
 
 ### Then
 
-4. **Private Connectivity & DNS**
-5. **Workload Identity**
-6. **Terraform + CI/CD + APIOps**
-7. **Integration Security Architecture**
-8. **AI Gateway + MCP**
-9. **Healthcare Integration**
+3. **Private Connectivity & DNS**
+4. **Workload Identity**
+5. **Terraform + CI/CD + APIOps**
+6. **Integration Security Architecture**
+7. **AI Gateway + MCP**
+8. **Healthcare Integration**
 
 ---
 
 ## Updating the Site
 
-After changing or adding study pages:
+GitHub Pages publishes the files that are actually committed to the configured publishing branch.
+
+For every published topic, the repository must contain the topic folder and its `index.html`. For example:
+
+```text
+functions/index.html
+observability/index.html
+```
+
+A README link does not create a GitHub Pages route. If the folder is missing from the repository, a URL such as `/functions/` returns 404.
+
+Before pushing a new topic, verify the files exist locally:
+
+```powershell
+Test-Path .\functions\index.html
+Test-Path .\observability\index.html
+```
+
+Both commands should return `True`.
+
+Then stage the README and topic folders explicitly:
 
 ```powershell
 git status
-git add .
-git commit -m "Update Azure architecture study notes"
-git push
+git add README.md functions observability
+git status
+git commit -m "Add observability notes and publish Functions pages"
+git push origin main
 ```
 
-GitHub Pages publishes from the `main` branch.
+After the push, verify Git is tracking the published paths:
+
+```powershell
+git ls-tree -r --name-only HEAD | Select-String "^(functions|observability)/"
+```
+
+Expected published URLs:
+
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/functions/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/functions/azure-functions-reference/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/functions/azure-functions-feynman/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/observability/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/observability/azure-observability-reference/**
+- **https://ksashoukathali.github.io/azure-architecture-study-notes/observability/azure-observability-feynman/**
 
 Live site:
 
