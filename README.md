@@ -75,6 +75,45 @@ Feynman questions used throughout the Logic Apps section:
 
 ---
 
+## Azure API Management
+
+- **[Azure API Management - All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/apim/)**
+- **[Azure API Management - Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/apim/azure-api-management-reference/)**
+- **[Azure API Management - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/apim/azure-api-management-feynman/)**
+
+The APIM material covers:
+
+- gateway, management plane, developer portal, and self-hosted gateway
+- APIs, operations, products, subscriptions, and subscription keys
+- caller authentication vs APIM-to-backend authentication
+- OAuth2 / OpenID Connect / JWT validation
+- managed identity for backend access
+- policy execution: inbound, backend, outbound, and on-error
+- policy scopes, `<base />`, fragments, expressions, and `context.*`
+- routing, backend URLs, `rewrite-uri`, and `set-backend-service`
+- rate limiting vs quotas
+- backend pools and circuit breakers
+- caching and external Redis-compatible cache
+- versions vs revisions
+- named values and Key Vault integration
+- Application Insights, diagnostics, correlation, and tracing
+- Private Endpoint, VNet Integration, and VNet Injection
+- classic vs v2 tier architecture
+- internal-mode DNS, NSGs, UDRs, forced tunneling, and self-call behavior
+- OpenAPI onboarding and Terraform/IaC considerations
+- workspaces and delegated API governance
+- boundaries between APIM and B2B / messaging integration workloads
+
+Feynman questions used throughout the APIM section:
+
+> **Who may call?**  
+> **Where does the request go?**  
+> **What changes in flight?**  
+> **How much traffic and failure is safe?**  
+> **How do I know what actually happened?**
+
+---
+
 ## Repository Structure
 
 ```text
@@ -105,8 +144,14 @@ azure-architecture-study-notes/
 │   └── azure-logic-apps-feynman/
 │       └── index.html
 │
-├── private-endpoint/
 ├── apim/
+│   ├── index.html
+│   ├── azure-api-management-reference/
+│   │   └── index.html
+│   └── azure-api-management-feynman/
+│       └── index.html
+│
+├── private-endpoint/
 ├── aks-identity/
 └── terraform/
 ```
@@ -163,12 +208,14 @@ Live site:
 
 Future sections can follow the same Reference + Feynman pattern:
 
-- Azure API Management
-- Private Endpoint / Private Link deep dive
 - Azure Service Bus
+- Private Endpoint / Private Link deep dive
 - AKS identity and networking
 - Terraform for Azure architecture
 - Azure security architecture
 - traffic management and load balancing
 - outbound connectivity, SNAT, NAT Gateway, and Azure Firewall
+- APIM AI Gateway and MCP
+- APIOps / CI-CD
+- APIM multi-region and disaster recovery
 - message-level security and enterprise integration patterns
