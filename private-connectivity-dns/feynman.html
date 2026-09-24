@@ -81,19 +81,19 @@ details p{margin:0;padding:0 16px 14px;border-top:1px solid var(--line);padding-
 </header>
 
 <div class="big">
-  <b>The whole idea in one breath:</b> every PaaS service is public by default. Your VNet is a private zone.
+  <b>The whole idea in one breath:</b> most PaaS services are public by default. Your VNet is a private zone.
   Private connectivity is just the handful of ways to pull a service into that zone. DNS is what makes the calls actually go there.
 </div>
 
 <h2>1. Start with the problem: PaaS is public</h2>
 <p>Service Bus, SQL Database, Key Vault, Storage, your Logic App. Each one ships with a public hostname like
 <code>mynamespace.servicebus.windows.net</code>. Anyone on the internet can reach the front door.</p>
-<p>So what stops them? Only identity. A key, a token, a connection string. That's one wall.
+<p>So what stops them? Mostly identity - a key, a token, a connection string - plus any IP firewall rules you add. That's one wall.
 And credentials leak - into Git repos, logs, laptops. When that happens, a public endpoint is an open door.</p>
 <p>You don't strictly <i>need</i> a VNet. Everything works over public endpoints. You add one for a <b>second wall</b>:</p>
 <div class="card">
   <b>Identity</b> decides <i>who</i> can use a service. <b>The network</b> decides <i>where</i> they can reach it from.
-  With both, a stolen key alone is useless from the internet. In healthcare, compliance usually makes this non-negotiable.
+  With both, a stolen key alone is useless from the internet. In healthcare, organizations often make this a hard requirement.
 </div>
 
 <h2>2. The VNet: your private zone</h2>
@@ -103,7 +103,7 @@ and control traffic with NSGs and routes. Think of your old datacenter network, 
 The answer depends on one thing you might not expect - whether the service is shared or dedicated.</p>
 
 <h2>3. The spine: shared or dedicated?</h2>
-<p>This one question predicts almost everything - the networking pattern, the cost, even how long provisioning takes.</p>
+<p>This one question explains almost everything - the networking pattern, the cost, even how long provisioning takes.</p>
 <div class="grid">
   <div class="card">
     <b class="inb">Shared</b><br>
@@ -118,7 +118,8 @@ The answer depends on one thing you might not expect - whether the service is sh
   </div>
 </div>
 <p>Notice "PaaS" never came up. PaaS only tells you who patches the servers. It says nothing about the network.</p>
-<p>Dedicated is the easy case. It's injected, and it's private both ways. Shared services take more work, because they stay outside and need a way in. That's next.</p>
+<p>The spine tells you <i>why</i>. The tier's docs tell you <i>what</i> is actually supported - confirm there before you design.</p>
+<p>Dedicated is the easy case. It's injected - and in internal mode, private both ways (external mode still keeps a public gateway). Shared services take more work, because they stay outside and need a way in. That's next.</p>
 
 <h2>4. For shared services, direction decides</h2>
 <p>Ask one thing: <b>who calls whom?</b></p>
@@ -135,8 +136,8 @@ The answer depends on one thing you might not expect - whether the service is sh
 <p>Service Bus is a mailbox. It never calls anyone - so it only ever needs a private endpoint
 (same for Key Vault, Storage, SQL Database, Cosmos DB, Event Hubs).
 Your Logic App gets called by APIM <i>and</i> calls Service Bus. So it needs both.</p>
-<p><b>One exception:</b> Event Grid is a caller, but it has no VNet integration. It can't deliver into your VNet.
-It delivers to services like Service Bus using managed identity, through their trusted Microsoft services exception - over the public endpoint, not the private one
+<p><b>One exception:</b> Event Grid is a caller, but it has no VNet integration for delivery. It can't deliver into your VNet. (Publishing <i>to</i> Event Grid can use a private endpoint - that's the inbound side.)
+One supported design: it delivers to services like Service Bus using managed identity, through their trusted Microsoft services exception - over the public endpoint, not the private one
 (that endpoint stays closed to everyone else - the firewall lets Event Grid through only because it's a trusted Microsoft service and proves itself with a managed identity).</p>
 <div class="card x">
   <b class="bad">Trap:</b> VNet integration alone does not make an app private. The app keeps its public endpoint.
@@ -203,6 +204,7 @@ Public access is off, so the call fails - even though the private endpoint is si
   <text class="ti" x="297" y="190">1</text>
   <path class="ai dash" d="M225,125 C195,130 185,165 167,175"/>
   <text class="ti" x="180" y="140">2</text>
+  <text class="o" x="98" y="242">outbound via</text><text class="o" x="98" y="258">VNet integration</text>
   <path class="ao" d="M90,220 L90,355 L470,355 L470,314"/>
   <text class="to" x="250" y="348">3  VNet integration (outbound)</text>
   <path class="ao" d="M465,195 L465,154"/>
@@ -217,7 +219,7 @@ Public access is off, so the call fails - even though the private endpoint is si
 <b class="outb">3-4</b> The Logic App's outbound call enters the VNet through the integration subnet.
 DNS returns <code>10.0.2.5</code>, so <b class="inb">5</b> it lands on Service Bus through its private endpoint.</p>
 <div class="card x">
-  <b class="bad">Easy to miss:</b> the Logic App's own storage account holds workflow state. Lock it down without private endpoints and DNS for it,
+  <b class="bad">Easy to miss:</b> the Logic App's own storage account holds workflow state, across four endpoints: blob, file, queue, and table. Lock it down without private endpoints and DNS for it,
   and the Logic App won't even start. Also: Service Bus private endpoints need the Premium tier.
 </div>
 
@@ -225,14 +227,15 @@ DNS returns <code>10.0.2.5</code>, so <b class="inb">5</b> it lands on Service B
 <div class="card">
   <b>1. Shared or dedicated?</b> Injection, or private endpoint + integration. Also tells you rough cost and deploy time.<br>
   <b>2. Who calls whom?</b> Receiver gets a private endpoint. Caller gets integration. Both directions, both.<br>
-  <b>3. How does the name resolve?</b> No private DNS zone, no private traffic.
+  <b>3. How does the name resolve?</b> No private DNS zone, no private traffic.<br><br>
+  The network gets you to the door. Identity decides whether it opens - APIM still needs permission to call the Logic App, and the Logic App still needs a role to send to Service Bus.
 </div>
 
 <h2>8. Words that get mixed up</h2>
 <div class="tbl"><table>
   <tr><th>Term</th><th>Meaning</th><th>Example</th></tr>
   <tr><td>Deployed into a subnet</td><td>IaaS, native to the VNet</td><td>VMs, AKS nodes</td></tr>
-  <tr><td class="inj">VNet injection</td><td>Dedicated PaaS placed inside your subnet, both directions private</td><td>Classic APIM, ASE v3, SQL MI</td></tr>
+  <tr><td class="inj">VNet injection</td><td>Dedicated PaaS placed inside your subnet (fully private in internal mode)</td><td>Classic APIM, ASE v3, SQL MI</td></tr>
   <tr><td class="inb">Private endpoint</td><td>Shared PaaS gets a private IP in your subnet (inbound)</td><td>Service Bus, SQL DB, Key Vault</td></tr>
   <tr><td class="outb">VNet integration</td><td>Shared PaaS sends its calls out through your subnet (outbound)</td><td>Logic Apps, Functions, APIM Standard v2</td></tr>
 </table></div>
@@ -251,4 +254,5 @@ ASE v3 gives you the whole stamp, so it can be injected.</p></details>
 </div>
 </body>
 </html>
+
 
