@@ -7,6 +7,8 @@ The notes are organized in two complementary styles:
 - **Reference Notes** - concise architecture reference for quick lookup.
 - **Feynman Way of Understanding** - first-principles explanations focused on mechanisms, tradeoffs, failure modes, and rebuilding the concept from fundamentals.
 
+All pages share one clean, readable style (IBM Plex, light and dark mode), and every diagram is inlined in the page.
+
 ---
 
 ## 🌐 Live Study Site
@@ -69,6 +71,41 @@ Core mental model:
 > **Name -> Address -> Route -> Allow**
 
 Topics include VNets, CIDR, subnets, routing, NSGs, VNet peering, service endpoints, private endpoints, Private Link, private DNS, DNS Private Resolver, APIM networking modes, hybrid DNS, network policies, UDRs, and troubleshooting.
+
+---
+
+## Private Connectivity & DNS
+
+- **[Private Connectivity & DNS - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/private-connectivity-dns/feynman.html)**
+
+Reference notes come next (see Roadmap).
+
+Core mental model:
+
+> **Most PaaS services are public by default. Your VNet is a private zone.**  
+> **Private connectivity is the handful of ways to pull a service into that zone. DNS makes the calls actually go there.**
+
+Three questions for any service:
+
+> **Shared or dedicated?** -> injection, or private endpoint + VNet integration  
+> **Who calls whom?** -> the receiver gets a private endpoint, the caller gets VNet integration  
+> **How does the name resolve?** -> no private DNS zone, no private traffic
+
+The Feynman page covers:
+
+- why PaaS is public by default, and why a VNet adds a second wall beside identity
+- shared vs dedicated services as the reason behind each networking option
+- VNet injection, private endpoints, and VNet integration, and which direction each one covers
+- why VNet integration alone does not make an app private
+- private DNS zones, and why DNS is the usual failure point
+- the APIM -> Logic App -> Service Bus path walked end to end
+- Logic Apps Standard storage dependencies (blob, file, queue, table)
+- the Event Grid delivery exception and trusted Microsoft services
+- vocabulary: deployed into a subnet vs injected vs private endpoint vs VNet integration
+
+Key model:
+
+> **The network gets you to the door. Identity decides whether it opens.**
 
 ---
 
@@ -419,8 +456,9 @@ azure-architecture-study-notes/
 ├── rx-integration-lab/
 │   └── index.html
 │
-├── private-connectivity-dns/   (placeholder)
-│   └── index.html
+├── private-connectivity-dns/
+│   ├── index.html
+│   └── feynman.html
 ├── workload-identity/          (placeholder)
 │   └── index.html
 └── terraform-cicd/             (placeholder)
@@ -462,7 +500,7 @@ The goal is to be able to answer:
 
 ### Next
 
-1. **Private Connectivity & DNS**
+1. **Private Connectivity & DNS - Reference Notes** (Feynman page done)
    - Private Endpoint vs VNet Integration
    - Private Link
    - private DNS zones
@@ -485,39 +523,15 @@ The goal is to be able to answer:
 
 ## Updating the Site
 
-GitHub Pages publishes the files that are actually committed to the configured publishing branch.
-
-For the Rx Integration Lab and the updated hub, verify the files exist locally:
-
-```powershell
-Test-Path .\index.html
-Test-Path .\rx-integration-lab\index.html
-```
-
-Both commands should return `True`.
-
-Then stage the hub, the README, and the new folder explicitly:
+GitHub Pages publishes what is committed to `main`. After any change:
 
 ```powershell
 git status
-git add index.html README.md rx-integration-lab
-git status
+git add -A
 git diff --cached --name-status
-git commit -m "Add Rx Integration Lab"
+git commit -m "Describe the change"
 git push origin main
 ```
-
-After the push, verify Git is tracking the published paths:
-
-```powershell
-git ls-tree -r --name-only HEAD | Select-String "^rx-integration-lab/"
-```
-
-Expected published URLs:
-
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/**
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/interview-prep/**
-- **https://ksashoukathali.github.io/azure-architecture-study-notes/rx-integration-lab/**
 
 Live site:
 
