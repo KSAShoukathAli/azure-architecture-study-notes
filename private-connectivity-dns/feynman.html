@@ -1,0 +1,254 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Private Connectivity and DNS - Feynman Page</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF2F1; --card:#FFFFFF; --ink:#1D2B36; --muted:#5A6B77; --line:#C6D0D5;
+  --accent:#0F6E6A; --soft:#DDEFEC; --warn:#9A5B00; --warn-soft:#F6E9D3; --code:#E6ECEB;
+  --green:#2E7D4F; --green-soft:#DDF0E3; --bad:#A33A2E; --bad-soft:#F7E1DD;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11191E; --card:#18242B; --ink:#E1E9ED; --muted:#98A9B3; --line:#33444E;
+    --accent:#5EC3B9; --soft:#15352F; --warn:#E3AA52; --warn-soft:#382B17; --code:#0F1A1F;
+    --green:#7CCB95; --green-soft:#1B3324; --bad:#E8897E; --bad-soft:#3A1F1C;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11191E; --card:#18242B; --ink:#E1E9ED; --muted:#98A9B3; --line:#33444E;
+  --accent:#5EC3B9; --soft:#15352F; --warn:#E3AA52; --warn-soft:#382B17; --code:#0F1A1F;
+  --green:#7CCB95; --green-soft:#1B3324; --bad:#E8897E; --bad-soft:#3A1F1C;
+}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:40px 20px 80px}
+header h1{font:600 2.1rem/1.15 'IBM Plex Serif',Georgia,serif;margin:0 0 10px;letter-spacing:-0.01em}
+header p{color:var(--muted);max-width:65ch;margin:0 0 24px}
+h2{font:600 1.35rem/1.3 'IBM Plex Serif',Georgia,serif;margin:44px 0 10px;padding-top:6px;border-top:2px solid var(--ink)}
+p{max-width:72ch}
+.big{background:var(--soft);border-left:4px solid var(--accent);border-radius:4px;padding:14px 18px;font-size:1.05rem}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:4px;padding:12px 16px;margin:12px 0}
+.card.o{border-left-color:var(--warn)}
+.card.g{border-left-color:var(--green)}
+.card.x{border-left-color:var(--bad);background:var(--bad-soft)}
+.card small{color:var(--muted);display:block;margin-top:6px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:700px){.grid{grid-template-columns:1fr}}
+.inb{color:var(--accent)} .outb{color:var(--warn)} .inj{color:var(--green)} .bad{color:var(--bad)}
+code{font:0.88em 'IBM Plex Mono',ui-monospace,Consolas,monospace;background:var(--code);padding:1px 5px;border-radius:3px}
+.tbl{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:0.92rem;min-width:520px}
+th,td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--line)}
+th{font-weight:600;border-bottom:2px solid var(--ink)}
+figure{margin:18px 0;overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:10px}
+figure svg{display:block;width:100%;min-width:640px;height:auto}
+.dg text{fill:var(--ink);font:13px 'IBM Plex Sans',system-ui,sans-serif}
+.dg text.s{fill:var(--muted);font-size:11.5px}
+.dg text.h{font-weight:600}
+.dg text.ti{fill:var(--accent);font-weight:600}
+.dg text.to{fill:var(--warn);font-weight:600}
+.dg text.o{fill:var(--warn)}
+.dg .zone{fill:none;stroke:var(--muted);stroke-width:1.4;stroke-dasharray:7 5}
+.dg .sub{fill:var(--bg);stroke:var(--line);stroke-width:1.2}
+.dg .box{fill:var(--card);stroke:var(--ink);stroke-width:1.3}
+.dg .pe{fill:var(--soft);stroke:var(--accent);stroke-width:1.5}
+.dg .ij{fill:var(--green-soft);stroke:var(--green);stroke-width:1.5}
+.dg .ai{stroke:var(--accent);stroke-width:2;fill:none;marker-end:url(#mi)}
+.dg .ai.dash{stroke-dasharray:5 4}
+.dg .ao{stroke:var(--warn);stroke-width:2;fill:none;marker-end:url(#mo)}
+.dg .link{stroke:var(--muted);stroke-width:1.4;stroke-dasharray:3 4;fill:none}
+.dg .mfi{fill:var(--accent)} .dg .mfo{fill:var(--warn)}
+details{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:4px;margin:10px 0}
+summary{list-style:none;cursor:pointer;padding:12px 16px;display:flex;gap:14px;align-items:baseline;font:500 1rem/1.45 'IBM Plex Serif',Georgia,serif}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";margin-left:auto;color:var(--muted);font-size:1.2rem;line-height:1}
+details[open] summary::after{content:"-"}
+details p{margin:0;padding:0 16px 14px;border-top:1px solid var(--line);padding-top:10px}
+@media (max-width:600px){header h1{font-size:1.7rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Private Connectivity and DNS</h1>
+  <p>Feynman page - derive it from the problem, not the product names.</p>
+</header>
+
+<div class="big">
+  <b>The whole idea in one breath:</b> every PaaS service is public by default. Your VNet is a private zone.
+  Private connectivity is just the handful of ways to pull a service into that zone. DNS is what makes the calls actually go there.
+</div>
+
+<h2>1. Start with the problem: PaaS is public</h2>
+<p>Service Bus, SQL Database, Key Vault, Storage, your Logic App. Each one ships with a public hostname like
+<code>mynamespace.servicebus.windows.net</code>. Anyone on the internet can reach the front door.</p>
+<p>So what stops them? Only identity. A key, a token, a connection string. That's one wall.
+And credentials leak - into Git repos, logs, laptops. When that happens, a public endpoint is an open door.</p>
+<p>You don't strictly <i>need</i> a VNet. Everything works over public endpoints. You add one for a <b>second wall</b>:</p>
+<div class="card">
+  <b>Identity</b> decides <i>who</i> can use a service. <b>The network</b> decides <i>where</i> they can reach it from.
+  With both, a stolen key alone is useless from the internet. In healthcare, compliance usually makes this non-negotiable.
+</div>
+
+<h2>2. The VNet: your private zone</h2>
+<p>A VNet is your own isolated network in Azure. You pick a private range (say <code>10.0.0.0/16</code>), cut it into subnets,
+and control traffic with NSGs and routes. Think of your old datacenter network, rebuilt in software.</p>
+<p>Here's the catch. PaaS services live <i>outside</i> it. So the real question is: how do you pull them in?
+The answer depends on one thing you might not expect - whether the service is shared or dedicated.</p>
+
+<h2>3. The spine: shared or dedicated?</h2>
+<p>This one question predicts almost everything - the networking pattern, the cost, even how long provisioning takes.</p>
+<div class="grid">
+  <div class="card">
+    <b class="inb">Shared</b><br>
+    Microsoft's machines serve many customers at once. They can't be moved into <i>your</i> subnet.
+    So you connect with a private endpoint and VNet integration.
+    <small>Service Bus, SQL Database, Key Vault, Storage, Logic Apps on WS plans, APIM v2. Fast to create. Cheap to start.</small>
+  </div>
+  <div class="card g">
+    <b class="inj">Dedicated</b><br>
+    The machines are yours alone. So Microsoft can place them inside your subnet. That's <b>VNet injection</b>.
+    <small>Classic APIM (Developer, Premium), ASE v3, SQL Managed Instance, Databricks. Slow to create. Higher starting cost.</small>
+  </div>
+</div>
+<p>Notice "PaaS" never came up. PaaS only tells you who patches the servers. It says nothing about the network.</p>
+<p>Dedicated is the easy case. It's injected, and it's private both ways. Shared services take more work, because they stay outside and need a way in. That's next.</p>
+
+<h2>4. For shared services, direction decides</h2>
+<p>Ask one thing: <b>who calls whom?</b></p>
+<div class="grid">
+  <div class="card">
+    <b class="inb">The receiver needs a private endpoint.</b><br>
+    It gets a private IP in your subnet. Callers inside the VNet reach it there. Turn off public access and it disappears from the internet.
+  </div>
+  <div class="card o">
+    <b class="outb">The caller needs VNet integration.</b><br>
+    Its outbound traffic leaves through your subnet, so it can reach private IPs. Outbound only.
+  </div>
+</div>
+<p>Service Bus is a mailbox. It never calls anyone - so it only ever needs a private endpoint
+(same for Key Vault, Storage, SQL Database, Cosmos DB, Event Hubs).
+Your Logic App gets called by APIM <i>and</i> calls Service Bus. So it needs both.</p>
+<p><b>One exception:</b> Event Grid is a caller, but it has no VNet integration. It can't deliver into your VNet.
+It delivers to services like Service Bus using managed identity, through their trusted Microsoft services exception - over the public endpoint, not the private one
+(that endpoint stays closed to everyone else - the firewall lets Event Grid through only because it's a trusted Microsoft service and proves itself with a managed identity).</p>
+<div class="card x">
+  <b class="bad">Trap:</b> VNet integration alone does not make an app private. The app keeps its public endpoint.
+  You opened a door out and left the front door facing the internet.
+  To close it, add a private endpoint and disable public network access - a separate, inbound step.
+</div>
+
+<h2>5. DNS: the part that actually breaks</h2>
+<p>Your Logic App calls a <i>name</i>, not an IP. By default that name resolves to the public IP.
+Public access is off, so the call fails - even though the private endpoint is sitting right there.</p>
+<p>The fix is a <b>Private DNS Zone</b> linked to the VNet, so the same name returns the private IP from inside:</p>
+<div class="tbl"><table>
+  <tr><th>Service</th><th>Private DNS zone</th></tr>
+  <tr><td>Service Bus</td><td><code>privatelink.servicebus.windows.net</code></td></tr>
+  <tr><td>SQL Database</td><td><code>privatelink.database.windows.net</code></td></tr>
+  <tr><td>Key Vault</td><td><code>privatelink.vaultcore.azure.net</code></td></tr>
+  <tr><td>Logic App / App Service</td><td><code>privatelink.azurewebsites.net</code></td></tr>
+  <tr><td>Storage (blob)</td><td><code>privatelink.blob.core.windows.net</code></td></tr>
+</table></div>
+<p>When something can't connect, check DNS first. It's usually DNS.</p>
+
+<h2>6. Walk your pipeline</h2>
+<figure>
+<svg class="dg" viewBox="0 0 760 390" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="mi" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path class="mfi" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="mo" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path class="mfo" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <rect class="zone" x="190" y="40" width="380" height="290" rx="14"/>
+  <text class="h" x="200" y="30">Your VNet 10.0.0.0/16</text>
+
+  <rect class="sub" x="210" y="70" width="340" height="95" rx="8"/>
+  <text class="s" x="218" y="86">pe-subnet</text>
+  <rect class="pe" x="225" y="95" width="130" height="55" rx="6"/>
+  <text class="h" x="235" y="118">PE: Logic App</text><text class="s" x="235" y="137">10.0.2.4</text>
+  <rect class="pe" x="395" y="95" width="140" height="55" rx="6"/>
+  <text class="h" x="405" y="118">PE: Service Bus</text><text class="s" x="405" y="137">10.0.2.5</text>
+
+  <rect class="sub" x="210" y="195" width="160" height="115" rx="8"/>
+  <text class="s" x="218" y="211">apim-subnet</text>
+  <rect class="ij" x="225" y="222" width="130" height="70" rx="6"/>
+  <text class="h" x="237" y="246">APIM</text><text class="s" x="237" y="265">injected,</text><text class="s" x="237" y="281">Internal mode</text>
+
+  <rect class="sub" x="390" y="195" width="160" height="115" rx="8"/>
+  <text class="s" x="398" y="211">integration-subnet</text>
+  <text class="o" x="405" y="250">Logic App's</text>
+  <text class="o" x="405" y="268">outbound calls</text>
+  <text class="o" x="405" y="286">leave from here</text>
+
+  <rect class="box" x="15" y="145" width="150" height="75" rx="8"/>
+  <text class="h" x="25" y="169">Logic App Standard</text><text class="s" x="25" y="188">WS plan</text><text class="s" x="25" y="204">shared platform</text>
+
+  <rect class="box" x="605" y="80" width="140" height="65" rx="8"/>
+  <text class="h" x="615" y="104">Service Bus</text><text class="s" x="615" y="123">Premium, public off</text>
+
+  <rect class="box" x="605" y="225" width="140" height="95" rx="8"/>
+  <text class="h" x="615" y="247">Private DNS zones</text>
+  <text class="s" x="615" y="268">- servicebus (SB)</text>
+  <text class="s" x="615" y="286">- azurewebsites (LA)</text>
+  <text class="s" x="615" y="304">- storage x4 (LA state)</text>
+
+  <path class="ai" d="M290,222 L290,154"/>
+  <text class="ti" x="297" y="190">1</text>
+  <path class="ai dash" d="M225,125 C195,130 185,165 167,175"/>
+  <text class="ti" x="180" y="140">2</text>
+  <path class="ao" d="M90,220 L90,355 L470,355 L470,314"/>
+  <text class="to" x="250" y="348">3  VNet integration (outbound)</text>
+  <path class="ao" d="M465,195 L465,154"/>
+  <text class="to" x="446" y="180">4</text>
+  <path class="ai dash" d="M535,122 L602,112"/>
+  <text class="ti" x="560" y="108">5</text>
+  <path class="link" d="M605,262 L573,262"/>
+  <text class="s" x="576" y="252">linked</text>
+</svg>
+</figure>
+<p><b class="inb">1-2</b> APIM lives in your subnet, so it calls the Logic App's private endpoint directly. <code>privatelink.azurewebsites.net</code> resolves the Logic App's name to <code>10.0.2.4</code>.
+<b class="outb">3-4</b> The Logic App's outbound call enters the VNet through the integration subnet.
+DNS returns <code>10.0.2.5</code>, so <b class="inb">5</b> it lands on Service Bus through its private endpoint.</p>
+<div class="card x">
+  <b class="bad">Easy to miss:</b> the Logic App's own storage account holds workflow state. Lock it down without private endpoints and DNS for it,
+  and the Logic App won't even start. Also: Service Bus private endpoints need the Premium tier.
+</div>
+
+<h2>7. Three questions for any service</h2>
+<div class="card">
+  <b>1. Shared or dedicated?</b> Injection, or private endpoint + integration. Also tells you rough cost and deploy time.<br>
+  <b>2. Who calls whom?</b> Receiver gets a private endpoint. Caller gets integration. Both directions, both.<br>
+  <b>3. How does the name resolve?</b> No private DNS zone, no private traffic.
+</div>
+
+<h2>8. Words that get mixed up</h2>
+<div class="tbl"><table>
+  <tr><th>Term</th><th>Meaning</th><th>Example</th></tr>
+  <tr><td>Deployed into a subnet</td><td>IaaS, native to the VNet</td><td>VMs, AKS nodes</td></tr>
+  <tr><td class="inj">VNet injection</td><td>Dedicated PaaS placed inside your subnet, both directions private</td><td>Classic APIM, ASE v3, SQL MI</td></tr>
+  <tr><td class="inb">Private endpoint</td><td>Shared PaaS gets a private IP in your subnet (inbound)</td><td>Service Bus, SQL DB, Key Vault</td></tr>
+  <tr><td class="outb">VNet integration</td><td>Shared PaaS sends its calls out through your subnet (outbound)</td><td>Logic Apps, Functions, APIM Standard v2</td></tr>
+</table></div>
+
+<h2>9. Test yourself</h2>
+<details><summary>Service Bus and Logic App are both PaaS. Why does one need integration and the other doesn't?</summary>
+<p>Direction. Logic App calls out, so it needs integration. Service Bus only receives, so a private endpoint is enough.</p></details>
+<details><summary>Logic Apps Standard is "single-tenant." So why can't a WS plan be injected?</summary>
+<p>Single-tenant means your own runtime and workers. But they sit on a shared App Service stamp whose front ends and network Microsoft owns.
+ASE v3 gives you the whole stamp, so it can be injected.</p></details>
+<details><summary>Why did your classic APIM take so long to create?</summary>
+<p>It's dedicated. Microsoft built VMs, a load balancer, and networking just for you, inside your subnet. Shared services just carve out a slice.</p></details>
+<details><summary>Private endpoint exists, public access is off, call still fails. First check?</summary>
+<p>DNS. The name is probably still resolving to the public IP.</p></details>
+
+</div>
+</body>
+</html>
+
