@@ -76,9 +76,9 @@ Topics include VNets, CIDR, subnets, routing, NSGs, VNet peering, service endpoi
 
 ## Private Connectivity & DNS
 
-- **[Private Connectivity & DNS - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/private-connectivity-dns/feynman.html)**
-
+- **[Private Connectivity & DNS - All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/private-connectivity-dns/)**
 - **[Private Connectivity & DNS - Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/private-connectivity-dns/private-connectivity-dns-reference/)**
+- **[Private Connectivity & DNS - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/private-connectivity-dns/private-connectivity-dns-feynman/)**
 
 Core mental model:
 
@@ -458,7 +458,10 @@ azure-architecture-study-notes/
 │
 ├── private-connectivity-dns/
 │   ├── index.html
-│   └── feynman.html
+│   ├── private-connectivity-dns-reference/
+│   │   └── index.html
+│   └── private-connectivity-dns-feynman/
+│       └── index.html
 ├── workload-identity/          (placeholder)
 │   └── index.html
 └── terraform-cicd/             (placeholder)
