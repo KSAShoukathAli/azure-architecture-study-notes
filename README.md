@@ -78,7 +78,7 @@ Topics include VNets, CIDR, subnets, routing, NSGs, VNet peering, service endpoi
 
 - **[Private Connectivity & DNS - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/private-connectivity-dns/feynman.html)**
 
-Reference notes come next (see Roadmap).
+- **[Private Connectivity & DNS - Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/private-connectivity-dns/private-connectivity-dns-reference/)**
 
 Core mental model:
 
@@ -500,7 +500,7 @@ The goal is to be able to answer:
 
 ### Next
 
-1. **Private Connectivity & DNS - Reference Notes** (Feynman page done)
+1. **Private Connectivity & DNS** - done (Feynman + Reference)
    - Private Endpoint vs VNet Integration
    - Private Link
    - private DNS zones

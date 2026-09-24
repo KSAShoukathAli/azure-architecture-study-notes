@@ -1,0 +1,321 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Private Connectivity and DNS - Reference Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF2F1; --card:#FFFFFF; --ink:#1D2B36; --muted:#5A6B77; --line:#C6D0D5;
+  --accent:#0F6E6A; --soft:#DDEFEC; --warn:#9A5B00; --warn-soft:#F6E9D3; --code:#E6ECEB;
+  --green:#2E7D4F; --green-soft:#DDF0E3; --bad:#A33A2E; --bad-soft:#F7E1DD;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11191E; --card:#18242B; --ink:#E1E9ED; --muted:#98A9B3; --line:#33444E;
+    --accent:#5EC3B9; --soft:#15352F; --warn:#E3AA52; --warn-soft:#382B17; --code:#0F1A1F;
+    --green:#7CCB95; --green-soft:#1B3324; --bad:#E8897E; --bad-soft:#3A1F1C;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11191E; --card:#18242B; --ink:#E1E9ED; --muted:#98A9B3; --line:#33444E;
+  --accent:#5EC3B9; --soft:#15352F; --warn:#E3AA52; --warn-soft:#382B17; --code:#0F1A1F;
+  --green:#7CCB95; --green-soft:#1B3324; --bad:#E8897E; --bad-soft:#3A1F1C;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:36px 20px 80px}
+.back{font:13px 'IBM Plex Mono',monospace;color:var(--accent);text-decoration:none}
+header h1{font:600 2.1rem/1.15 'IBM Plex Serif',Georgia,serif;margin:10px 0 10px;letter-spacing:-0.01em}
+header p{color:var(--muted);max-width:70ch;margin:0 0 20px}
+h2{font:600 1.35rem/1.3 'IBM Plex Serif',Georgia,serif;margin:46px 0 10px;padding-top:8px;border-top:2px solid var(--ink)}
+h3{font:600 1.05rem/1.3 'IBM Plex Serif',Georgia,serif;margin:22px 0 6px}
+p,li{max-width:78ch}
+a{color:var(--accent)}
+.big{background:var(--soft);border-left:4px solid var(--accent);border-radius:4px;padding:14px 18px}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:12px 16px;margin:16px 0;font-size:.95rem}
+.toc a{text-decoration:none;margin-right:6px;white-space:nowrap}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:4px;padding:12px 16px;margin:12px 0}
+.card.o{border-left-color:var(--warn)}
+.card.g{border-left-color:var(--green)}
+.card.x{border-left-color:var(--bad);background:var(--bad-soft)}
+.inb{color:var(--accent)} .outb{color:var(--warn)} .inj{color:var(--green)} .bad{color:var(--bad)}
+code{font:0.86em 'IBM Plex Mono',ui-monospace,Consolas,monospace;background:var(--code);padding:1px 5px;border-radius:3px;white-space:nowrap}
+pre{background:var(--code);border-radius:4px;padding:12px 14px;overflow-x:auto;font:13px/1.55 'IBM Plex Mono',ui-monospace,Consolas,monospace}
+pre code{background:none;padding:0;white-space:pre}
+.tbl{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:0.9rem;min-width:640px;background:var(--card)}
+th,td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--line)}
+th{font-weight:600;border-bottom:2px solid var(--ink)}
+figure{margin:18px 0;overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:10px}
+figure svg{display:block;width:100%;min-width:660px;height:auto}
+figcaption{color:var(--muted);font-size:.88rem;padding:4px 6px 0}
+.dg text{fill:var(--ink);font:13px 'IBM Plex Sans',system-ui,sans-serif}
+.dg text.s{fill:var(--muted);font:11.5px 'IBM Plex Mono',ui-monospace,monospace}
+.dg text.h{font-weight:600}
+.dg text.ti{fill:var(--accent);font-weight:600}
+.dg text.to{fill:var(--warn);font-weight:600}
+.dg .zone{fill:none;stroke:var(--muted);stroke-width:1.4;stroke-dasharray:7 5}
+.dg .box{fill:var(--card);stroke:var(--ink);stroke-width:1.3}
+.dg .pe{fill:var(--soft);stroke:var(--accent);stroke-width:1.5}
+.dg .ob{fill:var(--warn-soft);stroke:var(--warn);stroke-width:1.5}
+.dg .ai{stroke:var(--accent);stroke-width:2;fill:none;marker-end:url(#mi)}
+.dg .ao{stroke:var(--warn);stroke-width:2;fill:none;marker-end:url(#mo)}
+.dg .an{stroke:var(--muted);stroke-width:1.6;fill:none;marker-end:url(#mn)}
+.dg .dash{stroke-dasharray:5 4}
+.dg .mfi{fill:var(--accent)} .dg .mfo{fill:var(--warn)} .dg .mfn{fill:var(--muted)}
+footer{margin-top:50px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);padding-top:10px}
+@media (max-width:600px){header h1{font-size:1.7rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <a class="back" href="../feynman.html">&larr; Private Connectivity &amp; DNS - Feynman page</a>
+  <h1>Private Connectivity and DNS</h1>
+  <p>Reference notes - for lookup when you design or troubleshoot. The Feynman page builds the model; this page holds the details, tier limits, and failure modes.</p>
+</header>
+
+<div class="big">
+  <b>The model in one line:</b> pick the connection option the service and tier support, make sure the name resolves to the private IP from wherever the caller sits, then check the caller has permission.
+  Placement, direction, DNS, identity - in that order.
+</div>
+
+<nav class="toc">
+  <b>Jump to:</b>
+  <a href="#options">1 Options</a> <a href="#matrix">2 Service matrix</a> <a href="#pe">3 Private endpoint</a>
+  <a href="#vi">4 VNet integration</a> <a href="#public">5 Public access controls</a> <a href="#dns">6 Private DNS</a>
+  <a href="#hub">7 Hub-spoke DNS</a> <a href="#hybrid">8 Hybrid DNS</a> <a href="#eg">9 Event Grid</a>
+  <a href="#fail">10 Failure modes</a> <a href="#cmd">11 Commands</a>
+</nav>
+
+<h2 id="options">1. The connection options at a glance</h2>
+<div class="tbl"><table>
+  <tr><th>Option</th><th>Direction</th><th>What it gives you</th><th>Public endpoint after?</th><th>Typical services</th></tr>
+  <tr><td class="inb"><b>Private endpoint</b> (Private Link)</td><td>Inbound to the service</td><td>A NIC with a private IP in your subnet, mapped to one service instance</td><td>Still on until you disable public access</td><td>Storage, Key Vault, SQL DB, Cosmos DB, Service Bus Premium, App Service family, APIM</td></tr>
+  <tr><td class="outb"><b>VNet integration</b></td><td>Outbound from the app</td><td>The app's calls leave through a delegated subnet, so it can reach private IPs</td><td>Unchanged - integration never touches inbound</td><td>App Service, Functions, Logic Apps Standard, APIM Standard v2 / Premium v2</td></tr>
+  <tr><td class="inj"><b>VNet injection</b></td><td>Both</td><td>The dedicated instance runs inside your subnet</td><td>Depends on mode (internal vs external)</td><td>Classic APIM Developer/Premium, APIM Premium v2, ASE v3, SQL MI</td></tr>
+  <tr><td><b>Service endpoint</b></td><td>Inbound to the service</td><td>Your subnet reaches the service over the backbone; the service can allow that subnet in its firewall</td><td>Yes - the service keeps its public IP</td><td>Storage, Key Vault, SQL DB, Cosmos DB, Service Bus Premium</td></tr>
+</table></div>
+<div class="card o"><b>Private endpoint vs service endpoint:</b> a service endpoint keeps the public IP and only works from Azure subnets. It can't be reached from on-prem, and it allows the whole service type from that subnet, not one instance. A private endpoint gives one instance a private IP that on-prem can reach over VPN or ExpressRoute. For new designs, default to private endpoints.</div>
+
+<h2 id="matrix">2. Service matrix</h2>
+<p>Tier matters. Always confirm against the service's networking page before you design - these change.</p>
+<div class="tbl"><table>
+  <tr><th>Service</th><th>Private inbound</th><th>Private outbound</th><th>Watch out for</th></tr>
+  <tr><td>Storage</td><td>PE per sub-resource (blob, file, queue, table, dfs, web)</td><td>n/a</td><td>One PE per sub-resource you use. Trusted services and resource instance rules exist.</td></tr>
+  <tr><td>Key Vault</td><td>PE (all tiers)</td><td>n/a</td><td>APIM, App Service and others read it at startup - lock it down and DNS must be right first.</td></tr>
+  <tr><td>SQL Database</td><td>PE</td><td>n/a</td><td>"Allow Azure services" is a separate, broad toggle. Turn it off when you go private.</td></tr>
+  <tr><td>SQL Managed Instance</td><td>Injected into a dedicated subnet</td><td>Injected</td><td>Dedicated compute - already inside the VNet.</td></tr>
+  <tr><td>Cosmos DB</td><td>PE (per API)</td><td>n/a</td><td>Zone name depends on the API (NoSQL uses <code>documents.azure.com</code>).</td></tr>
+  <tr><td>Service Bus</td><td><b>Premium only:</b> PE, service endpoints, trusted services</td><td>n/a (it never calls out)</td><td>Standard tier supports IP firewall rules only - no PE, no trusted services bypass.</td></tr>
+  <tr><td>Event Hubs</td><td>PE (Standard and above)</td><td>n/a</td><td>Same <code>servicebus.windows.net</code> zone as Service Bus.</td></tr>
+  <tr><td>Event Grid (topics, domains)</td><td>PE for <i>publishing</i></td><td>No VNet integration for delivery</td><td>Delivery can't use private endpoints. See section 9.</td></tr>
+  <tr><td>App Service, Functions, Logic Apps Standard</td><td>PE</td><td>VNet integration</td><td>Or run on ASE v3 (injected). Functions classic Consumption has no VNet integration; Flex Consumption does.</td></tr>
+  <tr><td>APIM classic Developer / Premium</td><td>Injection (internal mode), or PE</td><td>Injection</td><td>External mode is injected but keeps a public gateway.</td></tr>
+  <tr><td>APIM classic Basic / Standard</td><td>PE (gateway)</td><td>None</td><td>No private backends.</td></tr>
+  <tr><td>APIM Standard v2</td><td>PE (gateway)</td><td>VNet integration</td><td>Integration keeps the gateway public until you add a PE and disable public access.</td></tr>
+  <tr><td>APIM Premium v2</td><td>Injection, or PE</td><td>Injection or integration</td><td>Injection is set at creation. You can't switch between injection and integration later.</td></tr>
+</table></div>
+
+<h2 id="pe">3. Private endpoint anatomy</h2>
+<div class="tbl"><table>
+  <tr><th>Piece</th><th>What to know</th></tr>
+  <tr><td>Network interface</td><td>A NIC in your subnet with a private IP. It's the only thing that lives in your VNet - the service itself doesn't move.</td></tr>
+  <tr><td>Sub-resource (group ID)</td><td>A PE targets one sub-resource: <code>blob</code>, <code>queue</code>, <code>vault</code>, <code>sites</code>, <code>namespace</code>, <code>Gateway</code>. Need blob and queue? Two PEs.</td></tr>
+  <tr><td>Connection approval</td><td>Auto-approved if you have rights on the target. Otherwise it sits <b>Pending</b> until the owner approves - common across subscriptions and tenants.</td></tr>
+  <tr><td>Routing</td><td>Azure adds a <code>/32</code> route for the PE IP to the VNet and peered VNets. It's more specific than a broad UDR, so traffic can bypass your firewall unless you plan for it.</td></tr>
+  <tr><td>NSG and UDR on the PE</td><td>Only applied when private endpoint network policies are enabled on the subnet.</td></tr>
+  <tr><td>DNS zone group</td><td>Attach one to the PE and Azure writes and cleans up the A record in the private DNS zone for you. Without it, you manage records by hand.</td></tr>
+  <tr><td>Public access</td><td>Creating a PE does <b>not</b> close the public endpoint. That's a separate setting on the service.</td></tr>
+</table></div>
+
+<h2 id="vi">4. VNet integration (App Service family)</h2>
+<div class="tbl"><table>
+  <tr><th>Setting</th><th>What to know</th></tr>
+  <tr><td>Subnet</td><td>Dedicated and delegated to <code>Microsoft.Web/serverFarms</code>. Size it for scale-out - every instance takes an IP.</td></tr>
+  <tr><td>What goes through it</td><td>Traffic to private IPs goes through the VNet. Turn on outbound internet routing ("route all") if internet-bound calls must also pass your firewall or NAT gateway.</td></tr>
+  <tr><td>DNS</td><td>The app uses the VNet's DNS settings, so private zones linked to that VNet (or your resolver) apply.</td></tr>
+  <tr><td>Inbound</td><td>Not affected. Add a PE and disable public access to make the app private.</td></tr>
+  <tr><td>Logic Apps Standard storage</td><td>The runtime needs its storage account's <b>blob, file, queue, and table</b> endpoints. Lock the account down and each needs a PE and a zone, or the app won't start.</td></tr>
+  <tr><td>Portal experience</td><td>With public access disabled, the designer and run history need a browser inside the network (VPN, Bastion, jump box).</td></tr>
+</table></div>
+
+<h2 id="public">5. Public access controls</h2>
+<div class="tbl"><table>
+  <tr><th>Setting</th><th>Who can reach the public endpoint</th><th>Use when</th></tr>
+  <tr><td>Enabled from all networks</td><td>Anyone, with valid credentials</td><td>Dev, or public SaaS integrations with no alternative</td></tr>
+  <tr><td>Selected networks</td><td>Listed IP ranges, plus subnets with service endpoints</td><td>You need a public door for a few known callers</td></tr>
+  <tr><td>Disabled</td><td>No one. Private endpoints only</td><td>The target state for most enterprise data services</td></tr>
+  <tr><td>Trusted Microsoft services bypass</td><td>Listed Azure services that authenticate with managed identity, even when restricted or disabled (where supported)</td><td>Event Grid delivery, Azure Monitor, backups - check each service's list</td></tr>
+</table></div>
+<p>Network security perimeter is a newer, perimeter-wide way to control public access across several PaaS resources at once. Check support per service before relying on it.</p>
+
+<h2 id="dns">6. Private DNS: how the name finds the private IP</h2>
+<figure>
+<svg class="dg" viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="mi" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path class="mfi" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="mo" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path class="mfo" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="mn" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path class="mfn" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+  <rect class="box" x="20" y="110" width="150" height="70" rx="8"/>
+  <text class="h" x="32" y="136">Client asks for</text>
+  <text class="s" x="32" y="156">sb1.servicebus</text><text class="s" x="32" y="170">.windows.net</text>
+
+  <rect class="box" x="220" y="110" width="230" height="70" rx="8"/>
+  <text class="h" x="232" y="134">Public DNS: CNAME to</text>
+  <text class="s" x="232" y="154">sb1.privatelink.servicebus</text><text class="s" x="232" y="168">.windows.net</text>
+  <path class="an" d="M170,145 L216,145"/>
+
+  <rect class="zone" x="500" y="20" width="305" height="120" rx="10"/>
+  <text class="s" x="510" y="38">caller inside a linked VNet</text>
+  <rect class="pe" x="515" y="50" width="275" height="75" rx="8"/>
+  <text class="h" x="527" y="74">Private DNS zone: A record</text>
+  <text class="s" x="527" y="94">privatelink.servicebus.windows.net</text>
+  <text class="ti" x="527" y="114">sb1 -> 10.0.2.5 (private)</text>
+  <path class="ai" d="M450,132 C475,120 485,95 512,90"/>
+
+  <rect class="zone" x="500" y="165" width="305" height="120" rx="10"/>
+  <text class="s" x="510" y="183">internet, or a VNet without the zone</text>
+  <rect class="ob" x="515" y="195" width="275" height="75" rx="8"/>
+  <text class="h" x="527" y="219">Public DNS: A record</text>
+  <text class="to" x="527" y="239">sb1 -> public IP</text>
+  <text class="s" x="527" y="258">blocked if public access is off</text>
+  <path class="ao" d="M450,158 C475,170 485,225 512,230"/>
+</svg>
+<figcaption>Split-horizon: one name, two answers. The CNAME to <code>privatelink</code> is what lets a linked private zone step in.</figcaption>
+</figure>
+
+<h3>Common zones</h3>
+<div class="tbl"><table>
+  <tr><th>Service (sub-resource)</th><th>Private DNS zone</th><th>Public zone to forward from on-prem</th></tr>
+  <tr><td>Storage blob / file / queue / table</td><td><code>privatelink.blob.core.windows.net</code> (and <code>file</code>, <code>queue</code>, <code>table</code>)</td><td><code>blob.core.windows.net</code> (and the others)</td></tr>
+  <tr><td>Key Vault</td><td><code>privatelink.vaultcore.azure.net</code></td><td><code>vault.azure.net</code>, <code>vaultcore.azure.net</code></td></tr>
+  <tr><td>SQL Database</td><td><code>privatelink.database.windows.net</code></td><td><code>database.windows.net</code></td></tr>
+  <tr><td>Cosmos DB (NoSQL)</td><td><code>privatelink.documents.azure.com</code></td><td><code>documents.azure.com</code></td></tr>
+  <tr><td>Service Bus, Event Hubs</td><td><code>privatelink.servicebus.windows.net</code></td><td><code>servicebus.windows.net</code></td></tr>
+  <tr><td>Event Grid topics, domains</td><td><code>privatelink.eventgrid.azure.net</code></td><td><code>eventgrid.azure.net</code></td></tr>
+  <tr><td>App Service, Functions, Logic Apps Standard</td><td><code>privatelink.azurewebsites.net</code></td><td><code>azurewebsites.net</code></td></tr>
+  <tr><td>APIM gateway (PE)</td><td><code>privatelink.azure-api.net</code></td><td><code>azure-api.net</code></td></tr>
+  <tr><td>Container Registry</td><td><code>privatelink.azurecr.io</code></td><td><code>azurecr.io</code></td></tr>
+</table></div>
+<div class="card"><b>Rules that keep DNS sane:</b> one zone per name for the whole organization, linked to every VNet that needs it. Attach a DNS zone group to each PE so records stay in sync. Test from where the caller actually runs, not from your laptop.</div>
+
+<h2 id="hub">7. Hub-spoke DNS</h2>
+<p>In a hub-spoke network, don't create <code>privatelink</code> zones in each spoke. You'd end up with several copies of the same zone, each holding different records, and resolution would depend on which VNet asked.</p>
+<div class="tbl"><table>
+  <tr><th>Piece</th><th>Where it lives</th></tr>
+  <tr><td>Private DNS zones</td><td>Once, centrally (hub or connectivity subscription)</td></tr>
+  <tr><td>Zone links</td><td>To the hub, and to each spoke - or spokes point their DNS at a central resolver</td></tr>
+  <tr><td>PE records</td><td>Written into the central zones by DNS zone groups, often enforced with Azure Policy</td></tr>
+  <tr><td>Spoke DNS setting</td><td>Azure default, or the resolver's inbound IP (or firewall DNS proxy) for a single controlled path</td></tr>
+</table></div>
+<p><code>168.63.129.16</code> is Azure's built-in resolver. It only answers from inside Azure, which is why on-prem needs the resolver below.</p>
+
+<h2 id="hybrid">8. Hybrid DNS with DNS Private Resolver</h2>
+<figure>
+<svg class="dg" viewBox="0 0 780 290" xmlns="http://www.w3.org/2000/svg">
+  <rect class="zone" x="15" y="30" width="230" height="240" rx="12"/>
+  <text class="h" x="25" y="22">On-premises</text>
+  <rect class="box" x="30" y="55" width="200" height="85" rx="8"/>
+  <text class="h" x="42" y="78">On-prem DNS servers</text>
+  <text class="s" x="42" y="98">conditional forwarder:</text>
+  <text class="s" x="42" y="114">servicebus.windows.net</text>
+  <text class="s" x="42" y="130">-> 10.0.0.4</text>
+  <rect class="box" x="30" y="175" width="200" height="75" rx="8"/>
+  <text class="h" x="42" y="198">corp.contoso.com</text>
+  <text class="s" x="42" y="218">on-prem names</text>
+  <text class="s" x="42" y="234">(AD DNS)</text>
+
+  <rect class="zone" x="315" y="30" width="450" height="240" rx="12"/>
+  <text class="h" x="325" y="22">Hub VNet</text>
+  <rect class="pe" x="335" y="55" width="190" height="85" rx="8"/>
+  <text class="h" x="347" y="78">Resolver inbound</text>
+  <text class="s" x="347" y="98">endpoint 10.0.0.4</text>
+  <text class="s" x="347" y="114">on-prem -> Azure</text>
+  <rect class="ob" x="335" y="175" width="190" height="75" rx="8"/>
+  <text class="h" x="347" y="198">Resolver outbound</text>
+  <text class="s" x="347" y="218">+ forwarding ruleset</text>
+  <text class="s" x="347" y="234">Azure -> on-prem</text>
+  <rect class="box" x="570" y="55" width="180" height="85" rx="8"/>
+  <text class="h" x="582" y="78">Azure DNS</text>
+  <text class="s" x="582" y="98">168.63.129.16</text>
+  <text class="s" x="582" y="114">+ linked privatelink</text>
+  <text class="s" x="582" y="128">zones</text>
+
+  <path class="ai" d="M230,95 L331,95"/>
+  <text class="ti" x="252" y="86">1</text>
+  <path class="ai" d="M525,95 L566,95"/>
+  <text class="ti" x="540" y="86">2</text>
+  <path class="ao" d="M335,215 L234,215"/>
+  <text class="to" x="276" y="206">3</text>
+  <text class="s" x="560" y="200">Spoke VNets link the ruleset</text>
+  <text class="s" x="560" y="216">or use the resolver as DNS</text>
+</svg>
+<figcaption>1 On-prem forwards the <b>public</b> zone name to the inbound endpoint. 2 The resolver asks Azure DNS, which applies the linked private zones and returns the private IP. 3 Azure workloads resolve on-prem names through the outbound endpoint and a forwarding ruleset.</figcaption>
+</figure>
+<div class="tbl"><table>
+  <tr><th>Direction</th><th>Component</th><th>Configure</th></tr>
+  <tr><td>On-prem -> Azure private names</td><td>Inbound endpoint</td><td>On-prem conditional forwarders for each <b>public</b> zone (for example <code>blob.core.windows.net</code>) pointing at the inbound IP. Configure it on every on-prem DNS server that answers clients.</td></tr>
+  <tr><td>Azure -> on-prem names</td><td>Outbound endpoint + forwarding ruleset</td><td>Rules like <code>corp.contoso.com</code> -> on-prem DNS IPs. Link the ruleset to the VNets that need it.</td></tr>
+  <tr><td>Subnets</td><td>Both endpoints</td><td>Each needs its own dedicated subnet delegated to <code>Microsoft.Network/dnsResolvers</code>. Allow TCP/UDP 53 from on-prem to the inbound subnet.</td></tr>
+</table></div>
+
+<h2 id="eg">9. Event Grid: the delivery exception</h2>
+<div class="tbl"><table>
+  <tr><th>Side</th><th>Private option</th></tr>
+  <tr><td>Publishing <i>to</i> Event Grid (inbound)</td><td>Private endpoint on the topic or domain</td></tr>
+  <tr><td>Delivery <i>from</i> Event Grid (outbound)</td><td>No VNet integration, and delivery through private endpoints isn't possible</td></tr>
+</table></div>
+<p>One supported design for a locked-down destination: Event Grid delivers to Service Bus, Event Hubs, or a Storage queue using a managed identity, through the destination's trusted Microsoft services bypass. The traffic uses the destination's public endpoint. Your private code then pulls from there through its private endpoint.</p>
+<div class="card o">
+  <b>Setup for Service Bus or Event Hubs:</b> enable a managed identity on the topic or domain (system- or user-assigned), grant it <b>Data Sender</b> on the namespace,
+  turn on "Allow trusted Microsoft services", and set the subscription to deliver with that identity.
+  Service Bus needs Premium for the bypass. <b>Storage queues</b> with a firewall accept only the <b>system-assigned</b> identity.
+  Alternative: Event Grid namespaces with <b>pull delivery</b>, where your consumer pulls over a private endpoint.
+</div>
+
+<h2 id="fail">10. Failure modes</h2>
+<div class="tbl"><table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+  <tr><td>Name resolves to a public IP from inside the VNet</td><td>Zone missing, not linked to this VNet, or no A record (no zone group)</td><td><code>nslookup</code> from the caller; zone links; A record</td></tr>
+  <tr><td>Works from an Azure VM, fails from on-prem</td><td>No conditional forwarder, forwarder set on the <code>privatelink</code> zone instead of the public zone, or not on every DNS server</td><td><code>nslookup</code> on-prem against each DNS server</td></tr>
+  <tr><td>NXDOMAIN for a resource you didn't make private</td><td>Someone else created a PE on it, so public DNS CNAMEs to <code>privatelink</code>, but your linked zone has no record</td><td>Add the record, or enable fallback to internet on the zone's VNet link</td></tr>
+  <tr><td>Resolves to the private IP, but times out</td><td>NSG, UDR sending traffic to a firewall that drops it, or asymmetric routing past the firewall</td><td><code>Test-NetConnection -Port 443</code>; effective routes; PE network policies</td></tr>
+  <tr><td>PE stuck in Pending</td><td>Manual approval needed (cross-subscription or tenant)</td><td>Approve on the target resource's Networking page</td></tr>
+  <tr><td>Logic App Standard won't start after lockdown</td><td>Storage account missing PE or zone for blob, file, queue, or table</td><td>All four sub-resources resolve privately from the app</td></tr>
+  <tr><td>Designer or run history blank</td><td>Public access disabled, browser outside the network</td><td>Browse from VPN, Bastion, or a jump box</td></tr>
+  <tr><td>Event Grid delivery fails after lockdown</td><td>Trusted services off, identity missing Data Sender, Service Bus on Standard, or user-assigned identity on a firewalled Storage queue</td><td>Delivery metrics and dead-letter; role assignments</td></tr>
+  <tr><td>Same name resolves differently from different spokes</td><td>Duplicate <code>privatelink</code> zones per spoke</td><td>Consolidate into one central zone</td></tr>
+  <tr><td>Internal APIM can't reach a backend by name</td><td>APIM's VNet isn't linked to the backend's zone (or its DNS server can't resolve it)</td><td>Resolve the backend name from APIM's VNet</td></tr>
+</table></div>
+
+<h2 id="cmd">11. Commands</h2>
+<p>Run DNS checks from where the caller runs. Your laptop's answer tells you nothing about the VNet's.</p>
+<pre><code># From a VM or on-prem machine: expect a privatelink CNAME and a 10.x address
+Resolve-DnsName sb1.servicebus.windows.net
+nslookup sb1.servicebus.windows.net
+
+# Can you reach the port once DNS is right?
+Test-NetConnection sb1.servicebus.windows.net -Port 443
+
+# From an App Service, Function, or Logic App: Kudu console (Advanced Tools)
+nameresolver sb1.servicebus.windows.net
+tcpping sb1.servicebus.windows.net:443
+
+# Is the PE connection approved?
+az network private-endpoint-connection list --id &lt;resource-id&gt; -o table
+
+# Which VNets is the zone linked to?
+az network private-dns link vnet list -g &lt;rg&gt; -z privatelink.servicebus.windows.net -o table</code></pre>
+
+<footer>Tier support checked against Microsoft Learn, September 2026. Azure networking options change often - confirm on the service's networking page before you design.</footer>
+
+</div>
+</body>
+</html>
