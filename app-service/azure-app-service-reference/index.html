@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Azure App Service - Reference Notes - Azure Architecture Study Notes</title><style>@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap');
+:root{--paper:#EEF2F1;--paper2:#F7F9F9;--card:#FFFFFF;--white:#FFFFFF;--ink:#1D2B36;--soft:#5A6B77;--line:#C6D0D5;--code:#E6ECEB;--accent:#9A5B00;--accent-soft:#F6E9D3;--green:#2E7D4F;--green-soft:#DDF0E3;--blue:#0F6E6A;--blue-soft:#DDEFEC;--gold:#8A6A15;--yellow:#F5EDCF;--yellow-soft:#F5EDCF;--rose:#F7E1DD;--rose-soft:#F7E1DD;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#11191E;--paper2:#1C2930;--card:#18242B;--white:#18242B;--ink:#E1E9ED;--soft:#98A9B3;--line:#33444E;--code:#0F1A1F;--accent:#E3AA52;--accent-soft:#382B17;--green:#7CCB95;--green-soft:#1B3324;--blue:#5EC3B9;--blue-soft:#15352F;--gold:#D9B95B;--yellow:#33301A;--yellow-soft:#33301A;--rose:#3A1F1C;--rose-soft:#3A1F1C;}}
+:root[data-theme="dark"]{--paper:#11191E;--paper2:#1C2930;--card:#18242B;--white:#18242B;--ink:#E1E9ED;--soft:#98A9B3;--line:#33444E;--code:#0F1A1F;--accent:#E3AA52;--accent-soft:#382B17;--green:#7CCB95;--green-soft:#1B3324;--blue:#5EC3B9;--blue-soft:#15352F;--gold:#D9B95B;--yellow:#33301A;--yellow-soft:#33301A;--rose:#3A1F1C;--rose-soft:#3A1F1C;}
+
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:18px;line-height:1.52;max-width:960px;margin:0 auto;padding:30px 24px 90px}
+h1,h2,h3{font-family:'IBM Plex Serif','IBM Plex Sans',sans-serif;margin-bottom:7px}h1{font-size:2.15em;text-align:center;border-bottom:3px solid var(--ink);padding-bottom:14px;margin-bottom:4px}h2{font-size:1.55em;margin-top:56px;display:flex;align-items:center;gap:10px}h3{font-size:1.22em;margin-top:30px;color:var(--green)}p{margin:10px 0}.subtitle{text-align:center;color:var(--soft);margin-bottom:32px}.num{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--paper);background:var(--accent);border:1px solid var(--line);border-radius:50%;width:35px;height:35px;display:inline-flex;align-items:center;justify-content:center;font-size:.58em;flex:0 0 auto}
+.card{background:var(--paper2);border:1px solid var(--line);border-radius:4px;padding:16px 20px;margin:16px 0;box-shadow:4px 4px 0 transparent}.card.note{border-color:var(--blue)}.card.good{border-color:var(--green)}.card.warn{border-color:var(--accent)}.card.question{border-color:var(--gold);background:var(--yellow-soft)}.tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:.7em;font-weight:700;text-transform:uppercase;letter-spacing:.45px;padding:2px 9px;border-radius:20px;border:1px solid var(--line);margin-bottom:7px}.tag.note{background:var(--blue-soft)}.tag.good{background:var(--green-soft)}.tag.warn{background:var(--accent-soft)}.tag.question{background:var(--yellow-soft)}
+.glance{background:var(--card);border-left:5px solid var(--accent);padding:12px 17px;margin:16px 0;font-size:.97em}.glance b{color:var(--accent);font-family:'IBM Plex Serif',sans-serif}.svg-wrap{overflow-x:auto;margin:18px 0 8px}.svg-wrap svg{display:block;margin:0 auto;max-width:100%;height:auto}.sketch-box{fill:var(--paper2);stroke:var(--ink);stroke-width:2.4}.sketch-box.accent{fill:var(--accent-soft)}.sketch-box.good{fill:var(--green-soft)}.sketch-box.note{fill:var(--blue-soft)}.sketch-box.yellow{fill:var(--yellow-soft)}.sketch-box.rose{fill:var(--rose-soft)}.sketch-box.dim{fill:var(--paper2);stroke-dasharray:5 4}.lbl{font-family:'IBM Plex Sans',sans-serif;fill:var(--ink)}.small{font-family:'IBM Plex Mono',monospace;fill:var(--soft);font-size:11px}.title-lbl{font-family:'IBM Plex Serif',sans-serif;font-weight:700;fill:var(--ink)}.arrow{stroke:var(--ink);stroke-width:2.2;fill:none}.arrow.dashed{stroke-dasharray:6 5}.arrow.red{stroke:var(--accent)}.line{stroke:var(--ink);stroke-width:2;fill:none}.history{stroke:var(--blue);stroke-width:2.4;fill:none;stroke-dasharray:5 4}
+table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}th{background:var(--paper2);font-family:'IBM Plex Serif',sans-serif}tr:nth-child(even) td{background:rgba(0,0,0,.018)}code{font-family:'IBM Plex Mono',monospace;background:var(--code);padding:1px 6px;border-radius:4px;font-size:.86em}pre{font-family:'IBM Plex Mono',monospace;background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:14px 16px;overflow-x:auto;font-size:.76em;line-height:1.55}.flow-key{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:12px 17px;margin:8px 0 20px}.flow-key ol,.flow-key ul{margin:0;padding-left:24px}.flow-key li{margin:4px 0}.mono{font-family:'IBM Plex Mono',monospace;font-size:.86em}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.mini-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}.mini-card b{font-family:'IBM Plex Serif',sans-serif}.footer{text-align:center;color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:.78em;margin-top:62px;border-top:1px dashed var(--line);padding-top:16px}.toc{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:12px 18px;margin:22px 0}.toc a{color:var(--blue);text-decoration:none}.source-list a{color:var(--blue)}.feynman-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:20px 0}.feynman-strip div{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:9px;text-align:center;font-family:'IBM Plex Serif',sans-serif;font-size:.88em}.checklist{background:var(--card);border-left:5px solid var(--green);padding:12px 18px;margin:16px 0}.back{font-family:'IBM Plex Mono',monospace;font-size:.76em}.back a{color:var(--blue);text-decoration:none}.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}.hero-card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:4px 4px 0 transparent}.hero-card h3{margin:0 0 8px;color:var(--ink)}.pill{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:.68em;border:1px solid var(--line);border-radius:20px;padding:2px 8px;margin-bottom:8px}.pill.ref{background:var(--blue-soft)}.pill.fey{background:var(--yellow-soft)}.muted{color:var(--soft)}ul,ol{padding-left:27px}li{margin:5px 0}.tight td,.tight th{padding:7px 9px;font-size:.94em}.truth{font-family:'IBM Plex Mono',monospace;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:12px 0}.quote{font-family:'IBM Plex Serif',sans-serif;font-size:1.12em;background:var(--yellow-soft);border-left:5px solid var(--gold);padding:14px 18px;margin:18px 0}.kicker{font-family:'IBM Plex Mono',monospace;color:var(--accent);text-transform:uppercase;font-size:.72em;letter-spacing:.5px;font-weight:700}.source-list li{margin:8px 0}.sep{border:0;border-top:1px dashed var(--line);margin:36px 0}.smallprint{font-size:.9em;color:var(--soft)}
+@media(max-width:700px){body{font-size:17px;padding:22px 15px 70px}.two-col,.three-col,.feynman-strip,.hero-grid{grid-template-columns:1fr}h1{font-size:1.82em}table{font-size:.93em}.svg-wrap{margin-left:-4px;margin-right:-4px}}
+
+/* ---- IBM style layer ---- */
+body{font:16px/1.6 'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;max-width:900px;background:var(--paper);color:var(--ink)}
+h1,h2,h3{font-family:'IBM Plex Serif',Georgia,serif;font-weight:600;letter-spacing:-0.01em}
+h1{font-size:2.1rem;line-height:1.15;text-align:left;border-bottom:2px solid var(--ink)}
+h2{font-size:1.35rem;line-height:1.3;border-top:2px solid var(--ink);padding-top:10px}
+h3{font-size:1.1rem}
+.subtitle{text-align:left}
+a{color:var(--blue)}
+.card,.mini-card,.hero-card{box-shadow:none;border-radius:4px;border:1px solid var(--line);border-left:4px solid var(--blue);background:var(--card)}
+.card.note{border-color:var(--line);border-left-color:var(--blue)}
+.card.good{border-color:var(--line);border-left-color:var(--green)}
+.card.warn{border-color:var(--line);border-left-color:var(--accent)}
+.card.question{border-color:var(--line);border-left-color:var(--gold);background:var(--yellow-soft)}
+.tag,.pill{border:1px solid var(--line);border-radius:3px;font-family:'IBM Plex Mono',monospace;letter-spacing:.3px;color:var(--ink)}
+.toc,.flow-key,.checklist,.glance{border-radius:4px;background:var(--card)}
+.toc,.flow-key{border:1px solid var(--line)}
+.num{border:none}
+th,td{border:none;border-bottom:1px solid var(--line)}
+th{border-bottom:2px solid var(--ink);background:transparent;font-family:'IBM Plex Sans',sans-serif;font-weight:600}
+tr:nth-child(even) td{background:transparent}
+code{border-radius:3px;font-family:'IBM Plex Mono',ui-monospace,Consolas,monospace}
+.sketch-box{stroke-width:1.3}
+.arrow,.arrow-line{stroke-width:1.5}
+svg text{fill:var(--ink)}
+.lbl,.title-lbl{font-family:'IBM Plex Sans',system-ui,sans-serif}
+.small{font-family:'IBM Plex Mono',monospace}
+svg [fill="#2b2b2b"]{fill:var(--ink)}
+svg [stroke="#2b2b2b"]{stroke:var(--ink)}
+</style></head><body><svg aria-hidden="true" height="0" style="position:absolute" width="0"><defs><marker id="as-arrow" markerheight="8" markerwidth="10" orient="auto" refx="8.5" refy="4"><polygon fill="#2b2b2b" points="0 0,10 4,0 8"></polygon></marker></defs></svg><div class="back"><a href="../">&larr; Azure App Service</a></div>
+<h1>Azure App Service - Reference Notes</h1>
+<div class="subtitle">platform model - app types - config - plans - scaling - networking - deployment - health</div>
+<div class="glance"><b>Fast model:</b> the plan is the compute, the app is the behaviour. Price, scale, zone redundancy, and shared limits come from the plan. Settings, identity, networking, and deployment are configured per app.</div>
+<div class="toc"><b>Contents</b><ol>
+<li><a href="#model">Platform model</a></li><li><a href="#types">The app types</a></li><li><a href="#config">Configuration and files</a></li><li><a href="#plans">Plans and tiers</a></li><li><a href="#scale">Scaling</a></li><li><a href="#network">Networking</a></li><li><a href="#identity">Identity and security</a></li><li><a href="#deploy">Deployment and slots</a></li><li><a href="#health">Reliability and health</a></li><li><a href="#observe">Observability</a></li><li><a href="#choose">Choosing a service</a></li><li><a href="#failure">Failure checklist</a></li><li><a href="#sources">Sources</a></li></ol></div>
+
+<h2 id="model"><span class="num">1</span> Platform model</h2>
+<div class="svg-wrap"><svg viewBox="0 0 920 330" xmlns="http://www.w3.org/2000/svg">
+<rect class="sketch-box note" height="80" rx="14" width="130" x="20" y="120"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="85" y="155">CLIENT</text><text class="small" text-anchor="middle" x="85" y="180">HTTPS :443</text>
+<rect class="sketch-box yellow" height="110" rx="14" width="170" x="200" y="105"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="285" y="140">FRONT ENDS</text><text class="small" text-anchor="middle" x="285" y="166">terminate TLS</text><text class="small" text-anchor="middle" x="285" y="186">route by host name</text>
+<rect class="sketch-box dim" height="250" rx="16" width="470" x="420" y="35"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="655" y="64">APP SERVICE PLAN</text>
+<rect class="sketch-box good" height="150" rx="12" width="130" x="440" y="90"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="505" y="120">INSTANCE 1</text><text class="lbl" font-size="14" text-anchor="middle" x="505" y="160">app A</text><text class="lbl" font-size="14" text-anchor="middle" x="505" y="190">app B</text>
+<rect class="sketch-box good" height="150" rx="12" width="130" x="590" y="90"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="655" y="120">INSTANCE 2</text><text class="lbl" font-size="14" text-anchor="middle" x="655" y="160">app A</text><text class="lbl" font-size="14" text-anchor="middle" x="655" y="190">app B</text>
+<rect class="sketch-box good" height="150" rx="12" width="130" x="740" y="90"></rect><text class="title-lbl" font-size="14" text-anchor="middle" x="805" y="120">INSTANCE 3</text><text class="lbl" font-size="14" text-anchor="middle" x="805" y="160">app A</text><text class="lbl" font-size="14" text-anchor="middle" x="805" y="190">app B</text>
+<text class="small" text-anchor="middle" x="655" y="268">shared CPU, memory, SNAT ports</text>
+<path class="arrow" d="M150,160 L195,160" marker-end="url(#as-arrow)"></path><path class="arrow" d="M370,160 L435,160" marker-end="url(#as-arrow)"></path>
+<text class="small" text-anchor="middle" x="460" y="318">Every app in a plan runs on every instance of the plan. Scale the plan, and every app scales with it.</text></svg></div>
+<table class="tight"><tr><th>Term</th><th>What it is</th><th>Architect note</th></tr>
+<tr><td>App Service plan</td><td>The set of VMs (instances) you pay for. Sets OS, region, tier, size, and instance count.</td><td>The unit of cost, scale, and blast radius.</td></tr>
+<tr><td>Instance / worker</td><td>One VM in the plan. Runs a copy of every app in the plan.</td><td>Apps on the same plan compete for its CPU and memory.</td></tr>
+<tr><td>App (site)</td><td>A Web App, Function App, or Logic Apps Standard app. Has its own host name, settings, identity, and network config.</td><td>Configuration is per app. Compute is per plan.</td></tr>
+<tr><td>Front ends</td><td>Shared load balancers that terminate TLS and route requests to the right app.</td><td>Your app receives plain HTTP from the front end. TLS never reaches your code.</td></tr>
+<tr><td>Deployment slot</td><td>A second live copy of an app (staging) on the same plan.</td><td>Slots consume the same plan resources as production.</td></tr>
+<tr><td>SCM / Kudu site</td><td>The <code>&lt;app&gt;.scm.azurewebsites.net</code> endpoint used for deployment and diagnostics.</td><td>Has its own access restrictions. Lock it down separately.</td></tr>
+<tr><td>App Service Environment (ASE v3)</td><td>A single-tenant App Service deployment inside your VNet. Uses Isolated v2 plans.</td><td>Dedicated and private by design. Higher base cost.</td></tr>
+</table>
+
+<h2 id="types"><span class="num">2</span> The app types</h2>
+<p>All three are built on the same host. Each layer adds a runtime and a file.</p>
+<table class="tight"><tr><th>App type</th><th>What runs</th><th>What you write</th><th>Supported hosting</th></tr>
+<tr><td>Web App</td><td>Your ASP.NET Core (or other stack) web app, as code or a container.</td><td>The whole application: startup, routing, middleware.</td><td>App Service plan (Free to Premium v4), Isolated v2 in an ASE.</td></tr>
+<tr><td>Function App</td><td>The Functions host (ASP.NET Core + WebJobs runtime). In .NET isolated, your code runs in a separate worker process, called by the host over gRPC.</td><td>Handlers with triggers and bindings.</td><td>Flex Consumption, Consumption, Elastic Premium, Dedicated (App Service plan), Container Apps. See the <a href="../../functions/azure-functions-reference/">Functions reference</a>.</td></tr>
+<tr><td>Logic Apps Standard</td><td>The Functions host plus the workflow extension. Workflows run inside the host process.</td><td>Workflow definitions (<code>workflow.json</code>), optional custom code.</td><td>Workflow Standard (WS1-WS3) or an ASE v3 Windows plan. Not an ordinary App Service plan.</td></tr>
+<tr><td>WebJobs</td><td>A background program that runs alongside a Web App on the same instances.</td><td>A console program or script.</td><td>Same plan as its Web App.</td></tr>
+</table>
+<div class="card warn"><span class="tag warn">hosting boundary</span><p>A Function App and a Web App can share one Dedicated plan. A Logic Apps Standard app cannot join them on an ordinary App Service plan. It always gets its own Workflow Standard plan, unless you run an ASE v3.</p></div>
+
+<h2 id="config"><span class="num">3</span> Configuration and files</h2>
+<table class="tight"><tr><th>File</th><th>Added by</th><th>Web App</th><th>Function App</th><th>Logic Apps Std</th><th>Holds</th></tr>
+<tr><td>Settings file</td><td>Web host</td><td>yes</td><td>yes</td><td>yes</td><td><code>appsettings.json</code> in a Web App. <code>local.settings.json</code> in Functions and Logic Apps, local development only.</td></tr>
+<tr><td><code>host.json</code></td><td>WebJobs runtime</td><td>-</td><td>yes</td><td>yes</td><td>Runtime behaviour: extension settings, concurrency, logging, retries.</td></tr>
+<tr><td><code>connections.json</code></td><td>Workflow extension</td><td>-</td><td>-</td><td>yes</td><td>Built-in and managed connector references.</td></tr>
+<tr><td><code>parameters.json</code>, <code>workflow.json</code></td><td>Workflow extension</td><td>-</td><td>-</td><td>yes</td><td>Environment parameters and one file per workflow.</td></tr>
+</table>
+<table class="tight"><tr><th>Mechanism</th><th>What it does</th><th>Architect note</th></tr>
+<tr><td>App settings</td><td>Key-value pairs injected as environment variables. Override the settings file.</td><td>In Azure, this is where configuration really lives. Changing one restarts the app.</td></tr>
+<tr><td>Connection strings</td><td>A typed variant of app settings.</td><td>Prefer identity-based connections and drop secrets entirely.</td></tr>
+<tr><td>Slot settings (sticky)</td><td>Settings that stay with the slot during a swap.</td><td>Mark environment-specific values sticky, or production gets staging's values.</td></tr>
+<tr><td>Key Vault references</td><td><code>@Microsoft.KeyVault(SecretUri=...)</code> in an app setting. Resolved with the app's managed identity.</td><td>The app needs Get permission on the vault, and a network path to it.</td></tr>
+<tr><td>Identity-based connections</td><td>For Functions and Logic Apps: <code>ServiceBusConnection__fullyQualifiedNamespace</code> style settings, no secret.</td><td>Grant the managed identity an RBAC role on the target, such as Service Bus Data Receiver.</td></tr>
+</table>
+
+<h2 id="plans"><span class="num">4</span> Plans and tiers</h2>
+<p>The tier decides which features exist. Features then get switched on per app.</p>
+<table class="tight"><tr><th>Tier</th><th>Use it for</th><th>What it adds</th></tr>
+<tr><td>Free / Shared</td><td>Experiments only.</td><td>Shared compute, no SLA, no VNet features, no custom scale.</td></tr>
+<tr><td>Basic</td><td>Dev/test and small internal apps.</td><td>Dedicated instances, Always On, VNet integration and private endpoints. Manual scale only, no slots.</td></tr>
+<tr><td>Standard</td><td>Small production.</td><td>Autoscale rules, deployment slots.</td></tr>
+<tr><td>Premium v3 / v4</td><td>Production default.</td><td>More slots and instances, zone redundancy, automatic scaling, larger and memory-optimized sizes. v4 is the newest generation, in select regions.</td></tr>
+<tr><td>Isolated v2 (ASE v3)</td><td>Single-tenant, network-isolated, high scale.</td><td>Runs inside your VNet. Dedicated front ends and workers.</td></tr>
+</table>
+<table class="tight"><tr><th>Plan family</th><th>Billing model</th><th>Who uses it</th></tr>
+<tr><td>App Service plan (Dedicated)</td><td>Per instance, per second, whether busy or idle.</td><td>Web Apps, Function Apps on Dedicated.</td></tr>
+<tr><td>Elastic Premium (EP1-EP3)</td><td>Per instance, with always-ready and prewarmed instances.</td><td>Function Apps.</td></tr>
+<tr><td>Flex Consumption / Consumption</td><td>Per execution and memory time. Scales to zero (Flex can keep always-ready instances).</td><td>Function Apps.</td></tr>
+<tr><td>Workflow Standard (WS1-WS3)</td><td>Per instance, reserved capacity. Managed connector calls and storage transactions billed on top.</td><td>Logic Apps Standard.</td></tr>
+</table>
+<div class="card note"><span class="tag note">cost rule</span><p>The app type does not set the price. The plan does. A Function App and a Web App on the same Dedicated plan cost the same. The difference is which plans each is allowed to use.</p></div>
+
+<h2 id="scale"><span class="num">5</span> Scaling</h2>
+<table class="tight"><tr><th>Mechanism</th><th>How it decides</th><th>Where</th><th>Note</th></tr>
+<tr><td>Scale up</td><td>You pick a bigger size or tier.</td><td>All tiers</td><td>Moves the whole plan. May restart apps.</td></tr>
+<tr><td>Manual scale out</td><td>You set the instance count.</td><td>Basic and up</td><td>Fixed capacity.</td></tr>
+<tr><td>Autoscale (Azure Monitor)</td><td>Your rules: CPU, memory, HTTP queue length, schedules, or a metric from another resource such as Service Bus message count.</td><td>Standard and up</td><td>Queue-based scaling is possible, but only if you write the rule. Coarse and slow compared with the Functions scale controller.</td></tr>
+<tr><td>Automatic scaling</td><td>The platform watches HTTP traffic. No rules. Maximum burst up to 30 instances, per-app limits, prewarmed instances.</td><td>Premium v2 to v4</td><td>HTTP only. Not a signal for queue backlogs. Not supported for slot traffic.</td></tr>
+<tr><td>Functions scale controller</td><td>Watches trigger sources directly (queue depth, event lag).</td><td>Flex, Consumption, Elastic Premium</td><td>The event-driven option. Not available on a Dedicated plan.</td></tr>
+</table>
+<div class="card warn"><span class="tag warn">shared plan</span><p>Scaling is per plan. A noisy app pulls every neighbour up with it, and a starved plan slows every app on it. Use per-app scaling limits, or give workloads with different load curves their own plans.</p></div>
+<ul><li><b>Always On</b> (Basic and up): keeps the app loaded. Without it, an idle app unloads after about 20 minutes and timer or queue triggers on a Dedicated plan stop firing.</li><li><b>Zone redundancy:</b> Premium v2 to v4 and Isolated v2. The platform enforces a minimum of two instances and spreads them across zones. No extra meter, but you pay for the minimum instances.</li></ul>
+
+<h2 id="network"><span class="num">6</span> Networking</h2>
+<div class="svg-wrap"><svg viewBox="0 0 920 320" xmlns="http://www.w3.org/2000/svg">
+<rect class="sketch-box note" height="70" rx="12" width="130" x="15" y="120"></rect><text class="title-lbl" font-size="15" text-anchor="middle" x="80" y="152">CALLER</text><text class="small" text-anchor="middle" x="80" y="174">APIM / client</text>
+<rect class="sketch-box yellow" height="90" rx="12" width="160" x="185" y="110"></rect><text class="title-lbl" font-size="13" text-anchor="middle" x="265" y="140">PRIVATE ENDPOINT</text><text class="small" text-anchor="middle" x="265" y="164">inbound</text><text class="small" text-anchor="middle" x="265" y="182">private IP in your VNet</text>
+<rect class="sketch-box good" height="110" rx="14" width="160" x="385" y="100"></rect><text class="title-lbl" font-size="16" text-anchor="middle" x="465" y="140">APP</text><text class="small" text-anchor="middle" x="465" y="166">on the plan</text><text class="small" text-anchor="middle" x="465" y="186">SNAT ports per instance</text>
+<rect class="sketch-box yellow" height="90" rx="12" width="160" x="585" y="110"></rect><text class="title-lbl" font-size="13" text-anchor="middle" x="665" y="140">VNET INTEGRATION</text><text class="small" text-anchor="middle" x="665" y="164">outbound</text><text class="small" text-anchor="middle" x="665" y="182">delegated subnet</text>
+<rect class="sketch-box note" height="50" rx="10" width="130" x="780" y="45"></rect><text class="lbl" font-size="14" text-anchor="middle" x="845" y="75">Service Bus</text>
+<rect class="sketch-box note" height="50" rx="10" width="130" x="780" y="130"></rect><text class="lbl" font-size="14" text-anchor="middle" x="845" y="160">Storage / SQL</text>
+<rect class="sketch-box rose" height="50" rx="10" width="130" x="780" y="215"></rect><text class="lbl" font-size="14" text-anchor="middle" x="845" y="245">Partner (NAT GW)</text>
+<path class="arrow" d="M145,155 L180,155" marker-end="url(#as-arrow)"></path><path class="arrow" d="M345,155 L380,155" marker-end="url(#as-arrow)"></path><path class="arrow" d="M545,155 L580,155" marker-end="url(#as-arrow)"></path>
+<path class="arrow" d="M745,145 L775,75" marker-end="url(#as-arrow)"></path><path class="arrow" d="M745,155 L775,155" marker-end="url(#as-arrow)"></path><path class="arrow" d="M745,165 L775,235" marker-end="url(#as-arrow)"></path>
+<text class="small" text-anchor="middle" x="460" y="292">Two separate settings. The private endpoint governs how callers reach the app.</text><text class="small" text-anchor="middle" x="460" y="310">VNet integration governs how the app reaches everything else.</text></svg></div>
+<table class="tight"><tr><th>Direction</th><th>Feature</th><th>What it does</th><th>Architect note</th></tr>
+<tr><td>Inbound</td><td>Access restrictions</td><td>Allow or deny by IP, service tag, or service endpoint subnet. Can match headers such as <code>X-Azure-FDID</code> for Front Door.</td><td>Keeps a public endpoint but filters it. Set rules for the SCM site too.</td></tr>
+<tr><td>Inbound</td><td>Private endpoint</td><td>Gives the app a private IP in your VNet. Basic tier and up.</td><td>Needs the <code>privatelink.azurewebsites.net</code> private DNS zone. Disable public access to make it truly private.</td></tr>
+<tr><td>Outbound</td><td>VNet integration (regional)</td><td>Routes the app's outbound calls through a delegated subnet in the same region. Basic tier and up.</td><td>Outbound only. It does not make the app private. Size the subnet for scale-out: every instance takes addresses.</td></tr>
+<tr><td>Outbound</td><td>Route all traffic</td><td>Sends all outbound traffic, not just private (RFC1918) ranges, into the VNet.</td><td>Needed for firewall inspection or NAT gateway on internet-bound calls. NSGs and UDRs on the subnet then apply.</td></tr>
+<tr><td>Outbound</td><td>NAT gateway</td><td>Attached to the integration subnet. Gives a static outbound IP and a much larger SNAT pool.</td><td>The fix for partner IP allow-lists and SNAT exhaustion.</td></tr>
+<tr><td>Outbound</td><td>Hybrid Connections</td><td>Reaches a single host:port on-premises through a relay agent.</td><td>Narrow and simple. Not a network.</td></tr>
+<tr><td>Both</td><td>ASE v3</td><td>The whole environment lives in your subnet.</td><td>No private endpoint or VNet integration needed. Already inside.</td></tr>
+</table>
+<div class="card warn"><span class="tag warn">SNAT</span><p>Outbound connections to public endpoints use SNAT ports, about 128 preallocated per instance, shared by every app on that instance. A new <code>HttpClient</code> per call exhausts them fast, and the neighbour apps fail too. Fix it with connection reuse, private endpoints to Azure services, or a NAT gateway.</p></div>
+
+<h2 id="identity"><span class="num">7</span> Identity and security</h2>
+<table class="tight"><tr><th>Feature</th><th>What it does</th><th>Architect note</th></tr>
+<tr><td>Managed identity</td><td>System-assigned (tied to the app's life) or user-assigned (shared, survives the app).</td><td>Per app, not per plan. The default way to reach Key Vault, Service Bus, Storage, and SQL.</td></tr>
+<tr><td>App Service Authentication (Easy Auth)</td><td>Validates tokens at the platform before requests reach your code.</td><td>A second check behind APIM, so a leaked URL alone is not enough.</td></tr>
+<tr><td>TLS settings</td><td>HTTPS only, minimum TLS version, optional client certificates.</td><td>TLS terminates at the front end. Client certificates arrive as a header.</td></tr>
+<tr><td>Basic auth / FTP</td><td>Legacy publishing credentials.</td><td>Disable both. Deploy with Entra ID and the pipeline's identity.</td></tr>
+</table>
+<p>Identity detail lives in the <a href="../../oauth/oauth2-app-service-aks-identity-reference/">OAuth2, App Service &amp; AKS Identity reference</a>.</p>
+
+<h2 id="deploy"><span class="num">8</span> Deployment and slots</h2>
+<table class="tight"><tr><th>Topic</th><th>Reference</th></tr>
+<tr><td>Package deploy</td><td>Zip deploy, preferably run-from-package (<code>WEBSITE_RUN_FROM_PACKAGE</code>), so the site runs from an immutable package.</td></tr>
+<tr><td>Slots</td><td>Standard tier and up. More slots on Premium. Each slot is a full app on the same plan.</td></tr>
+<tr><td>Swap sequence</td><td>Target slot settings are applied to the source, instances restart and warm up, then routing flips. A failed warm-up cancels the swap.</td></tr>
+<tr><td>Warm-up</td><td>Use a warm-up path (<code>applicationInitialization</code> on Windows) or Health check so the swap waits for a ready app.</td></tr>
+<tr><td>Swap with preview</td><td>Pause after settings are applied. Test, then complete or cancel.</td></tr>
+<tr><td>Rollback</td><td>Swap back. The previous version is still sitting in the staging slot.</td></tr>
+</table>
+<div class="card note"><span class="tag note">slot rule</span><p>Anything environment-specific (endpoints, feature flags, queue names) must be a sticky slot setting. Anything the code needs to change with the release travels with the swap.</p></div>
+
+<h2 id="health"><span class="num">9</span> Reliability and health</h2>
+<table class="tight"><tr><th>Feature or limit</th><th>Behaviour</th><th>Architect note</th></tr>
+<tr><td>Health check</td><td>Pings a path on every instance. After 10 failed pings (non 2xx), the instance leaves the load balancer. If it stays unhealthy for one hour, it is replaced.</td><td>A single-instance app is never pulled from rotation. Run two or more instances.</td></tr>
+<tr><td>Request timeout</td><td>The front end returns a timeout if the app sends nothing for about 230 seconds (240 on Linux). Not configurable.</td><td>Long work goes async: return 202, process from a queue, expose status.</td></tr>
+<tr><td>Zone redundancy</td><td>Premium v2 to v4, Isolated v2. Minimum two instances, spread across zones.</td><td>Protects against a zone outage, not a region outage.</td></tr>
+<tr><td>Auto-heal</td><td>Recycles the process on rules: slow requests, memory, status codes.</td><td>A safety net, not a fix. Find the leak.</td></tr>
+<tr><td>ARR affinity</td><td>Sticky sessions via cookie. On by default.</td><td>Turn it off for stateless APIs so load spreads evenly.</td></tr>
+<tr><td>Platform upgrades</td><td>Instances restart periodically for patching.</td><td>Design for restarts: at least two instances, idempotent handlers, graceful shutdown.</td></tr>
+</table>
+
+<h2 id="observe"><span class="num">10</span> Observability</h2>
+<table class="tight"><tr><th>Tool</th><th>Use it for</th></tr>
+<tr><td>Application Insights</td><td>Requests, dependencies, exceptions, and distributed traces. Wire it with OpenTelemetry or the SDK.</td></tr>
+<tr><td>Diagnostic settings</td><td>Send platform logs (<code>AppServiceHTTPLogs</code>, <code>AppServiceConsoleLogs</code>, <code>AppServiceAppLogs</code>, platform events) to Log Analytics.</td></tr>
+<tr><td>Diagnose and solve problems</td><td>Built-in detectors for restarts, SNAT exhaustion, high CPU, and failed swaps. Check this first.</td></tr>
+<tr><td>Log stream / Kudu</td><td>Live logs, process explorer, memory dumps.</td></tr>
+</table>
+<p>Cross-service tracing lives in the <a href="../../observability/azure-observability-reference/">Observability reference</a>.</p>
+
+<h2 id="choose"><span class="num">11</span> Choosing a service</h2>
+<table class="tight"><tr><th>Need</th><th>Start with</th><th>Why</th></tr>
+<tr><td>One coherent application: shared code, shared state, one release</td><td>Web App (or AKS)</td><td>You own the request handling and lifecycle.</td></tr>
+<tr><td>Independent reactions: "when X arrives, do Y"</td><td>Function App</td><td>The runtime owns triggers, scaling, and retries.</td></tr>
+<tr><td>Long waits, callbacks, many partner endpoints, run history for support</td><td>Logic Apps Standard</td><td>The workflow is the product. Push dense parsing behind it.</td></tr>
+<tr><td>Many services, sidecars, mesh, full network control, a platform team</td><td>AKS</td><td>A hosting and operations choice. The same ASP.NET Core code runs on either.</td></tr>
+</table>
+<div class="quote">Choose the workload shape first. Then choose the plan by load.</div>
+
+<h2 id="failure"><span class="num">12</span> Failure checklist</h2>
+<table class="tight"><tr><th>Symptom</th><th>Check first</th></tr>
+<tr><td>Intermittent outbound failures under load, neighbour apps also failing</td><td>SNAT exhaustion. Look for per-call <code>HttpClient</code>. Add connection reuse, private endpoints, or a NAT gateway.</td></tr>
+<tr><td>Private endpoint set up, app still resolves to a public IP</td><td>Private DNS zone <code>privatelink.azurewebsites.net</code> not linked to the caller's VNet, or custom DNS not forwarding.</td></tr>
+<tr><td>App cannot reach a private resource</td><td>VNet integration missing, route-all off, NSG or UDR on the integration subnet, or DNS for the target.</td></tr>
+<tr><td>New instances fail after scale-out</td><td>Integration subnet out of addresses.</td></tr>
+<tr><td>Timer or queue work stops overnight on a Dedicated plan</td><td>Always On is off.</td></tr>
+<tr><td>Requests fail at about 4 minutes</td><td>The 230-second front-end timeout. Make the operation async.</td></tr>
+<tr><td>Production uses staging values after a swap</td><td>Setting was not marked as a sticky slot setting.</td></tr>
+<tr><td>Key Vault reference shows an error</td><td>Managed identity lacks access, or the vault is private and the app has no network path to it.</td></tr>
+<tr><td>Queue backlog grows, plan does not scale</td><td>Dedicated plans scale on rules. Add a Service Bus metric rule, or move the consumer to Elastic Premium or Flex.</td></tr>
+<tr><td>One app slows every other app</td><td>Shared plan. Split the plan or set per-app limits.</td></tr>
+</table>
+
+<h2 id="sources"><span class="num">13</span> Sources</h2>
+<ul class="source-list">
+<li><a href="https://learn.microsoft.com/en-us/azure/app-service/overview-hosting-plans">App Service plans overview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/app-service/app-service-configure-premium-v4-tier">Configure Premium v4 tier</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/app-service/manage-automatic-scaling">Automatic scaling</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/reliability/reliability-app-service">Reliability in App Service (zone redundancy)</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/app-service/monitor-instances-health-check">Health check</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/app-service/networking-features">App Service networking features</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/app-service/overview-vnet-integration">Virtual network integration</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/app-service/configure-vnet-integration-routing">VNet integration routing</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/app-service/overview-private-endpoint">Private endpoints for App Service</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/app-service/troubleshoot-intermittent-outbound-connection-errors">Intermittent outbound connection errors (SNAT)</a></li>
+<li><a href="https://learn.microsoft.com/en-us/troubleshoot/azure/app-service/web-request-times-out-app-service">Web request times out after 230 seconds</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/app-service/deploy-staging-slots">Deployment slots</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/app-service/app-service-key-vault-references">Key Vault references</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity">Managed identities</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/logic-apps/single-tenant-overview-compare">Logic Apps single-tenant vs multitenant (hosting)</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide">.NET isolated worker model</a></li>
+</ul>
+<div class="footer">Azure App Service - Reference Notes - researched September 2026</div></body></html>

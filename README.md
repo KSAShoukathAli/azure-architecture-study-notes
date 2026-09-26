@@ -109,6 +109,43 @@ Key model:
 
 ---
 
+## Azure App Service
+
+- **[Azure App Service - All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/app-service/)**
+- **[Azure App Service - Reference Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/app-service/azure-app-service-reference/)**
+- **[Azure App Service - Feynman Way of Understanding](https://ksashoukathali.github.io/azure-architecture-study-notes/app-service/azure-app-service-feynman/)**
+
+Core mental model:
+
+> **Web App = ASP.NET Core web host**  
+> **Function App = web host + WebJobs runtime**  
+> **Logic Apps Standard = Function App + workflow extension**  
+> **The plan is the compute. The app is the behaviour.**
+
+The App Service material covers:
+
+- the platform model: plans, instances, front ends, apps, slots, and the SCM/Kudu site
+- Web App vs Function App vs Logic Apps Standard, and what each layer adds
+- the .NET isolated worker process vs the Functions host
+- config files per layer: settings file, `host.json`, `connections.json`
+- app settings, sticky slot settings, Key Vault references, and identity-based connections
+- tiers from Basic to Premium v4 and Isolated v2, and which features each unlocks
+- which plans each app type can use, and why Logic Apps Standard gets its own Workflow Standard plan
+- scale up, autoscale rules, automatic scaling, and the Functions scale controller
+- shared-plan traps: noisy neighbours, Always On, and SNAT port exhaustion
+- inbound (access restrictions, private endpoint) vs outbound (VNet integration, route all, NAT gateway)
+- managed identity, Easy Auth, and TLS termination at the front end
+- deployment slots, swap sequence, warm-up, and rollback
+- health check, the 230-second request timeout, zone redundancy, and ARR affinity
+- following one request in, through the plan, and out, then asking what survives a failure
+- choosing between Web App, Function App, Logic Apps Standard, and AKS
+
+Key architect model:
+
+> **Choose the workload shape first. Then choose the plan by load.**
+
+---
+
 ## Azure Logic Apps
 
 - **[Azure Logic Apps - All Notes](https://ksashoukathali.github.io/azure-architecture-study-notes/logic-apps/)**
@@ -399,6 +436,13 @@ azure-architecture-study-notes/
 │   ├── azure-networking-concepts-reference/
 │   │   └── index.html
 │   └── azure-networking-concepts-feynman/
+│       └── index.html
+│
+├── app-service/
+│   ├── index.html
+│   ├── azure-app-service-reference/
+│   │   └── index.html
+│   └── azure-app-service-feynman/
 │       └── index.html
 │
 ├── logic-apps/
